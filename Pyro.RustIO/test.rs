@@ -1,0 +1,1 @@
+println!("Rust init");
