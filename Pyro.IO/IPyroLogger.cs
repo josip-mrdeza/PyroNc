@@ -2,7 +2,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Pyro.IO
+namespace Pyro.IO.Logging
 {
     public interface IPyroLogger
     {

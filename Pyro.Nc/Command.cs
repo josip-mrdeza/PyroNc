@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using Pyro.IO;
+using Pyro.IO.Logging;
 
 namespace Pyro.Nc
 {
@@ -20,6 +20,10 @@ namespace Pyro.Nc
             Logger ??= new PyroFileLogger();
         }
 
-        public async Task Invoke() => await Function(Args); 
+        public async Task Invoke() => await Function(Args);
+
+        public override string ToString(){
+          return $"Command: '{Id}'";
+        }
     }
 }

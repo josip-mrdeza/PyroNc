@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Pyro.Nc{
   public readonly class Measurement{
     private Stopwatch time;

@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Pyro.IO
+namespace Pyro.IO.Logging
 {
     public class PyroFileLogger : IPyroLogger
     {
@@ -29,7 +29,7 @@ namespace Pyro.IO
             // };
             // #endif
         }
-        
+
         public void Log(string message)
         {
             var data = StringToBytes(message + '\n');
@@ -48,7 +48,7 @@ namespace Pyro.IO
             await File.WriteAsync(data, 0, data.Length);
             await File.FlushAsync();
         }
-        
+
         public async Task LogAsync(Exception exception)
         {
             await LogAsync('\n' + exception.ToString() + '\n');
