@@ -7,7 +7,10 @@ namespace Pyro.IO
     public static class LINQExt
     {
         public static TR Mutate<T, TR>(this T obj, Func<T, TR> func) => func(obj);
-
+        public static IEnumerable<TR> Mutate<T, TR>(this IEnumerable<T> collection, Func<T, TR> func)
+        {
+           return collection.Select<T, TR>(func);
+        }
         public static IEnumerable<T> For<T>(this IEnumerable<T> collection, Action<T, int> action, ref int i, int iterations)
         {
             var enumerator = collection.GetEnumerator();
@@ -20,7 +23,7 @@ namespace Pyro.IO
 
             return collection;
         }
-        
+
         public static IEnumerable<T> For<T>(this IEnumerable<T> collection, Action<T, int> action, ref int i)
         {
             return collection.For(action, ref i, collection.Count());
@@ -29,7 +32,7 @@ namespace Pyro.IO
         public static IEnumerable<T> ForApplicable<T>(this IEnumerable<T> collection, Predicate<T> predicate, Action<T, int> action, ref int i)
         {
             T[] arr = collection as T[];
-            
+
             if (arr is null)
             {
                 var list = collection as List<T>;
@@ -39,9 +42,9 @@ namespace Pyro.IO
             arr.For(action, ref i, arr.Count(x => predicate(x)));
             return arr;
         }
-        
+
         public static TR MutateCastRef<T, TR>(this T obj) where T : class
-                                                          where TR : class 
+                                                          where TR : class
         {
             return (TR) (object) obj;
         }
@@ -50,7 +53,7 @@ namespace Pyro.IO
         {
             return (TR) obj;
         }
-        
+
         public static int ContainsFast(this string s, string substring)
         {
             if (s.Length < substring.Length)
