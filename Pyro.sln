@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyro.IO", "Pyro.IO\Pyro.IO.csproj", "{B4A194AF-2944-4F53-A15F-4A3259CFDE78}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyro.Math", "Pyro.Math\Pyro.Math.csproj", "{7E0B0029-14C9-42F6-A2C5-7CFC43C649E0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyro.Nc", "Pyro.Nc\Pyro.Nc.csproj", "{AAE2875E-E402-4E5B-BB76-DA7D6D6B0812}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyro.Engineering", "Pyro.Engineering\Pyro.Engineering.csproj", "{AB519B4D-342D-42F0-8D9E-EF97411B61BB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroTests", "PyroTests\PyroTests.csproj", "{F496335B-435E-4CD4-A70F-4AC01B99689B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyro.IO.Memory", "Pyro.IO.Memory\Pyro.IO.Memory.csproj", "{6D7C301F-65A9-4CF3-A463-511EF4615486}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B4A194AF-2944-4F53-A15F-4A3259CFDE78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4A194AF-2944-4F53-A15F-4A3259CFDE78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4A194AF-2944-4F53-A15F-4A3259CFDE78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4A194AF-2944-4F53-A15F-4A3259CFDE78}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E0B0029-14C9-42F6-A2C5-7CFC43C649E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E0B0029-14C9-42F6-A2C5-7CFC43C649E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E0B0029-14C9-42F6-A2C5-7CFC43C649E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E0B0029-14C9-42F6-A2C5-7CFC43C649E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AAE2875E-E402-4E5B-BB76-DA7D6D6B0812}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AAE2875E-E402-4E5B-BB76-DA7D6D6B0812}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AAE2875E-E402-4E5B-BB76-DA7D6D6B0812}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AAE2875E-E402-4E5B-BB76-DA7D6D6B0812}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB519B4D-342D-42F0-8D9E-EF97411B61BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB519B4D-342D-42F0-8D9E-EF97411B61BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB519B4D-342D-42F0-8D9E-EF97411B61BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB519B4D-342D-42F0-8D9E-EF97411B61BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F496335B-435E-4CD4-A70F-4AC01B99689B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F496335B-435E-4CD4-A70F-4AC01B99689B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F496335B-435E-4CD4-A70F-4AC01B99689B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F496335B-435E-4CD4-A70F-4AC01B99689B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D7C301F-65A9-4CF3-A463-511EF4615486}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D7C301F-65A9-4CF3-A463-511EF4615486}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D7C301F-65A9-4CF3-A463-511EF4615486}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D7C301F-65A9-4CF3-A463-511EF4615486}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
