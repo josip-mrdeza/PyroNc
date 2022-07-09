@@ -12,11 +12,6 @@ namespace Pyro.IO.Logging{
       File = consoleStream;
       Timer = Stopwatch.StartNew();
     }
-    ~PyroConsoleLogger(){
-      File.Dispose();
-    }
-
-    public string Id {get;set;}
 
     public void Log(string message){
       var bytes = StringToBytes(message);
@@ -42,7 +37,7 @@ namespace Pyro.IO.Logging{
     }
     public string Id {get;set;}
     public Stream File {get;set;}
-    public float UpTime {get => Timer.ElapsedMiliseconds;}
+    public float UpTime { get => Timer?.ElapsedMilliseconds ?? float.NaN; }
     public Stopwatch Timer {get;}
   }
 }
