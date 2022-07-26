@@ -17,5 +17,10 @@ namespace Pyro.Math
         {
             return new Vector2D(v3d.x, v3d.y);
         }
+
+        public static implicit operator Vector3D((float x, float y, float z) tuple)
+        {
+            return new Vector3D(tuple.x, tuple.y, tuple.z);
+        }
     }
 }

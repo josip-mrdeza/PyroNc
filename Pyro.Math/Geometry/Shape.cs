@@ -5,6 +5,7 @@ namespace Pyro.Math.Geometry
         Circle,
         Rectangle,
         Square,
+        Line,
         Huperbola,
         Elipse,
         Ball,

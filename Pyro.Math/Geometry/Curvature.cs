@@ -5,6 +5,7 @@ namespace Pyro.Math.Geometry
         None,
         Line,
         Circle,
+        Arc,
         Hyperbola,
         Elipse
     }

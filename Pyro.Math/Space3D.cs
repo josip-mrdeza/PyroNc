@@ -74,9 +74,28 @@ namespace Pyro.Math
 
         public static bool IsInside(this Vector3D pointInSpace, I3DShape shape)
         {
-            return shape.XLimits.All(x => x.IsValidFor(pointInSpace.x))
-                && shape.YLimits.All(y => y.IsValidFor(pointInSpace.y))
-                && shape.ZLimits.All(z => z.IsValidFor(pointInSpace.z));
+            return shape.XLimits.All(x =>
+                {
+                    var valid = x.IsValidFor(pointInSpace.x);
+                    return valid;
+                })
+                && shape.YLimits.All(y =>
+                {
+                    var valid = y.IsValidFor(pointInSpace.y);
+                    return valid;
+                })
+                && shape.ZLimits.All(z =>
+                {
+                    var valid = z.IsValidFor(pointInSpace.z);
+                    return valid;
+                });
+        }
+
+        public static bool IsInsideComplex(this Vector3D pointInSpace, ComplexShape shape)
+        {
+            //'casting' 2 rays to see if they hit at least one side/point of the complex shape
+
+            return true;
         }
 
         public static bool IsTouching(this Vector3D pointInSpace, I3DShape shape)

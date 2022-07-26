@@ -14,7 +14,6 @@ namespace Pyro.Math
 
             return dts;
         }
-
         public static LineTranslationSmoothness LineSmoothnessForVelocity(float delay, float velocity)
         {
             //var dts = translationSmoothness * delay * STDev;

@@ -26,13 +26,17 @@ namespace Pyro.Nc
         {
             foreach (var listener in Listeners)
             {
-                listener.OnCommandExecute(command);
+                await listener.OnCommandExecute(command);
             }
         }
     }
 
     public interface IListener
     {
-        public void OnCommandExecute(Command command);
+        /// <summary>
+        /// A method definition which is called on every class which inherits IListener once any command gets executed in their respective Execution queues.
+        /// </summary>
+        /// <returns>A task to be awaited.</returns>
+        public Task OnCommandExecute(Command command);
     }
 }

@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Pyro.Math.Geometry
 {
-    public readonly struct Circle : IPrimitive
+    public class Circle : IPrimitive
     {
         public readonly float Radius;
         public readonly Vector2D Start;
