@@ -10,6 +10,13 @@ namespace Pyro.Math.Geometry
         public Limit[] XLimits { get; }
         public Limit[] YLimits { get; }
         public Limit[] ZLimits { get; }
+
+        public Vector3D this[int num]
+        {
+            get => Points[num];
+            set => Points[num] = value;
+        }
+
         public readonly CircleSmoothness Smoothness;      
         public Shape GeometricalShape { get; }
 

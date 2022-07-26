@@ -7,40 +7,47 @@ namespace Pyro.IO
     public static class LINQExt
     {
         public static TR Mutate<T, TR>(this T obj, Func<T, TR> func) => func(obj);
-        public static IEnumerable<TR> Mutate<T, TR>(this IEnumerable<T> collection, Func<T, TR> func)
+        public static IEnumerable<TR> MutateCollection<T, TR>(this IEnumerable<T> collection, Func<T, TR> func)
         {
            return collection.Select<T, TR>(func);
         }
-        public static IEnumerable<T> For<T>(this IEnumerable<T> collection, Action<T, int> action, ref int i, int iterations)
+        public static T[] For<T>(this T[] collection, Action<T, int> action, int iterations, ref int i)
         {
-            var enumerator = collection.GetEnumerator();
             for (; i < iterations; i++)
             {
-                enumerator.MoveNext();
-                action(enumerator.Current, i);
+                action(collection[i], i);
             }
-            enumerator.Dispose();
 
             return collection;
         }
 
-        public static IEnumerable<T> For<T>(this IEnumerable<T> collection, Action<T, int> action, ref int i)
+        public static T[] For<T>(this T[] collection, Action<T, int> action, int iterations)
         {
-            return collection.For(action, ref i, collection.Count());
+            var i = 0;
+
+            return collection.For(action, iterations, ref i);
+        }
+        
+        public static T[] For<T>(this T[] collection, Action<T, int> action)
+        {
+            var i = 0;
+            return collection.For(action, collection.Length, ref i);
         }
 
-        public static IEnumerable<T> ForApplicable<T>(this IEnumerable<T> collection, Predicate<T> predicate, Action<T, int> action, ref int i)
+        public static T[] For<T>(this T[] collection, Action<T> action)
         {
-            T[] arr = collection as T[];
-
-            if (arr is null)
+            for (int i = 0; i < collection.Length; i++)
             {
-                var list = collection as List<T>;
-                return list.For(action, ref i, list!.Count(x => predicate(x)));
+                action(collection[i]);
             }
 
-            arr.For(action, ref i, arr.Count(x => predicate(x)));
-            return arr;
+            return collection;   
+        }
+
+        public static T[] ForApplicable<T>(this T[] collection, Predicate<T> predicate, Action<T, int> action, ref int i)
+        {
+            collection.For(action, collection.Count(x => predicate(x)), ref i);
+            return collection;
         }
 
         public static TR MutateCastRef<T, TR>(this T obj) where T : class

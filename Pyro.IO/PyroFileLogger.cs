@@ -18,7 +18,7 @@ namespace Pyro.IO.Logging
         {
             Id = "UnityProj";
             Timer = Stopwatch.StartNew();
-            File = System.IO.File.Create($"log_{Id}.txt");
+            File = System.IO.File.Create($"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}\\log_{Id}.txt");
             Log($"Time: {DateTime.Now.ToLongTimeString()}, Logging done by IPyroLogger created.");
             Log($"Logging started for assembly with ID: '{Id}'!");
 
