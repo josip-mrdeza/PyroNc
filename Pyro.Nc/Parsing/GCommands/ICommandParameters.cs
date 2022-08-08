@@ -9,6 +9,7 @@ namespace Pyro.Nc.Parsing.GCommands
         public Dictionary<string, float> Values { get; set; }
 
         public float GetValue(string s);
+        public float AddValue(string key, float val);
         
         public LineTranslationSmoothness LineSmoothness { get; set; }
         public CircleSmoothness CircleSmoothness { get; set; }

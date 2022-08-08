@@ -19,7 +19,7 @@ namespace Pyro.Nc.Parsing.GCommands
             Tool = tool.GuardNullVariable("G00<ctor>.Tool");
             Parameters = parameters.GuardNullVariable("G00<ctor>.Parameters");
         }
-        public ITool Tool { get; }
+        public ITool Tool { get; set; }
         public virtual bool IsModal => true;
         public virtual bool IsArc => false;
         public ICommandParameters Parameters { get; set; }
@@ -35,8 +35,8 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public virtual async Task Execute(bool draw)
         {
-            Line3D line3D = new Line3D(Tool.Position.ToVector3D(), new Vector3D(Parameters.GetValue("X"), Parameters.GetValue("Y"), Parameters.GetValue("Z")), (int) Parameters.LineSmoothness);
-            await Tool.Traverse(line3D, draw);
+            await Tool.Traverse(new Vector3D(Parameters.GetValue("X"), Parameters.GetValue("Y"), Parameters.GetValue("Z")).ToVector3(),
+                                LineTranslationSmoothness.Rough, draw);
             Expire();
         }
 
@@ -49,7 +49,7 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public virtual ICommand Copy()
         {
-            return MemberwiseClone() as G00;
+            return MemberwiseClone() as ICommand;
         }
     }
 }

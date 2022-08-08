@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using JetBrains.Annotations;
 using ICommand = Pyro.Nc.Parsing.GCommands.ICommand;
@@ -11,7 +12,6 @@ namespace Pyro.Nc.Parsing
     public static class CommandHelper
     {
         internal static ValueStorage _storage;
-
         public static bool IsTrue<T>(this T obj, Predicate<T> predicate)
         {
             return predicate(obj);
@@ -23,7 +23,6 @@ namespace Pyro.Nc.Parsing
 
             return flag0 && flag1;
         }
-        
         public static bool IsMatch(this ICommand command, string code)
         {
             return code.IdentifyVariables().GatherCommands().IsTrue(t =>
@@ -39,7 +38,6 @@ namespace Pyro.Nc.Parsing
                 return flag1;
             });
         }
-
         public static bool IsMatch(this ICommand command, Type type)
         {
             return command.GetType() == type;

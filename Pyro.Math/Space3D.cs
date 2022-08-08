@@ -45,14 +45,14 @@ namespace Pyro.Math
             {
                 for (int i = 0; i < 360;  i += (int) multiplier)
                 {
-                    arr[(int) (i / multiplier)] = new Vector3D(-(i.Cos() * r), i.Sin() * r, -depth);
+                    arr[(int) (i / multiplier)] = new Vector3D(-(i.Cos() * r), i.Sin() * r, depth);
                 }
             }
             else
             {
                 for (int i = 0; i < 360; i++)
                 {
-                    arr[i] = new Vector3D(-((i * multiplier).Cos() * r), (i * multiplier).Sin() * r, -depth);
+                    arr[i] = new Vector3D(-((i * multiplier).Cos() * r), (i * multiplier).Sin() * r, depth);
                 }
             }
 

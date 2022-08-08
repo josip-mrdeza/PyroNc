@@ -1,6 +1,8 @@
+using System;
 using System.Threading.Tasks;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
+using UnityEngine;
 
 namespace Pyro.Nc.Parsing.MCommands
 {
@@ -8,9 +10,10 @@ namespace Pyro.Nc.Parsing.MCommands
     {
         public M00(ITool tool, ICommandParameters parameters)
         {
-            
+            Tool = tool;
+            Parameters = parameters;
         }
-        public ITool Tool { get; }
+        public ITool Tool { get; set; }
         public virtual bool IsModal => false;
         public virtual bool IsArc => false;
         public string Description { get; }
@@ -18,17 +21,42 @@ namespace Pyro.Nc.Parsing.MCommands
 
         public async Task Execute()
         {
-            
+            await Execute(false);
         }
-        public async Task Execute(bool draw) => throw new System.NotImplementedException();
-
-        public void Expire() => throw new System.NotImplementedException();
-
-        public void Plan() => throw new System.NotSupportedException();
-
-        public ICommand Copy()
+        public virtual async Task Execute(bool draw)
         {
-            return this.MemberwiseClone() as M00;
+            var flag0 = Parameters.Values.TryGetValue("S", out var ms);
+            ms *= 1000f;
+            if (!flag0)
+            {
+                Parameters.Values.TryGetValue("P", out ms);
+            }
+
+            var parameters = Parameters as MCommandParameters;
+            for (int i = 0; i < ms; i++)
+            {
+                await Task.Yield();
+                if (parameters!.Token.IsCancellationRequested)
+                {
+                    break;
+                }
+                await Task.Delay(1);
+                Tool.IsAllowed = false;
+            }
+
+            Tool.IsAllowed = true;
+        }
+        public void Expire()
+        {
+            throw new NotSupportedException();
+        }
+        public void Plan()
+        {
+            throw new NotSupportedException(); 
+        }
+        public virtual ICommand Copy()
+        {
+            return this.MemberwiseClone() as ICommand;
         }
     }
 }

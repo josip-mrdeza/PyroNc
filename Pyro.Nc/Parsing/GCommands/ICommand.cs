@@ -6,7 +6,7 @@ namespace Pyro.Nc.Parsing.GCommands
 {
     public interface ICommand
     {
-        public ITool Tool { get; }
+        public ITool Tool { get; set; }
         public bool IsModal { get; }
         public bool IsArc { get; }
         public string Description { get; }

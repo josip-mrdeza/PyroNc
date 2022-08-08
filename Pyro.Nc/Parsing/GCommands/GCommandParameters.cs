@@ -12,6 +12,19 @@ namespace Pyro.Nc.Parsing.GCommands
             return Values[s];
         }
 
+        public float AddValue(string key, float val)
+        {
+            if (Values.ContainsKey(key))
+            {
+                Values[key] = val;
+
+                return val;
+            }
+            Values.Add(key, val);
+
+            return val;
+        }
+
         public LineTranslationSmoothness LineSmoothness { get; set; }
         public CircleSmoothness CircleSmoothness { get; set; }
 
@@ -35,9 +48,9 @@ namespace Pyro.Nc.Parsing.GCommands
                 {"X", x},
                 {"Y", y},
                 {"Z", z},
-                {"I", float.NaN},
-                {"J", float.NaN},
-                {"K", float.NaN},
+                {"I", 0},
+                {"J", 0},
+                {"K", 0},
                 {"R", radius}
             };
             CircleSmoothness = smoothness;

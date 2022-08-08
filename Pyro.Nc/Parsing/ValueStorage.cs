@@ -116,11 +116,11 @@ namespace Pyro.Nc.Parsing
 
                 if (instance is null)
                 {
-                    RemoteGuard.ExceptionLogger.Send($"GCommand '{name}' was not found in {typeFullName}; Command is undefined!");
+                    //RemoteGuard.ExceptionLogger.Send($"GCommand '{name}' was not found in {typeFullName}; Command is undefined!");
                     return null;
                 }
 
-                RemoteGuard.ExceptionLogger.Send($"GCommand '{name}' has been instantiated!");
+                //RemoteGuard.ExceptionLogger.Send($"GCommand '{name}' has been instantiated!");
                 
                 return instance;
             });
@@ -135,12 +135,12 @@ namespace Pyro.Nc.Parsing
 
                 if (instance is null)
                 {
-                    RemoteGuard.ExceptionLogger.Send($"MCommand '{name}' was not found in {typeFullName}; Command is undefined!");
+                    //RemoteGuard.ExceptionLogger.Send($"MCommand '{name}' was not found in {typeFullName}; Command is undefined!");
 
                     return null;
                 }
                 
-                RemoteGuard.ExceptionLogger.Send($"MCommand '{name}' has been instantiated!");
+                //RemoteGuard.ExceptionLogger.Send($"MCommand '{name}' has been instantiated!");
                 return instance;
             });
             
@@ -152,12 +152,12 @@ namespace Pyro.Nc.Parsing
                 
                 if (instance is null)
                 {
-                    RemoteGuard.ExceptionLogger.Send($"Arbitrary command '{v}' was not found in {typeFullName}; Command is undefined!");
+                    //RemoteGuard.ExceptionLogger.Send($"Arbitrary command '{v}' was not found in {typeFullName}; Command is undefined!");
 
                     return null;
                 }
 
-                RemoteGuard.ExceptionLogger.Send($"Arbitrary command '{v}' has been instantiated!");
+                //RemoteGuard.ExceptionLogger.Send($"Arbitrary command '{v}' has been instantiated!");
 
                 return instance;
             }); 
