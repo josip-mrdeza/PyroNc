@@ -23,10 +23,5 @@ namespace Pyro.Nc.Parsing.GCommands
         {
             await base.Execute(true, draw);
         }
-
-        public override ICommand Copy()
-        {
-            return this.MemberwiseClone() as G03;
-        }
     }
 }

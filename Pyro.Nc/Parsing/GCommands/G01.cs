@@ -12,10 +12,5 @@ namespace Pyro.Nc.Parsing.GCommands
         {
             get => Locals.G01;
         }
-
-        public override ICommand Copy()
-        {
-            return this.MemberwiseClone() as G01;
-        }
     }
 }

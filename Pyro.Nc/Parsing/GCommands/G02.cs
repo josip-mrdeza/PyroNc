@@ -35,10 +35,5 @@ namespace Pyro.Nc.Parsing.GCommands
             await Tool.Traverse(altPos, diff, reverse, draw);
             Expire();
         }
-        
-        public override ICommand Copy()
-        {
-            return this.MemberwiseClone() as G02;
-        }
     }
 }
