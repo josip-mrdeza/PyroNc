@@ -9,6 +9,7 @@ namespace Pyro.Nc.Parsing.GCommands
         public G61(ITool tool, GCommandParameters parameters) : base(tool, parameters)
         {
         }
+        public override string Description { get => Locals.G61; } 
 
         public override async Task Execute(bool draw)
         {

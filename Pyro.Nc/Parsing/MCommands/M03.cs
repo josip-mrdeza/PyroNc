@@ -10,6 +10,7 @@ namespace Pyro.Nc.Parsing.MCommands
         public M03(ITool tool, ICommandParameters parameters) : base(tool, parameters)
         {
         }
+        public string Description { get => Locals.M03; }
 
         public override async Task Execute(bool draw)
         { 

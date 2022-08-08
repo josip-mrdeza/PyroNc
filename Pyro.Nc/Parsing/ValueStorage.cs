@@ -144,9 +144,9 @@ namespace Pyro.Nc.Parsing
                 return instance;
             });
             
-            strg.ArbitraryCommands = acoms.ToDictionary(k => k.ToUpper(), v =>
+            strg.ArbitraryCommands = acoms.ToDictionary(k => k.Split(spaceSeparator)[1], v =>
             {
-                var typeFullName = typePrefixA + v;
+                var typeFullName = typePrefixA + v.Split(spaceSeparator)[0];
                 var type = Type.GetType(typeFullName);
                 var instance = type is null ? null : Activator.CreateInstance(type, tool, null) as ICommand;
                 

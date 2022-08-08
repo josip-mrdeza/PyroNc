@@ -10,6 +10,8 @@ namespace Pyro.Nc.Parsing.GCommands
         {
         }
 
+        public override string Description { get => Locals.G04; } 
+
         public override async Task Execute(bool draw)
         {
             await Tool.Storage.FetchMCommand("M00").Mutate(m =>

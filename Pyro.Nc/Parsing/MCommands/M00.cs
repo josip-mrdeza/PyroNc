@@ -16,7 +16,7 @@ namespace Pyro.Nc.Parsing.MCommands
         public ITool Tool { get; set; }
         public virtual bool IsModal => false;
         public virtual bool IsArc => false;
-        public string Description { get; }
+        public string Description { get => Locals.M00; }
         public ICommandParameters Parameters { get; set; }
 
         public async Task Execute()

@@ -8,5 +8,7 @@ namespace Pyro.Nc.Parsing.MCommands
         public M01(ITool tool, ICommandParameters parameters) : base(tool, parameters)
         {
         }
+        public string Description { get => Locals.M01; }
+
     }
 }
