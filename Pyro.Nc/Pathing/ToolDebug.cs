@@ -86,6 +86,10 @@ namespace Pyro.Nc.Pathing
                     await OnCollision.Invoke(Current, Position);
                 }
             }
+            else
+            {
+                Debug.Log($"[{(Current is null ? "nullC" : Current.Description)}] Tool did not cut the workpiece at position {Position.ToString()}");
+            }
         }
         public virtual async Task Traverse(Vector3[] points, bool draw)
         {
@@ -141,7 +145,7 @@ namespace Pyro.Nc.Pathing
 
         protected virtual async Task Cut(ICommand command, Vector3 position)
         {
-             
+            Debug.LogWarning($"[{command.Description}] Should Cut at {position.ToString()}");
         }
         
     }

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
 using TrCore;
@@ -59,10 +60,15 @@ namespace Pyro.Nc.Parsing
         {
             if (!ArbitraryCommands.TryGetValue(code.ToUpper(), out var ic))
             {
+                ref var kvp = ref CommandHelper._cachedKvp;
+                if (code.Contains(kvp!.Value.Key))
+                {
+                    return kvp!.Value.Value.Copy();
+                }
                 return null;
             }
             
-            return ic.GuardNull($"GCommand '{code}' does not exist in the dictionary!").Copy();
+            return ic.GuardNull($"ACommand '{code}' does not exist in the dictionary!").Copy();
         }
 
         public ICommand TryGetCommand(string code)
@@ -109,19 +115,7 @@ namespace Pyro.Nc.Parsing
             {
                 var typeFullName = typePrefixG + v.Split(spaceSeparator)[0];
                 var type = Type.GetType(typeFullName);
-                var instance = type is null ? null
-                    : Activator.CreateInstance(type, tool, new GCommandParameters(0, 0, 0)) as ICommand;
-
-                var name = v.Split('|')[1];
-
-                if (instance is null)
-                {
-                    //RemoteGuard.ExceptionLogger.Send($"GCommand '{name}' was not found in {typeFullName}; Command is undefined!");
-                    return null;
-                }
-
-                //RemoteGuard.ExceptionLogger.Send($"GCommand '{name}' has been instantiated!");
-                
+                var instance = type is null ? null : Activator.CreateInstance(type, tool, new GCommandParameters(0, 0, 0)) as ICommand;
                 return instance;
             });
             
@@ -130,17 +124,6 @@ namespace Pyro.Nc.Parsing
                 var typeFullName = typePrefixM + v.Split(spaceSeparator)[0];
                 var type = Type.GetType(typeFullName);
                 var instance = type is null ? null : Activator.CreateInstance(type, tool, null) as ICommand;
-
-                var name = v.Split('|')[1];
-
-                if (instance is null)
-                {
-                    //RemoteGuard.ExceptionLogger.Send($"MCommand '{name}' was not found in {typeFullName}; Command is undefined!");
-
-                    return null;
-                }
-                
-                //RemoteGuard.ExceptionLogger.Send($"MCommand '{name}' has been instantiated!");
                 return instance;
             });
             
@@ -149,18 +132,10 @@ namespace Pyro.Nc.Parsing
                 var typeFullName = typePrefixA + v.Split(spaceSeparator)[0];
                 var type = Type.GetType(typeFullName);
                 var instance = type is null ? null : Activator.CreateInstance(type, tool, null) as ICommand;
-                
-                if (instance is null)
-                {
-                    //RemoteGuard.ExceptionLogger.Send($"Arbitrary command '{v}' was not found in {typeFullName}; Command is undefined!");
-
-                    return null;
-                }
-
-                //RemoteGuard.ExceptionLogger.Send($"Arbitrary command '{v}' has been instantiated!");
-
                 return instance;
             }); 
+            
+            CommandHelper._cachedKvp ??= strg.ArbitraryCommands.FirstOrDefault(kvp => kvp.Value.GetType() == typeof(Comment));
             return strg;
         }
 

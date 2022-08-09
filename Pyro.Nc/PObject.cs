@@ -16,9 +16,9 @@ namespace Pyro.Nc
             new Vector3D(10, 0, 10),
             new Vector3D(10, 20, 10),
             new Vector3D(0, 20, 10)
-        }, new [] { new Limit(Axis3D.X, 0, 10)}, 
-            new []{ new Limit(Axis3D.Y, 0, 20)}, 
-            new []{ new Limit(Axis3D.Z, 0, 10)})
+        }, new [] { new Limit(Axis3D.X, -10, 10)}, 
+            new []{ new Limit(Axis3D.Y, -0.5f, 0.5f)}, 
+            new []{ new Limit(Axis3D.Z, -10, 10)})
         {
             
         }

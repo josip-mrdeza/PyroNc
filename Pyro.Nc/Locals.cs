@@ -2,6 +2,7 @@ namespace Pyro.Nc
 {
     public static class Locals
     {
+        public const string Comment = "Comment";
         public const string G00 = "Fast Move";
         public const string G01 = "Cut Move";
         public const string G02 = "Circular Move (Clockwise)";

@@ -1,15 +1,14 @@
 using System.Threading.Tasks;
+using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
 using UnityEngine;
 
-namespace Pyro.Nc.Parsing.GCommands
+namespace Pyro.Nc.Parsing
 {
-    public interface ICommand
+    public interface ICommand : IShallowCommand
     {
-        public ITool Tool { get; set; }
         public bool IsModal { get; }
         public bool IsArc { get; }
-        public string Description { get; }
         public ICommandParameters Parameters { get; set; }
         public Task Execute();
         public Task Execute(bool draw);

@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Input;
-using JetBrains.Annotations;
-using ICommand = Pyro.Nc.Parsing.GCommands.ICommand;
+using Pyro.IO;
+using Pyro.Nc.Parsing.ArbitraryCommands;
 
 namespace Pyro.Nc.Parsing
 {
@@ -44,6 +41,11 @@ namespace Pyro.Nc.Parsing
         }
         public static List<string[]> IdentifyVariables(this string code)
         {
+            var index = code.ContainsFast(_cachedKvp!.Value.Key);
+            if (index != -1)
+            {
+                code = code.Insert(index, " "); 
+            }
             return IdentifyVariables(code.Split(' '));
         }
         public static List<string[]> IdentifyVariables(this string[] splitCode)
@@ -53,7 +55,7 @@ namespace Pyro.Nc.Parsing
             {
                 var section = splitCode[i]; 
                 
-                if (_storage.FetchGCommand(section) != null || _storage.FetchMCommand(section) != null || _storage.FetchArbitraryCommand(section) != null)
+                if (_storage.FetchArbitraryCommand(section) != null || _storage.FetchGCommand(section) != null || _storage.FetchMCommand(section) != null)
                 {
                     indices.Add(i);
                 }
@@ -81,10 +83,25 @@ namespace Pyro.Nc.Parsing
         public static List<ICommand> GatherCommands(this List<string[]> arrOfCommands)
         {
             List<ICommand> commands = new List<ICommand>();
-            foreach (var commandString in arrOfCommands)
+            for (var index = 0; index < arrOfCommands.Count; index++)
             {
+                var commandString = arrOfCommands[index];
+                ICommand command;
                 var id = commandString[0];
-                ICommand command = _storage.TryGetCommand(id);
+                var cachedVal = _cachedKvp.Value;
+                if (id.Contains(cachedVal.Key))
+                {
+                    var comment = cachedVal.Value.Copy() as Comment;
+                    comment!.Text = string.Join(" ", arrOfCommands.Mutate(c =>
+                    {
+                        return c.Skip(index).Select(ci => string.Join(" ", ci)).ToArray();
+                    }));
+                    commands.Add(comment);
+
+                    return commands;
+                }
+
+                command = _storage.TryGetCommand(id);
                 for (int i = 1; i < commandString.Length; i++)
                 {
                     var par = commandString[i];
@@ -96,6 +113,7 @@ namespace Pyro.Nc.Parsing
 
             return commands;
         }
-        
+
+        internal static KeyValuePair<string, ICommand>? _cachedKvp;
     }
 }
