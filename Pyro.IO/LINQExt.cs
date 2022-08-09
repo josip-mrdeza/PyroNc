@@ -7,6 +7,8 @@ namespace Pyro.IO
     public static class LINQExt
     {
         public static TR Mutate<T, TR>(this T obj, Func<T, TR> func) => func(obj);
+        public static TR Do<T, TR>(this T obj, Func<T, TR> func) => func(obj);
+        public static void Do<T>(this T obj, Action<T> action) => action(obj);
         public static IEnumerable<TR> MutateCollection<T, TR>(this IEnumerable<T> collection, Func<T, TR> func)
         {
            return collection.Select<T, TR>(func);

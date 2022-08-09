@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Pyro.IO;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
@@ -94,9 +95,9 @@ namespace Pyro.Nc.Parsing
             strg.CreateLocalLowDir();
 
             string fullPath = strg.StorageDirectory.FullName + "\\commandId.txt";
-            var separator1 = "//##G";
-            var separator2 = "//##M";
-            var separator3 = "//##A";
+            var separator1 = "##G";
+            var separator2 = "##M";
+            var separator3 = "##A";
             var spaceSeparator = '|';
 
             var typePrefixG = "Pyro.Nc.Parsing.GCommands.G";
@@ -107,9 +108,9 @@ namespace Pyro.Nc.Parsing
 
             
             string[] lines = File.ReadAllLines(fullPath);
-            var gcoms = lines.TakeWhile(x => x != separator1).Where(y => !y.Contains("//##")).ToArray();
-            var mcoms = lines.SkipWhile(x => x != separator1).TakeWhile(y => y != separator2).Where(z => !z.Contains("//##")).ToArray();
-            var acoms = lines.SkipWhile(x => x != separator2).TakeWhile(y => y != separator3).Where(z => !z.Contains("//##")).ToArray();
+            var gcoms = lines.TakeWhile(x => x != separator1).Where(y => !y.Contains("##") && !y.Contains("//")).ToArray();
+            var mcoms = lines.SkipWhile(x => x != separator1).TakeWhile(y => y != separator2).Where(z => !z.Contains("##") && !z.Contains("//")).ToArray();
+            var acoms = lines.SkipWhile(x => x != separator2).TakeWhile(y => y != separator3).Where(z => !z.Contains("##") && !z.Contains("//")).ToArray();
 
             strg.GCommands = gcoms.ToDictionary(k => int.Parse(k.Split(spaceSeparator)[0]), v =>
             {
@@ -145,7 +146,10 @@ namespace Pyro.Nc.Parsing
             if (!StorageDirectory.Exists)
             {
                 Directory.CreateDirectory(StorageDirectory.FullName);
-                File.Create($"{StorageDirectory.FullName}\\commandId.txt");
+                File.ReadAllBytes($"{AppDomain.CurrentDomain.BaseDirectory}\\commandId.txt").Do(x =>
+                {
+                    File.Create($"{StorageDirectory.FullName}\\commandId.txt").Write(x, 0, x.Length);
+                });
             }
         }
     }

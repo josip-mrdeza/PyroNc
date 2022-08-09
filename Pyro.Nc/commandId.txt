@@ -1,0 +1,23 @@
+//You can tweak, add, or remove commands from this file as you wish.
+//To add comments for yourself use a prefix '//'.
+//Command ids begin with an integer ID, ex. (00) for G0/G00; Arbitrary commands do not require this since none of them contain an integer ID in their string id.
+//'##{SUFIX}' where 'SUFIX' is either 'G', 'M', or 'A' for GCommand, ModularCommand, ArbitraryCommand is used for notation the of a command sequence's end, and has to be used in order for the ValueStorage type to read the elements properly.
+00|G0
+01|G1
+02|G2
+03|G3
+04|G4
+60|G60
+61|G61
+##G
+00|M0
+01|M1
+02|M2
+03|M3
+04|M4
+05|M5
+06|M6
+##M
+Trans|TRANS
+Comment|;
+##A
