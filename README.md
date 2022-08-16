@@ -1,24 +1,21 @@
 # Pyro
 A Collection of libraries, mostly used for PyroNc, a G-code simulation software I'm building.
 
-# PyroNc
+# Pyro.IO.Mods
+>Intended for adding plugins to .NET software at runtime.
 
-## CommandHelper.cs
-  
->### Important methods  
->
->>***List<string[]> IdentifyVariables(this string[] splitCode)***
->>>This function takes a line of G-Code split into pieces (preferably with a empty char separator).
->>>It collects indicies of known functions (Fetched from ValueStorage's dictionaries), 
-followed by attempting to string together the known function's parameters from the line.
-It returns a List<string[]> signifying that each string array in the list is one 'function', first element is the actual function ID, followed for all it's parameters.
->  
->
->>***List<ICommand> GatherCommands(this List<string[]> arrOfCommands)***
->>>This function takes the last function's output and tries to fetch the required copies of functions from the ValueStorage's dictionaries, 
-then it attempts to assign the functions their parameters or, if a comment char is present in one of the string arrays, it will create a comment containing a string of all text
-after the comment char. Afterwards it returns a List of commands that have been read.
->
->
->>***async Task<ValueStorage> CreateFromFile(ITool tool)***
+# Pyro.IO
+>General library intended to provide utilities for LINQ and General IO.
+
+# Pyro.Math
+>Provides various methods for calculating newton's forces (Pyro.Math.Physics), Plotting the points of a circle based on the n number of points, Plotting lines ( segmented into n parts ), and other basic mathemathical functions such as Sin, Cos, Tan, Arc_Sin, Arc_Cos, Arc_Tan...  
+>TODO: CUDA Implementation
+
+# Pyro.Nc
+>The core of Pyro; This assembly contains code required to manage a tool for CNC Simulation, ranging from parsing valid GCODE strings fetched from Unity's InputField instance,  converting that ***GCODE*** string to ***ICommand*** instances which later get executed by the tool using the ***ICommand.Execute(bool draw)***, the boolean 'draw' signifying the ability for the command to draw it's path in the case of ***GCommands*** which move the tool in order to cut or position. 
+>This assembly requires a .txt file located in *C:\Users\X\AppData\Local\PyroNc\commandId.txt*, which contains all the required ID's that Pyro.Nc's GCODE parser uses to identify ***ICommands***.
+>>If this file is missing, an error is thrown whilst initializing the class ValueStorage (The class containing dictionaries constisting of all ICommands) and no code can be parsed or executed!  
+>>This file is automatically added to the defined path at ***compile time***.
+
+
 
