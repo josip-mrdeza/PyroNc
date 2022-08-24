@@ -6,7 +6,7 @@ using Pyro.Nc.Pathing;
 
 namespace Pyro.Nc.Parsing.GCommands
 {
-    public class G80 : BaseCommand
+    public sealed class G80 : BaseCommand
     {
         public G80(ITool tool, GCommandParameters parameters) : base(tool, parameters)
         {

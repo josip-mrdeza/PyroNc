@@ -4,7 +4,7 @@ using Pyro.Nc.Pathing;
 
 namespace Pyro.Nc.Parsing.GCommands
 {
-    public class G04 : G00
+    public sealed class G04 : BaseCommand
     {
         public G04(ITool tool, GCommandParameters parameters) : base(tool, parameters)
         {

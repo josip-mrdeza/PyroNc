@@ -3,7 +3,7 @@ using Pyro.Nc.Pathing;
 
 namespace Pyro.Nc.Parsing.GCommands
 {
-    public class G82 : G81
+    public sealed class G82 : G81
     {
         public G82(ITool tool, GCommandParameters parameters) : base(tool, parameters)
         {
