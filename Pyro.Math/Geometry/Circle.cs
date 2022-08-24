@@ -5,12 +5,12 @@ namespace Pyro.Math.Geometry
 {
     public class Circle : IPrimitive
     {
-        public readonly float Radius;
-        public readonly Vector2D Start;
-        public readonly Vector2D End;
+        public float Radius { get; }
+        public Vector2D Start { get; }
+        public Vector2D End { get; }
 
-        public readonly Vector2D[] Points;
-        public readonly CircleSmoothness Smoothness;
+        public Vector2D[] Points { get; }
+        public CircleSmoothness Smoothness { get; }
         public Shape GeometricalShape { get; }
 
         public Circle(float radius, CircleSmoothness smoothness = CircleSmoothness.Standard)

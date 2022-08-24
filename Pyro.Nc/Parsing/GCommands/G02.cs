@@ -12,6 +12,7 @@ namespace Pyro.Nc.Parsing.GCommands
     {
         public G02(ITool tool, GCommandParameters parameters) : base(tool, parameters)
         {
+            IsArc = true;
         }
 
         public override bool IsArc { get; }

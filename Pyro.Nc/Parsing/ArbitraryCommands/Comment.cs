@@ -3,7 +3,7 @@ using Pyro.Nc.Pathing;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
-    public class Comment : ABaseCommand
+    public class Comment : BaseCommand
     {
         public Comment(ITool tool, ArbitraryCommandParameters parameters) : base(tool, parameters)
         {

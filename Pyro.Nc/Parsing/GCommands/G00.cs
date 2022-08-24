@@ -11,45 +11,27 @@ using UnityEngine;
 
 namespace Pyro.Nc.Parsing.GCommands
 {
-    public class G00 : ICommand
+    public class G00 : BaseCommand
     {
-
-        public G00(ITool tool, GCommandParameters parameters)
+        public G00(ITool tool, GCommandParameters parameters) : base(tool, parameters)
         {
-            Tool = tool.GuardNullVariable("G00<ctor>.Tool");
-            Parameters = parameters.GuardNullVariable("G00<ctor>.Parameters");
-        }
-        public ITool Tool { get; set; }
-        public virtual bool IsModal => true;
-        public virtual bool IsArc => false;
-        public ICommandParameters Parameters { get; set; }
-        public virtual string Description
+        }       
+        
+        public override string Description
         {
             get => Locals.G00;
         }
 
-        public async Task Execute()
-        {
-            await Execute(false);
-        }
-
-        public virtual async Task Execute(bool draw)
+        public override async Task Execute(bool draw)
         {
             await Tool.Traverse(new Vector3D(Parameters.GetValue("X"), Parameters.GetValue("Y"), Parameters.GetValue("Z")).ToVector3(),
                                 LineTranslationSmoothness.Rough, draw);
             Expire();
         }
 
-        public void Expire()
+        public override void Expire()
         {
             Tool.CurrentPath.Expired = true;
-        }
-
-        public virtual void Plan() => throw new NotImplementedException();
-
-        public virtual ICommand Copy()
-        {
-            return MemberwiseClone() as ICommand;
         }
     }
 }

@@ -103,6 +103,18 @@ namespace Pyro.Math
             return (float) System.Math.Atan(x);
         }
         
+        [Pure]
+        public static double Round(this double x, int decimals = 2)
+        {
+            return System.Math.Round(x, decimals, MidpointRounding.ToEven);
+        }
+        
+        [Pure]
+        public static float Round(this float x, int decimals = 2)
+        {
+            return (float) System.Math.Round(x, decimals, MidpointRounding.ToEven);
+        }
+        
         public static float Average(params float[] nums)
         {
             float result = default(float);

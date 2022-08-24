@@ -4,7 +4,7 @@ using Pyro.Nc.Pathing;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
-    public class Trans : ABaseCommand
+    public class Trans : BaseCommand
     {
         public Trans(ITool tool, ArbitraryCommandParameters parameters) : base(tool, parameters)
         {

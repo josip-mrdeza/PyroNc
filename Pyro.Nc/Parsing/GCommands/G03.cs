@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Pyro.Nc.Parsing.GCommands
 {
-    public class G03 : G02
+    public sealed class G03 : G02
     {
         public G03(ITool tool, GCommandParameters parameters) : base(tool, parameters)
         {

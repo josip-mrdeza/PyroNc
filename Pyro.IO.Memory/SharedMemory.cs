@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
+ using System.Reflection;
  using Microsoft.Win32.SafeHandles;
 
  namespace Pyro.IO.Memory
@@ -18,21 +19,32 @@ using System.Linq;
         private Dictionary<string, Dictionary<string, long>> Offsets;
         private Dictionary<string, MemoryMappedViewAccessor> Views;
         private Dictionary<string, long> ViewOffsets;
+        private Dictionary<string, long> TSizes;
 
 
-        public SharedMemory(string id, long capacity)
+        public SharedMemory(string id, long maxCapacity, long defaultViewSize)
         {
             Id = id;
-            Capacity = capacity;
-            Path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + $"\\MemoryMappedFiles\\{Id}.mmf";
-            Stream = new FileStream(Path, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+            Capacity = maxCapacity;
+            Path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + $"\\MemoryMappedFiles\\{Assembly.GetCallingAssembly().GetName().Name}";
+            Directory.CreateDirectory(Path);
+            Path += $"\\{Id}.mmf";
+            if (File.Exists(Path))
+            {
+                Stream = new FileStream(Path, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+            }
+            else
+            {
+                Stream = File.Create(Path);
+            }
             WriteProcessIdToMMFFolder(Stream.SafeFileHandle);
-            MappedFile = MemoryMappedFile.CreateFromFile(Stream, id, capacity, MemoryMappedFileAccess.ReadWrite,
+            MappedFile = MemoryMappedFile.CreateFromFile(Stream, id, maxCapacity, MemoryMappedFileAccess.ReadWrite,
                                                              HandleInheritability.Inheritable, true);
-                Offsets = new Dictionary<string, Dictionary<string, long>>();
+            Offsets = new Dictionary<string, Dictionary<string, long>>();
             Views = new Dictionary<string, MemoryMappedViewAccessor>();
             ViewOffsets = new Dictionary<string, long>();
-            View = CreateNewSection_Internal("default", capacity);
+            View = CreateNewSection_Internal("default", defaultViewSize);
+            TSizes = new Dictionary<string, long>();
         }
 
         internal void WriteProcessIdToMMFFolder(SafeFileHandle handle)
@@ -91,12 +103,20 @@ using System.Linq;
         /// <typeparam name="T">A structure type.</typeparam>
         public void Write<T>(T structure, string viewId, string structUniqueId, long size) where T : struct
         {
+            if (viewId == null)
+            {
+                viewId = "default";
+            }
             var view = Views[viewId];
             if (view.CanWrite)
             {
                 var offset = GetAvailableOffsetForStructInView(viewId);
                 view.Write(offset, ref structure);
                 Offsets[viewId].Add(structUniqueId, offset + size);
+                if (!TSizes.ContainsKey(structUniqueId))
+                {
+                    TSizes.Add(structUniqueId, size);
+                }
             }
         }
         /// <summary>
@@ -115,6 +135,10 @@ using System.Linq;
                 var offset = GetAvailableOffsetForStructInView(viewId);
                 view.WriteArray(offset, structureArr, 0, structureArr.Length);
                 Offsets[viewId].Add(structUniqueId, offset + (structureArr.Length * sizeOfEach));
+                if (!TSizes.ContainsKey(structUniqueId))
+                {
+                    TSizes.Add(structUniqueId, sizeOfEach);
+                }
             }
         }
         /// <summary>
@@ -132,7 +156,10 @@ using System.Linq;
                 byte[] arr = new byte[elementsInArray];
                 var offset = GetOffsetForStructInView(viewId, structureUniqueId);
                 view.ReadArray(offset - elementsInArray, arr, 0, elementsInArray);
-
+                if (!TSizes.ContainsKey(structureUniqueId))
+                {
+                    TSizes.Add(structureUniqueId, 1);
+                }
                 return new Reference<byte[]>(ref arr);
             }
 
@@ -152,7 +179,8 @@ using System.Linq;
             if (view.CanRead)
             {
                 var offset = GetOffsetForStructInView(viewId, structureUniqueId);
-                view.Read(offset, out T val);
+                var reduce = TSizes[structureUniqueId];
+                view.Read(offset - reduce, out T val);
 
                 return new Reference<T>(ref val);
             }
@@ -214,8 +242,33 @@ using System.Linq;
             {
                 T[] arr = new T[elementsInArray];
                 var offset = GetOffsetForStructInView(viewId, structureUniqueId);
-                view.ReadArray(offset, arr, 0, elementsInArray * sizeOfEach);
+                view.ReadArray(offset - (elementsInArray * sizeOfEach), arr, 0, elementsInArray * sizeOfEach);
 
+                return new Reference<T[]>(ref arr);
+            }
+
+            return null;
+        }
+        
+        /// <summary>
+        /// Reads a structure array from the set view, from offset til (offset + elementsInArray * sizeOfEach)
+        /// </summary>
+        /// <param name="viewId">The name of the view.</param>
+        /// <param name="structureUniqueId">The name of the structure type in the private offset dictionary.</param>
+        /// <param name="elementsInArray">The size of the array.</param>
+        /// <typeparam name="T">A type of structure.</typeparam>
+        /// <returns>A reference to an array of structures.</returns>
+        public Reference<T[]> Read<T>(string viewId, string structureUniqueId, int elementsInArray) where T : struct
+        {
+            var view = Views[viewId];
+            if (view.CanRead)
+            {
+                T[] arr = new T[elementsInArray];
+                var offset = GetOffsetForStructInView(viewId, structureUniqueId);
+                var reduce = TSizes[structureUniqueId];
+                var count = (elementsInArray * reduce);
+                var pos = offset - count;
+                view.ReadArray(pos, arr, 0, elementsInArray);
                 return new Reference<T[]>(ref arr);
             }
 

@@ -63,6 +63,28 @@ namespace Pyro.IO
             return (TR) obj;
         }
 
+        public static IEnumerable<int> ContainsFastIndices(this string s, string substring)
+        {
+            if (s.Length < substring.Length)
+            {
+                yield break;
+            }
+
+            var length = substring.Length * s.Length;
+            for (int i = 0; i < length; i++)
+            {
+                bool match = false;
+                foreach (var c in substring)
+                {
+                    match = s[i] == c;
+                }
+
+                if (match)
+                {
+                    yield return i - substring.Length + 1;
+                }
+            }
+        }
         public static int ContainsFast(this string s, string substring)
         {
             if (s.Length < substring.Length)
@@ -86,6 +108,55 @@ namespace Pyro.IO
             }
 
             return -1;
+        }
+        
+        public static int ContainsFast(this string s, char key)
+        {
+            if (s.Length <= 1)
+            {
+                return -1;
+            }
+
+            var length = s.Length;
+            for (int i = 0; i < length; i++)
+            {
+                bool match = false;
+                match = s[i] == key;
+
+                if (match)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public static IEnumerable<string> SplitFast(this string s, string separator)
+        {
+            if (s.Length < separator.Length)
+            {
+                yield break;
+            }
+
+            var length = separator.Length * s.Length;
+            var lastIndex = 0;
+            for (int i = 0; i < length; i++)
+            {
+                bool match = false;
+                foreach (var c in separator)
+                {
+                    match = s[i] == c;
+                }
+
+                if (match)
+                {                                                               
+                    yield return s.Substring(lastIndex, i - lastIndex);
+                    lastIndex = i + 1;
+                }
+            }
+
+            yield return s.Substring(lastIndex + 1, s.Length - lastIndex - 1);
         }
     }
 }

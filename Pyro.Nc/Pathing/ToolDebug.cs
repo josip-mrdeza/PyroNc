@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Math;
@@ -15,7 +16,11 @@ namespace Pyro.Nc.Pathing
 {
     public class ToolDebug : MonoBehaviour, ITool
     {
+        public Mesh meshPointer;
+        public GameObject Plane;
         public ValueStorage Storage { get; set; }
+        public Triangulator Triangulator { get; set; }
+
         public Vector3 Position
         {
             get => transform.position;
@@ -23,30 +28,39 @@ namespace Pyro.Nc.Pathing
         public Path CurrentPath { get; set; }
         public PObject Workpiece { get; set; }
         public bool IsAllowed { get; set; }
+        public ICommand Current { get; set; }
+        public bool ExactStopCheck { get; set; }
+        public event Func<Task> OnConsumeStopCheck;
+
+        public async Task InvokeOnConsumeStopCheck()
+        {
+            if (OnConsumeStopCheck != null)
+            {
+                await OnConsumeStopCheck();
+            }
+        }
         public TimeSpan FastMoveTick = TimeSpan.FromMilliseconds(0.1d);
-        public ICommand Current;
         public Target Destination;
         public event Func<ICommand, Vector3, Task> OnCollision;
+        public CancellationTokenSource TokenSource { get; set; } = new CancellationTokenSource();
         public async void Start()
         {
+            meshPointer ??= Plane.GetComponent<MeshFilter>().mesh;
+            Workpiece = new PObject(meshPointer);
+            Triangulator = new Triangulator(Workpiece.Mesh);
             IsAllowed = true;
             Destination = new Target(new Vector3());
-            Workpiece = new PObject();
             Storage = await ValueStorage.CreateFromFile(this);
             OnCollision += Cut;
         }
         
-        public async Task UseCommand(ICommand command)
+        public async Task UseCommand(ICommand command, bool draw)
         {
-            Current = command;
-            await command.Execute();
-            Current = null;
+            await command.ExecuteFinal(draw);
         }
         public async Task UseCommandDebugDraw(ICommand command)
         {
-            Current = command;
             await command.Execute(true);
-            Current = null;
         }
         protected virtual async Task UntilValid()
         {
@@ -55,7 +69,7 @@ namespace Pyro.Nc.Pathing
                 while (Destination.IsValid && !IsAllowed)
                 {
                     await Task.Yield();
-                    await Task.Delay(FastMoveTick);
+                    await Task.Delay(FastMoveTick, Current.Parameters.Token);
                 }
             }
         }
@@ -104,6 +118,19 @@ namespace Pyro.Nc.Pathing
                 prev = point;
                 await CheckPositionForCut();
                 await Task.Delay(FastMoveTick);
+                if (Current.Parameters.Token.IsCancellationRequested)
+                {
+                    return;
+                }
+            }
+
+            if (ExactStopCheck)
+            {
+                transform.position = points.Last();
+                if (OnConsumeStopCheck != null)
+                {
+                    await OnConsumeStopCheck();
+                }
             }
         }
         public virtual async Task Traverse(Line3D line, bool draw)
@@ -145,7 +172,9 @@ namespace Pyro.Nc.Pathing
 
         protected virtual async Task Cut(ICommand command, Vector3 position)
         {
-            Debug.LogWarning($"[{command.Description}] Should Cut at {position.ToString()}");
+            // Debug.Log($"Before cut: Triangles: {meshPointer.triangles.Length}; Verts: {meshPointer.vertices.Length}!");
+            // await Triangulator.TriangulateMesh();
+            // Debug.Log($"After cut: Triangles: {meshPointer.triangles.Length}; Verts: {meshPointer.vertices.Length}!");
         }
         
     }

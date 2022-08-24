@@ -29,6 +29,8 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
             return val;
         }
 
+        public CancellationToken Token { get; set; }
+
         public LineTranslationSmoothness LineSmoothness
         {
             get => throw new NotSupportedException(); 

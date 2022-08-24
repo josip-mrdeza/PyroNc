@@ -9,8 +9,10 @@ namespace Pyro.Nc
         public const string G03 = "Circular Move (Counter-Clockwise)";
         public const string CIP = "Circular Interpolation (Arc)";
         public const string G04 = "Dwell (Pause)";
+        public const string G05 = "High-precision contour control (HPCC)";
         public const string G60 = "Save Position";
         public const string G61 = "Return to Saved Position";
+        public const string G80 = "Cancel canned cycle - G73, G81, G83 - Return to initial Z (Vector3.Z)";
         public const string G331 = "Drill";
         public const string G332 = "Retract (Drill)";
         public const string M00 = "Unconditional Stop (Pause)";

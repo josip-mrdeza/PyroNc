@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Pyro.IO;
 using Pyro.Nc.Parsing.ArbitraryCommands;
+using Pyro.Nc.Pathing;
 
 namespace Pyro.Nc.Parsing
 {
@@ -22,7 +23,7 @@ namespace Pyro.Nc.Parsing
         }
         public static bool IsMatch(this ICommand command, string code)
         {
-            return code.IdentifyVariables().GatherCommands().IsTrue(t =>
+            return code.FindVariables().CollectCommands().IsTrue(t =>
             {
                 var flag0 = t.Count == 1;
                 if (!flag0)
@@ -39,16 +40,16 @@ namespace Pyro.Nc.Parsing
         {
             return command.GetType() == type;
         }
-        public static List<string[]> IdentifyVariables(this string code)
+        public static List<string[]> FindVariables(this string code)
         {
             var index = code.ContainsFast(_cachedKvp!.Value.Key);
             if (index != -1)
             {
                 code = code.Insert(index, " "); 
             }
-            return IdentifyVariables(code.Split(' '));
+            return FindVariables(code.Split(' '));
         }
-        public static List<string[]> IdentifyVariables(this string[] splitCode)
+        public static List<string[]> FindVariables(this string[] splitCode)
         {
             List<int> indices = new List<int>(splitCode.Length);
             for (int i = 0; i < splitCode.Length; i++)
@@ -80,7 +81,7 @@ namespace Pyro.Nc.Parsing
 
             return arrOfCommands;
         }
-        public static List<ICommand> GatherCommands(this List<string[]> arrOfCommands)
+        public static List<ICommand> CollectCommands(this List<string[]> arrOfCommands)
         {
             List<ICommand> commands = new List<ICommand>();
             for (var index = 0; index < arrOfCommands.Count; index++)
@@ -97,7 +98,6 @@ namespace Pyro.Nc.Parsing
                         return c.Skip(index).Select(ci => string.Join(" ", ci)).ToArray();
                     }));
                     commands.Add(comment);
-
                     return commands;
                 }
 

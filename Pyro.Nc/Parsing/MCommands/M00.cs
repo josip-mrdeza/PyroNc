@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
@@ -6,24 +7,16 @@ using UnityEngine;
 
 namespace Pyro.Nc.Parsing.MCommands
 {
-    public class M00 : ICommand
+    public class M00 : BaseCommand
     {
-        public M00(ITool tool, ICommandParameters parameters)
+        public M00(ITool tool, ICommandParameters parameters) : base(tool, parameters)
         {
             Tool = tool;
             Parameters = parameters;
         }
-        public ITool Tool { get; set; }
-        public virtual bool IsModal => false;
-        public virtual bool IsArc => false;
-        public string Description { get => Locals.M00; }
-        public ICommandParameters Parameters { get; set; }
+        public override string Description { get => Locals.M00; }
 
-        public async Task Execute()
-        {
-            await Execute(false);
-        }
-        public virtual async Task Execute(bool draw)
+        public override async Task Execute(bool draw)
         {
             var flag0 = Parameters.Values.TryGetValue("S", out var ms);
             ms *= 1000f;
@@ -40,23 +33,12 @@ namespace Pyro.Nc.Parsing.MCommands
                 {
                     break;
                 }
+
                 await Task.Delay(1);
                 Tool.IsAllowed = false;
             }
 
             Tool.IsAllowed = true;
-        }
-        public void Expire()
-        {
-            throw new NotSupportedException();
-        }
-        public void Plan()
-        {
-            throw new NotSupportedException(); 
-        }
-        public virtual ICommand Copy()
-        {
-            return this.MemberwiseClone() as ICommand;
         }
     }
 }

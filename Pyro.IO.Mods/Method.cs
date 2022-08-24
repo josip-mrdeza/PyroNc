@@ -101,6 +101,12 @@ namespace Pyro.IO.Mods
             var dg = Delegate.Combine(prefixMethod.MethodData, MethodData);
             MethodData = dg;
         }
+        
+        public void Postfix(Method<T, TR> postfixMethod)
+        {
+            var dg = Delegate.Combine(MethodData, postfixMethod.MethodData);
+            MethodData = dg;
+        }
 
         protected object[] EmptyArray = new object[0];
         private Type CurrentType;

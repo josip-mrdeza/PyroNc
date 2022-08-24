@@ -2,9 +2,9 @@ namespace Pyro.Math
 {
     public partial struct Vector3D
     {
-        public float x;
-        public float y;
-        public float z;
+        public float x { get; set; }
+        public float y { get; set; }
+        public float z { get; set; }
 
         public Vector3D(float x, float y, float z)
         {
