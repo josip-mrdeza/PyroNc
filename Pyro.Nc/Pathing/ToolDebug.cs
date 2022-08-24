@@ -28,6 +28,7 @@ namespace Pyro.Nc.Pathing
         public Path CurrentPath { get; set; }
         public PObject Workpiece { get; set; }
         public bool IsAllowed { get; set; }
+        public bool IsIncremental { get; set; }
         public ICommand Current { get; set; }
         public bool ExactStopCheck { get; set; }
         public event Func<Task> OnConsumeStopCheck;
@@ -109,13 +110,17 @@ namespace Pyro.Nc.Pathing
         {
             await UntilValid();
             var prev = SetupMove(points, out var rnd);
-            
             foreach (var point in points)
             {
                 await Task.Yield();
-                transform.position = point;
-                DrawLine(draw, rnd, prev, point);
-                prev = point;
+                var pos = point;
+                if (IsIncremental)
+                {
+                    pos += transform.position;
+                }
+                transform.position = pos;
+                DrawLine(draw, rnd, prev, pos);
+                prev = pos;
                 await CheckPositionForCut();
                 await Task.Delay(FastMoveTick);
                 if (Current.Parameters.Token.IsCancellationRequested)
@@ -126,7 +131,7 @@ namespace Pyro.Nc.Pathing
 
             if (ExactStopCheck)
             {
-                transform.position = points.Last();
+                //Already is at the exact pos, so no need to do checks.
                 if (OnConsumeStopCheck != null)
                 {
                     await OnConsumeStopCheck();

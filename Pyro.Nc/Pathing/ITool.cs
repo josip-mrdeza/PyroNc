@@ -18,6 +18,7 @@ namespace Pyro.Nc.Pathing
         public Path CurrentPath { get; set; }
         public PObject Workpiece { get; set; }
         public bool IsAllowed { get; set; }
+        public bool IsIncremental { get; set; }
         public ICommand Current { get; set; }
         public bool ExactStopCheck { get; set; }
         public event Func<Task> OnConsumeStopCheck;
