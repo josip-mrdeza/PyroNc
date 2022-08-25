@@ -11,9 +11,6 @@ namespace Pyro.Nc.Parsing.GCommands
         {
         }
         
-        public override string Description
-        {
-            get => Locals.G01;
-        }
+        public override string Description => Locals.G01;
     }
 }

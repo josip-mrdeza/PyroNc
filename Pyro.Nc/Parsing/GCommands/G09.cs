@@ -13,7 +13,9 @@ namespace Pyro.Nc.Parsing.GCommands
             }
             Tool.OnConsumeStopCheck += Run;
         }
-        
+
+        public override string Description => Locals.G09;
+
         public override async Task Execute(bool draw)
         {
             Tool.ExactStopCheck = false;

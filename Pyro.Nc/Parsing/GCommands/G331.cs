@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Pyro.Nc.Pathing;
 
 namespace Pyro.Nc.Parsing.GCommands
@@ -8,5 +7,7 @@ namespace Pyro.Nc.Parsing.GCommands
         public G331(ITool tool, GCommandParameters parameters) : base(tool, parameters)
         {
         }
+
+        public override string Description => Locals.G331;
     }
 }

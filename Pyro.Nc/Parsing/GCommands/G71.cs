@@ -9,6 +9,8 @@ namespace Pyro.Nc.Parsing.GCommands
         {
         }
 
+        public override string Description => Locals.G71;
+
         public override Task Execute(bool draw)
         {
             Tool.IsImperial = false;

@@ -9,7 +9,7 @@ namespace Pyro.Nc.Parsing.GCommands
         {
         }
 
-        public override string Description { get => Locals.G91; }
+        public override string Description => Locals.G91;
 
         public override Task Execute(bool draw)
         {

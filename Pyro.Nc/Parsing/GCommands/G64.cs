@@ -9,6 +9,8 @@ namespace Pyro.Nc.Parsing.GCommands
         {
         }
 
+        public override string Description => Locals.G64;
+
         public override async Task Execute(bool draw)
         {
             await Tool.InvokeOnConsumeStopCheck();

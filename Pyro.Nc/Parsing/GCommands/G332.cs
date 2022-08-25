@@ -7,5 +7,7 @@ namespace Pyro.Nc.Parsing.GCommands
         public G332(ITool tool, GCommandParameters parameters) : base(tool, parameters)
         {
         }
+        
+        public override string Description => Locals.G331;
     }
 }

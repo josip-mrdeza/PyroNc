@@ -12,7 +12,7 @@ namespace Pyro.Nc.Parsing.GCommands
                 Milliseconds = (int) parameters.Values["P"];
             }
         }
-        
+        public override string Description => Locals.G82;
         public int Milliseconds { get; set; }
 
         public override async Task Execute(bool draw)

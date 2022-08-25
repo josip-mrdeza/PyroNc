@@ -13,6 +13,8 @@ namespace Pyro.Nc.Parsing.GCommands
         {
         }
 
+        public override string Description => Locals.G81;
+
         public override async Task Execute(bool draw)
         {
             await Tool.Traverse(ResolvePosition(), LineTranslationSmoothness.Rough, draw);

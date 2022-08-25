@@ -17,11 +17,8 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override bool IsArc { get; }
 
-        public override string Description
-        {
-            get => Locals.G02;
-        }
-        
+        public override string Description => Locals.G02;
+
         public override async Task Execute(bool draw)
         {
             await Execute(false, draw);
