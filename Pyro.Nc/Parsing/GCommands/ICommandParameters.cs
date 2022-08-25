@@ -11,6 +11,9 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public float GetValue(string s);
         public float AddValue(string key, float val);
+        public void SwitchToImperial();
+        public void SwitchToMetric();
+
         public CancellationToken Token { get; set; }
         public LineTranslationSmoothness LineSmoothness { get; set; }
         public CircleSmoothness CircleSmoothness { get; set; }

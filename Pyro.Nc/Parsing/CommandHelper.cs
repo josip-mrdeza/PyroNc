@@ -4,6 +4,7 @@ using System.Linq;
 using Pyro.IO;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Pathing;
+using Tensorflow;
 
 namespace Pyro.Nc.Parsing
 {
@@ -45,7 +46,10 @@ namespace Pyro.Nc.Parsing
             var index = code.ContainsFast(_cachedKvp!.Value.Key);
             if (index != -1)
             {
-                code = code.Insert(index, " "); 
+                if (code[index - 1] != ' ')
+                {
+                    code = code.Insert(index, " ");
+                } 
             }
             return FindVariables(code.Split(' '));
         }
@@ -59,6 +63,13 @@ namespace Pyro.Nc.Parsing
                 if (_storage.FetchArbitraryCommand(section) != null || _storage.FetchGCommand(section) != null || _storage.FetchMCommand(section) != null)
                 {
                     indices.Add(i);
+                }
+                else
+                {
+                    if (section.Contains('N'))
+                    {
+                        indices.Add(i);
+                    }
                 }
             }
 
@@ -99,6 +110,14 @@ namespace Pyro.Nc.Parsing
                     }));
                     commands.Add(comment);
                     return commands;
+                }
+                if (id.Contains('N'))
+                {
+                    var notation = _storage.FetchArbitraryCommand("N") as Notation;
+                    notation!.Number = long.Parse(id.Remove(0, 1));
+                    commands.Add(notation);
+
+                    continue;
                 }
 
                 command = _storage.TryGetCommand(id);

@@ -1,7 +1,9 @@
 using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Math.Geometry;
+using Pyro.Nc.Parsing.GCommands.Exceptions;
 using Pyro.Nc.Pathing;
+using UnityEngine;
 
 namespace Pyro.Nc.Parsing.GCommands
 {
@@ -13,13 +15,7 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override async Task Execute(bool draw)
         {
-            var height = (Parameters as GCommandParameters).Y;
-            await Tool.Traverse(Tool.Position.Mutate(p =>
-            {
-                p.y = height;
-
-                return p;
-            }), LineTranslationSmoothness.Rough, draw);
+            await Tool.Traverse(ResolvePosition(), LineTranslationSmoothness.Rough, draw);
         }
     }     
 }

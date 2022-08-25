@@ -10,6 +10,6 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
         }
         
         public long Number { get; set; }
-        public override string Description { get => $"Line number: {Number.ToString()}"; }
+        public override string Description { get => $"N{Number.ToString()}"; }
     }
 }

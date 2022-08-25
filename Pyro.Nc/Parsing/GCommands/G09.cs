@@ -7,6 +7,10 @@ namespace Pyro.Nc.Parsing.GCommands
     {
         public G09(ITool tool, GCommandParameters parameters) : base(tool, parameters)
         {
+            if (tool is null)
+            {
+                return;
+            }
             Tool.OnConsumeStopCheck += Run;
         }
         

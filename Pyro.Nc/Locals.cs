@@ -11,9 +11,12 @@ namespace Pyro.Nc
         public const string G04 = "Dwell (Pause)";
         public const string G05 = "High-precision contour control (HPCC)";
         public const string G60 = "Save Position";
-        public const string G61 = "Return to Saved Position";
+        public const string G61 = "Exact stop check";
+        public const string G61_1 = "Return to saved position";
+        public const string G64 = "Default cutting mode (cancel exact stop check mode)";
         public const string G80 = "Cancel canned cycle - G73, G81, G83 - Return to initial Z (Vector3.Z)";
         public const string G81 = "Drill";
+        public const string G82 = "Drill with dwell at bottom";
         public const string G90 = "Absolute programming";
         public const string G91 = "Incremental programming";
         public const string G331 = "Drill";

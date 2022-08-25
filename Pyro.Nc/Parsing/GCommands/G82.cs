@@ -7,7 +7,10 @@ namespace Pyro.Nc.Parsing.GCommands
     {
         public G82(ITool tool, GCommandParameters parameters) : base(tool, parameters)
         {
-            Milliseconds = (int) parameters.Values["P"];
+            if (parameters.Values.ContainsKey("P"))
+            {
+                Milliseconds = (int) parameters.Values["P"];
+            }
         }
         
         public int Milliseconds { get; set; }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Pyro.Math;
 using Pyro.Math.Geometry;
@@ -28,6 +29,25 @@ namespace Pyro.Nc.Parsing.MCommands
 
             return val;
         }
+        
+        public void SwitchToImperial()
+        {
+            for (int i = 0; i < Values.Count; i++)
+            {
+                var key = Values.Keys.ElementAt(i); 
+                Values[key] *= 2.54f;
+            }
+        }
+
+        public void SwitchToMetric()
+        {
+            for (int i = 0; i < Values.Count; i++)
+            {
+                var key = Values.Keys.ElementAt(i); 
+                Values[key] /= 2.54f;
+            }
+        }
+        
         public CancellationToken Token { get; set; }
 
         public LineTranslationSmoothness LineSmoothness

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands;
+using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Pathing;
 using TrCore;
 using TrCore.Logging;
@@ -124,7 +125,7 @@ namespace Pyro.Nc.Parsing
             {
                 var typeFullName = typePrefixM + v.Split(spaceSeparator)[0];
                 var type = Type.GetType(typeFullName);
-                var instance = type is null ? null : Activator.CreateInstance(type, tool, null) as ICommand;
+                var instance = type is null ? null : Activator.CreateInstance(type, tool, new MCommandParameters()) as ICommand;
                 return instance;
             });
             
@@ -132,7 +133,7 @@ namespace Pyro.Nc.Parsing
             {
                 var typeFullName = typePrefixA + v.Split(spaceSeparator)[0];
                 var type = Type.GetType(typeFullName);
-                var instance = type is null ? null : Activator.CreateInstance(type, tool, null) as ICommand;
+                var instance = type is null ? null : Activator.CreateInstance(type, tool, new ArbitraryCommandParameters()) as ICommand;
                 return instance;
             }); 
             
@@ -142,14 +143,33 @@ namespace Pyro.Nc.Parsing
 
         private void CreateLocalLowDir()
         {
+            void CreateMissingFile(string s)
+            {
+                File.ReadAllBytes($"{AppDomain.CurrentDomain.BaseDirectory}\\commandId.txt").Do(x =>
+                {
+                    File.Create(s).Do(y =>
+                    {
+                        y.Write(x, 0, x.Length);
+                        y.Dispose();
+                    });
+                });
+            }
+
             StorageDirectory ??= new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\PyroNc");
+            var fullPath = $"{StorageDirectory.FullName}\\commandId.txt";
             if (!StorageDirectory.Exists)
             {
                 Directory.CreateDirectory(StorageDirectory.FullName);
-                File.ReadAllBytes($"{AppDomain.CurrentDomain.BaseDirectory}\\commandId.txt").Do(x =>
-                {
-                    File.Create($"{StorageDirectory.FullName}\\commandId.txt").Write(x, 0, x.Length);
-                });
+                CreateMissingFile(fullPath);
+            }
+
+            if (!File.Exists(fullPath))
+            {
+                CreateMissingFile(fullPath);
+            }
+            else if (new FileInfo(fullPath).Length != new FileInfo($"{AppDomain.CurrentDomain.BaseDirectory}\\commandId.txt").Length)
+            {
+                CreateMissingFile(fullPath);
             }
         }
     }

@@ -3,12 +3,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Pyro.IO;
-using Pyro.Math;
 using Pyro.Math.Geometry;
 using Pyro.Nc.Parsing;
-using Pyro.Nc.Parsing.GCommands;
-using TrCore;
-using TrCore.Logging;
 using UnityEngine;
 using Random = System.Random;
 
@@ -29,6 +25,7 @@ namespace Pyro.Nc.Pathing
         public PObject Workpiece { get; set; }
         public bool IsAllowed { get; set; }
         public bool IsIncremental { get; set; }
+        public bool IsImperial { get; set; }
         public ICommand Current { get; set; }
         public bool ExactStopCheck { get; set; }
         public event Func<Task> OnConsumeStopCheck;

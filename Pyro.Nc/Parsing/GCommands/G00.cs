@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Math;
 using Pyro.Math.Geometry;
+using Pyro.Nc.Parsing.GCommands.Exceptions;
 using Pyro.Nc.Pathing;
 using TrCore;
 using TrCore.Logging;
@@ -24,14 +25,34 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override async Task Execute(bool draw)
         {
-            await Tool.Traverse(new Vector3D(Parameters.GetValue("X"), Parameters.GetValue("Y"), Parameters.GetValue("Z")).ToVector3(),
-                                LineTranslationSmoothness.Rough, draw);
+            await Tool.Traverse(ResolvePosition(), LineTranslationSmoothness.Rough, draw);
             Expire();
         }
 
         public override void Expire()
         {
             Tool.CurrentPath.Expired = true;
+        }
+        
+        public virtual Vector3 ResolvePosition()
+        {
+            var parameters = (Parameters as GCommandParameters);
+            Vector3 point;
+            if (Tool.IsIncremental)
+            {
+                if (parameters.X == 0 && parameters.Y == 0 && parameters.Z == 0)
+                {
+                    throw new LinearInterpolationParameterMismatchException(this);
+                }
+
+                point = Tool.Position + new Vector3(parameters.X, parameters.Y, parameters.Z);
+            }
+            else
+            {
+                point = new Vector3(parameters.X, parameters.Y, parameters.Z);
+            }
+
+            return point;
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Pyro.Math;
 using Pyro.Math.Geometry;
@@ -25,9 +26,26 @@ namespace Pyro.Nc.Parsing.GCommands
 
             return val;
         }
+        
+        public void SwitchToImperial()
+        {
+            for (int i = 0; i < Values.Count; i++)
+            {
+                var key = Values.Keys.ElementAt(i); 
+                Values[key] *= 2.54f;
+            }
+        }
+
+        public void SwitchToMetric()
+        {
+            for (int i = 0; i < Values.Count; i++)
+            {
+                var key = Values.Keys.ElementAt(i); 
+                Values[key] /= 2.54f;
+            }
+        }
 
         public CancellationToken Token { get; set; }
-
         public LineTranslationSmoothness LineSmoothness { get; set; }
         public CircleSmoothness CircleSmoothness { get; set; }
 
@@ -38,8 +56,9 @@ namespace Pyro.Nc.Parsing.GCommands
                 {"X", x},
                 {"Y", y},
                 {"Z", z},
-                {"I", float.NaN},
-                {"J", float.NaN}
+                {"I", 0},
+                {"J", 0},
+                {"K", 0}
             };
             LineSmoothness = smoothness;
         }
@@ -54,6 +73,7 @@ namespace Pyro.Nc.Parsing.GCommands
                 {"I", 0},
                 {"J", 0},
                 {"K", 0},
+                {"K", 0},
                 {"R", radius}
             };
             CircleSmoothness = smoothness;
@@ -65,6 +85,7 @@ namespace Pyro.Nc.Parsing.GCommands
         
         public float I => GetValue("I");
         public float J => GetValue("J");
+        public float K => GetValue("K");
         public float R => GetValue("R");
     }
 }
