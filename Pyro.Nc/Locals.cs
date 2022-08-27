@@ -3,6 +3,9 @@ namespace Pyro.Nc
     public static class Locals
     {
         public const string Comment = "Comment";
+        public const string ToolSetter = "Sets the tool";
+        public const string SpindleSpeedSetter = "Sets the tool's spindle speed";
+        public const string FeedRateSetter = "Sets the tool's feed rate";
         public const string G00 = "Fast Move";
         public const string G01 = "Cut Move";
         public const string G02 = "Circular Move (Clockwise)";

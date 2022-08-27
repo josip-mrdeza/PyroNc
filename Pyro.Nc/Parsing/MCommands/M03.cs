@@ -15,7 +15,8 @@ namespace Pyro.Nc.Parsing.MCommands
         public override async Task Execute(bool draw)
         { 
             //TODO make it change the spindle clockwise rotation speed...
-            throw new NotImplementedException();
+            Tool.Values.SpindleSpeed = Parameters.GetValue("S");
+            Tool.Values.FeedRate = Parameters.GetValue("F");
         }
     }
 }

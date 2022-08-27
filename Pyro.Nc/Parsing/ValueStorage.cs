@@ -167,10 +167,6 @@ namespace Pyro.Nc.Parsing
             {
                 CreateMissingFile(fullPath);
             }
-            else if (new FileInfo(fullPath).Length != new FileInfo($"{AppDomain.CurrentDomain.BaseDirectory}\\commandId.txt").Length)
-            {
-                CreateMissingFile(fullPath);
-            }
         }
     }
 }

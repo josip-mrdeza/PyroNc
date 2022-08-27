@@ -14,7 +14,7 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override async Task Execute(bool draw)
         {
-            await Tool.Storage.FetchMCommand("M00").Mutate(m =>
+            await Tool.Values.Storage.FetchMCommand("M00").Mutate(m =>
             {
                 var flag0 = Parameters.Values.TryGetValue("S", out var ms);
                 ms *= 1000f;

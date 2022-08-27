@@ -19,6 +19,10 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
         
         public float AddValue(string key, float val)
         {
+            if (Values is null)
+            {
+                Values = new Dictionary<string, float>();
+            }
             if (Values.ContainsKey(key))
             {
                 Values[key] = val;

@@ -28,14 +28,14 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override void Expire()
         {
-            Tool.CurrentPath.Expired = true;
+            Tool.Values.CurrentPath.Expired = true;
         }
         
         public virtual Vector3 ResolvePosition()
         {
             var parameters = (Parameters as GCommandParameters);
             Vector3 point;
-            if (Tool.IsIncremental)
+            if (Tool.Values.IsIncremental)
             {
                 if (parameters.X == 0 && parameters.Y == 0 && parameters.Z == 0)
                 {

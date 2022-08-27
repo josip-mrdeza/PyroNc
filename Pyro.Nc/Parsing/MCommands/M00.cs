@@ -35,10 +35,10 @@ namespace Pyro.Nc.Parsing.MCommands
                 }
 
                 await Task.Delay(1);
-                Tool.IsAllowed = false;
+                Tool.Values.IsAllowed = false;
             }
 
-            Tool.IsAllowed = true;
+            Tool.Values.IsAllowed = true;
         }
     }
 }

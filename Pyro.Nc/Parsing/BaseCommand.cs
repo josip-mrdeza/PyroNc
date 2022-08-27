@@ -24,26 +24,22 @@ namespace Pyro.Nc.Parsing
         public virtual bool IsModal { get; }
         public virtual bool IsArc { get; }
         public ICommandParameters Parameters { get; set; }
-        public void UpdateCurrent() => Tool.Current = this;
+        public void UpdateCurrent() => Tool.Values.Current = this;
 
         public async Task ExecuteFinal(bool draw)
         {
             UpdateCurrent();
-            if (Tool.IsImperial)
+            if (Tool.Values.IsImperial)
             {
                 Parameters.SwitchToImperial();
             }
-            else
+
+            if (Tool.Values.TokenSource.IsCancellationRequested)
             {
-                Parameters.SwitchToMetric();
+                Tool.Values.TokenSource.Dispose();
+                Tool.Values.TokenSource = new CancellationTokenSource();
             }
-            
-            if (Tool.TokenSource.IsCancellationRequested)
-            {
-                Tool.TokenSource.Dispose();
-                Tool.TokenSource = new CancellationTokenSource();
-            }
-            Parameters.Token = Tool.TokenSource.Token;
+            Parameters.Token = Tool.Values.TokenSource.Token;
             await Execute(draw);
         }
         public virtual Task Execute(bool draw) => throw new System.NotImplementedException();

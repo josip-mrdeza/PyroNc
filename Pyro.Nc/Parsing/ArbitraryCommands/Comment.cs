@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Pyro.Nc.Pathing;
 
@@ -10,11 +11,12 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
             
         }
         public string Text { get; set; }
-        public override string Description { get => Text; }
+        public override string Description => Text;
 
         public override async Task Execute(bool draw)
         { 
             //TODO Make it show up as a message
+            Console.WriteLine(Description);
         }
     }
 }

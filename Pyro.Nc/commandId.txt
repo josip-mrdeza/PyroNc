@@ -12,6 +12,7 @@
 61|G61
 64|G64
 70|G70
+71|G71
 80|G80
 81|G81
 82|G82
@@ -31,4 +32,6 @@
 Trans|TRANS
 Comment|;
 Notation|N
+ToolSetter|T
+SpindleSpeedSetter|S
 ##A

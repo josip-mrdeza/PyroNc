@@ -4,7 +4,6 @@ using System.Linq;
 using Pyro.IO;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Pathing;
-using Tensorflow;
 
 namespace Pyro.Nc.Parsing
 {
@@ -56,19 +55,24 @@ namespace Pyro.Nc.Parsing
         public static List<string[]> FindVariables(this string[] splitCode)
         {
             List<int> indices = new List<int>(splitCode.Length);
+            List<int> joinLater = new List<int>();
             for (int i = 0; i < splitCode.Length; i++)
             {
                 var section = splitCode[i]; 
-                
                 if (_storage.FetchArbitraryCommand(section) != null || _storage.FetchGCommand(section) != null || _storage.FetchMCommand(section) != null)
                 {
                     indices.Add(i);
+                    continue;
                 }
                 else
                 {
-                    if (section.Contains('N'))
+                    for (int j = 0; j < _storage.ArbitraryCommands.Keys.Count; j++)
                     {
-                        indices.Add(i);
+                        if (section.Contains(_storage.ArbitraryCommands.Keys.ElementAt(j)))
+                        {
+                            indices.Add(i);
+                            continue;
+                        }
                     }
                 }
             }
@@ -98,29 +102,16 @@ namespace Pyro.Nc.Parsing
             for (var index = 0; index < arrOfCommands.Count; index++)
             {
                 var commandString = arrOfCommands[index];
-                ICommand command;
                 var id = commandString[0];
-                var cachedVal = _cachedKvp.Value;
-                if (id.Contains(cachedVal.Key))
+                if (ScrapComment(arrOfCommands, id, index, commands, out var list))
                 {
-                    var comment = cachedVal.Value.Copy() as Comment;
-                    comment!.Text = string.Join(" ", arrOfCommands.Mutate(c =>
-                    {
-                        return c.Skip(index).Select(ci => string.Join(" ", ci)).ToArray();
-                    }));
-                    commands.Add(comment);
-                    return commands;
+                    return list;
                 }
-                if (id.Contains('N'))
+                if (ScrapNotation(id, commands) || ScrapToolChange(id, commands) || ScrapSpindleSpeedSetter(id, commands))
                 {
-                    var notation = _storage.FetchArbitraryCommand("N") as Notation;
-                    notation!.Number = long.Parse(id.Remove(0, 1));
-                    commands.Add(notation);
-
                     continue;
                 }
-
-                command = _storage.TryGetCommand(id);
+                var command = _storage.TryGetCommand(id);
                 for (int i = 1; i < commandString.Length; i++)
                 {
                     var par = commandString[i];
@@ -131,6 +122,70 @@ namespace Pyro.Nc.Parsing
             }
 
             return commands;
+        }
+
+        private static bool ScrapSpindleSpeedSetter(string id, List<ICommand> commands)
+        {
+            if (id.Contains("S"))
+            {
+                var command = _storage.FetchArbitraryCommand("S");
+                command.Parameters.AddValue("value", float.Parse(id.Split('S')[1]));
+                commands.Add(command);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool ScrapToolChange(string id, List<ICommand> commands)
+        {
+            if (id.Contains("T"))
+            {
+                var command = _storage.FetchArbitraryCommand("T");
+                command.Parameters.AddValue("value", float.Parse(id.Split('T')[1]));
+                commands.Add(command);
+
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool ScrapComment(List<string[]> arrOfCommands, string id, int index, List<ICommand> commands,
+            out List<ICommand> list)
+        {
+            if (id.Contains(_cachedKvp!.Value.Key))
+            {
+                var comment = _cachedKvp!.Value.Value.Copy() as Comment;
+                comment!.Text = string.Join(" ", arrOfCommands.Mutate(c =>
+                {
+                    return c.Skip(index).Select(ci => string.Join(" ", ci)).ToArray();
+                }));
+                commands.Add(comment);
+                {
+                    list = commands;
+
+                    return true;
+                }
+            }
+
+            list = null;
+            return false;
+        }
+
+        private static bool ScrapNotation(string id, List<ICommand> commands)
+        {
+            if (id.Contains('N'))
+            {
+                var notation = _storage.FetchArbitraryCommand("N") as Notation;
+                notation!.Number = long.Parse(id.Remove(0, 1));
+                commands.Add(notation);
+
+                return true;
+            }
+
+            return false;
         }
 
         internal static KeyValuePair<string, ICommand>? _cachedKvp;

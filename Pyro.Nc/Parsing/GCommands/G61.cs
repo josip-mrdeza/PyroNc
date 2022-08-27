@@ -13,7 +13,7 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override Task Execute(bool draw)
         {
-            Tool.ExactStopCheck = true;
+            Tool.Values.ExactStopCheck = true;
 
             return Task.CompletedTask;
         }

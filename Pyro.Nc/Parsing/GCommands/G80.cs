@@ -16,17 +16,17 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override async Task Execute(bool draw)
         {
-            if (Tool.Current.GetType().Name is nameof(G81))
+            if (Tool.Values.Current.GetType().Name is nameof(G81))
             {
-                 Tool.TokenSource.Cancel();
-                 Tool.TokenSource.Dispose();
-                 Tool.TokenSource = new CancellationTokenSource();
-                 await Tool.Traverse(Tool.Position.Mutate(p =>
-                 {
-                     p.y = 0;
+                Tool.Values.TokenSource.Cancel();
+                Tool.Values.TokenSource.Dispose();
+                Tool.Values.TokenSource = new CancellationTokenSource();
+                await Tool.Traverse(Tool.Position.Mutate(p =>
+                {
+                    p.y = 0;
 
-                     return p;
-                 }), LineTranslationSmoothness.Rough, false);
+                    return p;
+                }), LineTranslationSmoothness.Rough, false);
             }
         }
     }

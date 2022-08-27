@@ -1,8 +1,10 @@
+using System;
+using System.Threading.Tasks;
 using Pyro.Nc.Pathing;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
-    public class Notation : BaseCommand
+    public class Notation : Comment
     {
         public Notation(ITool tool, ArbitraryCommandParameters parameters) : base(tool, parameters)
         {
@@ -10,6 +12,6 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
         }
         
         public long Number { get; set; }
-        public override string Description { get => $"N{Number.ToString()}"; }
+        public override string Description => $"N{Number.ToString()}";
     }
 }

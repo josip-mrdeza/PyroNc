@@ -13,7 +13,7 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override Task Execute(bool draw)
         {
-            Tool.IsIncremental = false;
+            Tool.Values.IsIncremental = false;
             
             return Task.CompletedTask;
         }

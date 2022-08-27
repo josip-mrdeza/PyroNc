@@ -5,7 +5,7 @@ namespace Pyro.Nc.Parsing.GCommands
 {
     public sealed class G70 : BaseCommand
     {
-        public G70(ITool tool, ICommandParameters parameters, bool throwOnNull = false) : base(tool, parameters, throwOnNull)
+        public G70(ITool tool, ICommandParameters parameters) : base(tool, parameters)
         {
         }
 
@@ -13,7 +13,7 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override Task Execute(bool draw)
         {
-            Tool.IsImperial = true;
+            Tool.Values.IsImperial = true;
             return Task.CompletedTask;
         }
     }

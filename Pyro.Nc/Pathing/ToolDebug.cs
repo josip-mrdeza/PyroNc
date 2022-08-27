@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Math.Geometry;
 using Pyro.Nc.Parsing;
+using Pyro.Nc.Simulation;
 using UnityEngine;
 using Random = System.Random;
 
@@ -14,21 +15,12 @@ namespace Pyro.Nc.Pathing
     {
         public Mesh meshPointer;
         public GameObject Plane;
-        public ValueStorage Storage { get; set; }
         public Triangulator Triangulator { get; set; }
-
-        public Vector3 Position
-        {
-            get => transform.position;
-        }
-        public Path CurrentPath { get; set; }
+        public Vector3 Position => transform.position;
         public PObject Workpiece { get; set; }
-        public bool IsAllowed { get; set; }
-        public bool IsIncremental { get; set; }
-        public bool IsImperial { get; set; }
-        public ICommand Current { get; set; }
-        public bool ExactStopCheck { get; set; }
+        public ToolValues Values { get; set; }
         public event Func<Task> OnConsumeStopCheck;
+        public event Func<ICommand, Vector3, Task> OnCollision;
 
         public async Task InvokeOnConsumeStopCheck()
         {
@@ -37,18 +29,12 @@ namespace Pyro.Nc.Pathing
                 await OnConsumeStopCheck();
             }
         }
-        public TimeSpan FastMoveTick = TimeSpan.FromMilliseconds(0.1d);
-        public Target Destination;
-        public event Func<ICommand, Vector3, Task> OnCollision;
-        public CancellationTokenSource TokenSource { get; set; } = new CancellationTokenSource();
         public async void Start()
         {
             meshPointer ??= Plane.GetComponent<MeshFilter>().mesh;
             Workpiece = new PObject(meshPointer);
             Triangulator = new Triangulator(Workpiece.Mesh);
-            IsAllowed = true;
-            Destination = new Target(new Vector3());
-            Storage = await ValueStorage.CreateFromFile(this);
+            Values = new ToolValues(this);
             OnCollision += Cut;
         }
         
@@ -58,23 +44,23 @@ namespace Pyro.Nc.Pathing
         }
         public async Task UseCommandDebugDraw(ICommand command)
         {
-            await command.Execute(true);
+            await command.ExecuteFinal(true);
         }
         protected virtual async Task UntilValid()
         {
-            if (Destination.IsValid)
+            if (Values.Destination.IsValid)
             {
-                while (Destination.IsValid && !IsAllowed)
+                while (Values.Destination.IsValid && !Values.IsAllowed)
                 {
                     await Task.Yield();
-                    await Task.Delay(FastMoveTick, Current.Parameters.Token);
+                    await Task.Delay(Values.FastMoveTick, Values.Current.Parameters.Token);
                 }
             }
         }
         protected virtual Vector3 SetupMove(Vector3[] points, out Random rnd)
         {
-            Destination = new Target(points.Last());
-            CurrentPath = new Path(points);
+            Values.Destination = new Target(points.Last());
+            Values.CurrentPath = new Path(points);
             Vector3 prev = transform.position;
             rnd = new Random();
 
@@ -95,12 +81,12 @@ namespace Pyro.Nc.Pathing
             {
                 if (OnCollision is not null)
                 {
-                    await OnCollision.Invoke(Current, Position);
+                    await OnCollision.Invoke(Values.Current, Position);
                 }
             }
             else
             {
-                Debug.Log($"[{(Current is null ? "nullC" : Current.Description)}] Tool did not cut the workpiece at position {Position.ToString()}");
+                Debug.Log($"[{(Values.Current is null ? "nullC" : Values.Current.Description)}] Tool did not cut the workpiece at position {Position.ToString()}");
             }
         }
         public virtual async Task Traverse(Vector3[] points, bool draw)
@@ -111,7 +97,7 @@ namespace Pyro.Nc.Pathing
             {
                 await Task.Yield();
                 var pos = point;
-                if (IsIncremental)
+                if (Values.IsIncremental)
                 {
                     pos += transform.position;
                 }
@@ -119,14 +105,14 @@ namespace Pyro.Nc.Pathing
                 DrawLine(draw, rnd, prev, pos);
                 prev = pos;
                 await CheckPositionForCut();
-                await Task.Delay(FastMoveTick);
-                if (Current.Parameters.Token.IsCancellationRequested)
+                await Task.Delay(Values.FastMoveTick);
+                if (Values.Current.Parameters.Token.IsCancellationRequested)
                 {
                     return;
                 }
             }
 
-            if (ExactStopCheck)
+            if (Values.ExactStopCheck)
             {
                 //Already is at the exact pos, so no need to do checks.
                 if (OnConsumeStopCheck != null)
