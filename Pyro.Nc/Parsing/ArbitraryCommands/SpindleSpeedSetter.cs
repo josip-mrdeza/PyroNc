@@ -14,7 +14,7 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
 
         public override Task Execute(bool draw)
         {
-            Tool.Values.SpindleSpeed = Parameters.GetValue("value");
+            Tool.Values.SpindleSpeed.Set(Parameters.GetValue("value"));
 
             return Task.CompletedTask;
         }

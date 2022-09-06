@@ -40,9 +40,17 @@ namespace Pyro.Nc.Parsing
                 Tool.Values.TokenSource = new CancellationTokenSource();
             }
             Parameters.Token = Tool.Values.TokenSource.Token;
-            await Execute(draw);
+            if (Tool.Values.IsMilling)
+            {
+                await Execute(draw);
+            }
+            else
+            {
+                await ExecuteTurning(draw);
+            }
         }
         public virtual Task Execute(bool draw) => throw new System.NotImplementedException();
+        public virtual Task ExecuteTurning(bool draw) => throw new System.NotImplementedException();
         public virtual void Expire() => throw new System.NotImplementedException();
         public virtual void Plan() => throw new System.NotImplementedException();
 

@@ -1,0 +1,14 @@
+//PointID:Vector3
+//Vector3 is a structure which can be interpreted as a json object as follows - (x,y,z) / (69,420,69)
+//M - Machine Zero Point
+//W - Workpiece zero point
+//A - Temporary workpiece point
+//N - Tool mount reference point
+//R - Reference point
+//B - Begin point
+M:(0,0,0)
+W:(0,0,0)
+A:(0,0,0)
+N:(0,0,0)
+R:(0,0,0)
+B:(0,0,0)

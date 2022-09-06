@@ -95,7 +95,7 @@ namespace Pyro.Nc.Parsing
             strg.Recents = new Queue<ICommand>();
             strg.CreateLocalLowDir();
 
-            string fullPath = strg.StorageDirectory.FullName + "\\commandId.txt";
+            string fullPath = $"{strg.StorageDirectory.FullName}\\{CommandIDPath}";
             var separator1 = "##G";
             var separator2 = "##M";
             var separator3 = "##A";
@@ -145,7 +145,7 @@ namespace Pyro.Nc.Parsing
         {
             void CreateMissingFile(string s)
             {
-                File.ReadAllBytes($"{AppDomain.CurrentDomain.BaseDirectory}\\commandId.txt").Do(x =>
+                File.ReadAllBytes($"{AppDomain.CurrentDomain.BaseDirectory}\\{CommandIDPath}").Do(x =>
                 {
                     File.Create(s).Do(y =>
                     {
@@ -156,7 +156,7 @@ namespace Pyro.Nc.Parsing
             }
 
             StorageDirectory ??= new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\PyroNc");
-            var fullPath = $"{StorageDirectory.FullName}\\commandId.txt";
+            var fullPath = $"{StorageDirectory.FullName}\\{CommandIDPath}";
             if (!StorageDirectory.Exists)
             {
                 Directory.CreateDirectory(StorageDirectory.FullName);
@@ -168,5 +168,7 @@ namespace Pyro.Nc.Parsing
                 CreateMissingFile(fullPath);
             }
         }
+
+        private const string CommandIDPath = "Configuration\\commandId.txt";
     }
 }
