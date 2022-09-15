@@ -155,7 +155,7 @@ namespace Pyro.Nc.Parsing
                 });
             }
 
-            StorageDirectory ??= new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\PyroNc");
+            StorageDirectory = new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\PyroNc");
             var fullPath = $"{StorageDirectory.FullName}\\{CommandIDPath}";
             if (!StorageDirectory.Exists)
             {

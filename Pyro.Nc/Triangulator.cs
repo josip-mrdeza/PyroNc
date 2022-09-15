@@ -3,7 +3,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Pyro.Math;
 using Pyro.Math.Geometry;
+using Pyro.Nc.Pathing;
 using UnityEngine;
+using Physics = Pyro.Math.Physics;
 
 namespace Pyro.Nc
 {
@@ -11,6 +13,8 @@ namespace Pyro.Nc
     {
         public Mesh OriginalMesh;
         public Mesh CurrentMesh;
+        public Ray[] HitPoints = new Ray[180];
+        public Dictionary<Vector3, int> Points = new Dictionary<Vector3, int>();
         public Triangulator(Mesh mesh)
         {
             OriginalMesh = mesh;
@@ -18,8 +22,44 @@ namespace Pyro.Nc
             CurrentMesh.vertices = mesh.vertices;
             CurrentMesh.uv = mesh.uv;
             CurrentMesh.triangles = mesh.triangles;
+            for (int i = 0; i < CurrentMesh.vertexCount; i++)
+            {
+                var vert = CurrentMesh.vertices[i];
+                if (!Points.ContainsKey(vert))
+                {
+                    Points.Add(vert, i);
+                }
+            }
+            for (int i = 0; i < HitPoints.Length; i++)
+            {
+                HitPoints[i] = new Ray(new Vector3(), new Vector3(Mathf.Sin(i * 2) * 10, 0, Mathf.Cos(i * 2) * 10));
+            }
         }
 
+        public void Remove(ITool tool)
+        {
+            var probe = tool.Position;
+            probe.z -= 10; //bottom most point lets say
+            var radius = 10;
+            for (int i = 0; i < HitPoints.Length; i++)
+            {
+                ref var ray = ref HitPoints[i];
+                ray.origin = probe;
+                var success = UnityEngine.Physics.Raycast(ray, out var hit, radius);
+                if (success)
+                {
+                    var exists = Points.TryGetValue(hit.point, out var index);
+                    if (exists)
+                    {
+                        CurrentMesh.vertices[index] = Vector3.zero;
+                        Points.Remove(hit.point);
+                        Points.Add(Vector3.zero, index);
+                    }
+                }
+            }
+            
+            
+        }            
         public void RemoveVertex(int num)
         {
             var length = CurrentMesh.vertices.Length;

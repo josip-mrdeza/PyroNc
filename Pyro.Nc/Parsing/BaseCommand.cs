@@ -46,7 +46,7 @@ namespace Pyro.Nc.Parsing
             }
             else
             {
-                if(Parameters.Y != 0)
+                if(Parameters.GetValue("Y") != 0)
                 {
                     throw new NotSupportedException("Y axis is not supported in TURN Mode");
                 }

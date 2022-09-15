@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Pyro.Nc.Parsing;
+using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
 using UnityEngine;
 
@@ -11,9 +13,7 @@ namespace Pyro.Nc.Simulation
         public ToolValues(ITool tool)
         {
             Storage = ValueStorage.CreateFromFile(tool).Result;
-            ModalStorage = new Dictionary<string, ICommand>(){
-                {"G00", new G00(tool, new GCommandParameters(0,0,0))}
-            };
+            ModalStorage = new Dictionary<string, ICommand>();
             Destination = new Target(new Vector3());
             SpindleSpeed = new Limiter();
             FeedRate = new Limiter();
