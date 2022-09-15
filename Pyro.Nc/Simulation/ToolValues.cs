@@ -11,7 +11,9 @@ namespace Pyro.Nc.Simulation
         public ToolValues(ITool tool)
         {
             Storage = ValueStorage.CreateFromFile(tool).Result;
-            ModalStorage = new Dictionary<string, ICommand>(){{"G00", new G00(tool, new GCommandParameters())});
+            ModalStorage = new Dictionary<string, ICommand>(){
+                {"G00", new G00(tool, new GCommandParameters())}
+            };
             Destination = new Target(new Vector3());
             SpindleSpeed = new Limiter();
             FeedRate = new Limiter();
