@@ -12,7 +12,7 @@ namespace Pyro.Nc.Simulation
         {
             Storage = ValueStorage.CreateFromFile(tool).Result;
             ModalStorage = new Dictionary<string, ICommand>(){
-                {"G00", new G00(tool, new GCommandParameters())}
+                {"G00", new G00(tool, new GCommandParameters(0,0,0))}
             };
             Destination = new Target(new Vector3());
             SpindleSpeed = new Limiter();
