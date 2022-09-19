@@ -52,8 +52,8 @@ namespace Pyro.Nc.Pathing
             {
                 while (Values.Destination.IsValid && !Values.IsAllowed)
                 {
-                    await Task.Yield();
                     await Task.Delay(Values.FastMoveTick, Values.Current.Parameters.Token);
+                    await Task.Yield();
                 }
             }
         }
@@ -95,7 +95,6 @@ namespace Pyro.Nc.Pathing
             var prev = SetupMove(points, out var rnd);
             foreach (var point in points)
             {
-                await Task.Yield();
                 var pos = point;
                 if (Values.IsIncremental)
                 {
@@ -106,6 +105,7 @@ namespace Pyro.Nc.Pathing
                 prev = pos;
                 await CheckPositionForCut();
                 await Task.Delay(Values.FastMoveTick);
+                await Task.Yield();
                 if (Values.Current.Parameters.Token.IsCancellationRequested)
                 {
                     return;
