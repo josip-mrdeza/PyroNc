@@ -7,3 +7,5 @@ The PC then stops sending blocks and waits.
 The AB control executes the blocks residing in it’s buffer.   Note, at this time the mill will be moving around trying to machine metal.
 The AB control sees the buffer is getting empty and asks the PC to send more program blocks.
 This cycle continues until all the program data has been sent.
+
+https://www.emco-world.com/fileadmin/pim/EMCO_WinNC_for_Sinumerik_Operate_Mill_EN_1848_C_01.pdf
