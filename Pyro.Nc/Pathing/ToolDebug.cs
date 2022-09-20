@@ -29,7 +29,13 @@ namespace Pyro.Nc.Pathing
                 await OnConsumeStopCheck();
             }
         }
-        public async void Start()
+
+        private void Awake()
+        {
+            Globals.Tool = this;
+        }
+
+        public void Start()
         {
             meshPointer ??= Plane.GetComponent<MeshFilter>().mesh;
             Workpiece = new PObject(meshPointer);

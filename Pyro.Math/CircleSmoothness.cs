@@ -19,10 +19,6 @@ namespace Pyro.Math
         /// <summary>
         /// Represents a circle plotted with 360 points in space, or a point for every degree up til 360 degrees.
         /// </summary>
-        Fine = 360,
-        /// <summary>
-        /// Represents a circle plotted with 720 points in space, or a point for every half a degree up til 360 degrees.
-        /// </summary>
-        [Obsolete] Perfect = 720
+        Fine = 360
     }
 }

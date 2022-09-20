@@ -9,18 +9,21 @@ namespace Pyro.IO
     public class LocalVariables
     {
         public Dictionary<string, FileInfo> Files { get; private set; }
+        public Dictionary<string, DirectoryInfo> Folders { get; private set; }
         public string Site { get; set; }
 
         public void Init(string name)
         {
-            Site = $"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}\\{name}";
+            Site = $"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}\\{name}\\";
             if (!Directory.Exists(Site))
             {
                 Directory.CreateDirectory(Site);
             }
 
             var files = Directory.EnumerateFiles(Site);
-            Files = files.ToDictionary(k => k.Remove(0, k.LastIndexOf('\\') + 1), fn => new FileInfo(fn));
+            var folders = Directory.EnumerateDirectories(Site);
+            Files = files.ToDictionary(k => k.Remove(0, k.LastIndexOf('\\') + 1), fi => new FileInfo(fi));
+            Folders = folders.ToDictionary(k => k.Remove(0, k.LastIndexOf('\\') + 1), di => new DirectoryInfo(di));
         }
 
         public IEnumerable<T> ListAll<T>()

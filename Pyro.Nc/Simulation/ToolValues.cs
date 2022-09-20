@@ -12,7 +12,7 @@ namespace Pyro.Nc.Simulation
     {
         public ToolValues(ITool tool)
         {
-            Storage = ValueStorage.CreateFromFile(tool).Result;
+            Storage = ValueStorage.CreateFromFile(tool);
             ModalStorage = new Dictionary<string, ICommand>();
             Destination = new Target(new Vector3());
             SpindleSpeed = new Limiter();
@@ -37,14 +37,8 @@ namespace Pyro.Nc.Simulation
         public bool ExactStopCheck { get; set; }
         public Limiter SpindleSpeed { get; set; }
         public Limiter FeedRate { get; set; }
-        public float SpindleSpeedLimit
-        {
-            set => SpindleSpeed.UpperLimit = value;
-        }
-        public float FeedRateLimit
-        {
-            set => FeedRate.UpperLimit = value;
-        }
+        public float SpindleSpeedLimit { set => SpindleSpeed.UpperLimit = value; } 
+        public float FeedRateLimit { set => FeedRate.UpperLimit = value; }
         public TimeSpan FastMoveTick = TimeSpan.FromMilliseconds(0.1d);
         public CancellationTokenSource TokenSource { get; set; } = new CancellationTokenSource();
     }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Pyro.IO;
+using Pyro.Nc.Configuration;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Parsing.MCommands;
@@ -83,17 +84,17 @@ namespace Pyro.Nc.Parsing
             return command;
         }
 
-        public static async Task<ValueStorage> CreateFromFile(ITool tool)
-        {
+        public static ValueStorage CreateFromFile(ITool tool)
+        {                         
             if (CommandHelper._storage is not null)
             {
                 return CommandHelper._storage;
             }
-            
             ValueStorage strg = new ValueStorage();
             CommandHelper._storage = strg;
             strg.Recents = new Queue<ICommand>();
             strg.CreateLocalLowDir();
+            ManagerStorage.InitAll();
 
             string fullPath = $"{strg.StorageDirectory.FullName}\\{CommandIDPath}";
             var separator1 = "##G";
@@ -143,29 +144,30 @@ namespace Pyro.Nc.Parsing
 
         private void CreateLocalLowDir()
         {
-            void CreateMissingFile(string s)
-            {
-                File.ReadAllBytes($"{AppDomain.CurrentDomain.BaseDirectory}\\{CommandIDPath}").Do(x =>
-                {
-                    File.Create(s).Do(y =>
-                    {
-                        y.Write(x, 0, x.Length);
-                        y.Dispose();
-                    });
-                });
-            }
+            // void CreateMissingFile(string s)
+            // {
+            //     File.ReadAllBytes($"{}\\{CommandIDPath}").Do(x =>
+            //     {
+            //         File.Create(s).Do(y =>
+            //         {
+            //             y.Write(x, 0, x.Length);
+            //             y.Dispose();
+            //         });
+            //     });
+            // }
 
             StorageDirectory = new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\PyroNc");
             var fullPath = $"{StorageDirectory.FullName}\\{CommandIDPath}";
             if (!StorageDirectory.Exists)
             {
                 Directory.CreateDirectory(StorageDirectory.FullName);
-                CreateMissingFile(fullPath);
+                //CreateMissingFile(fullPath);
             }
 
             if (!File.Exists(fullPath))
             {
-                CreateMissingFile(fullPath);
+                //CreateMissingFile(fullPath);
+                File.CreateText(fullPath).Dispose();
             }
         }
 

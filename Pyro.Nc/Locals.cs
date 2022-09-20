@@ -2,6 +2,7 @@ namespace Pyro.Nc
 {
     public static class Locals
     {
+        public const string Lims = "Spindle Speed Limiter";
         public const string Comment = "Comment";
         public const string ToolSetter = "Sets the tool";
         public const string SpindleSpeedSetter = "Sets the tool's spindle speed";
@@ -25,6 +26,8 @@ namespace Pyro.Nc
         public const string G82 = "Drill with dwell at bottom";
         public const string G90 = "Absolute programming";
         public const string G91 = "Incremental programming";
+        public const string G96 = "Activate spindle speed limit";
+        public const string G97 = "Disable spindle speed limit";
         public const string G331 = "Drill";
         public const string G332 = "Retract (Drill)";
         public const string M00 = "Unconditional Stop (Pause)";

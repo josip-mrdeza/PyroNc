@@ -13,6 +13,7 @@ namespace Pyro.Nc.Parsing
         public ICommandParameters Parameters { get; set; }
         public void UpdateCurrent();
         public Task Execute(bool draw);
+        public Task ExecuteTurning(bool draw);
         public Task ExecuteFinal(bool draw);
         public void Expire();
         public void Plan();

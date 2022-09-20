@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
@@ -14,9 +15,8 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
         public override string Description => Text;
 
         public override async Task Execute(bool draw)
-        { 
-            //TODO Make it show up as a message
-            Console.WriteLine(Description);
+        {
+            Globals.Console.PushText(Description);
         }
     }
 }

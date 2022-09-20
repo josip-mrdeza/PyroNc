@@ -3,11 +3,11 @@ using Pyro.Nc.Parsing;
 
 namespace Pyro.Nc.Configuration
 {
-    public static class ConfigurationFileManager
+    public class ConfigurationFileManager : IManager
     {
-        static ConfigurationFileManager()
+        public void Init()
         {
-            var files = Directory.GetFiles("./Configuration");
+            var files = Directory.GetFiles($"{CommandHelper._storage.StorageDirectory.FullName}\\Configuration");
             foreach (var file in files)
             {
                 var fileInfo = new FileInfo(file);
