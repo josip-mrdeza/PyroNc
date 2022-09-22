@@ -14,13 +14,14 @@ namespace Pyro.Nc.Configuration
     {
         private void Start()
         {
-            PyroConsoleView.PushTextStatic("Startup initialized!");
+            PyroConsoleView.PushTextStatic("Application Startup initializing...");
             Collector.Init();
+            PyroConsoleView.PushTextStatic("Collector Startup initialized!");
             //var version = UpdateInfo.GetLatest().GetAwaiter().GetResult();
-
             PyroConsoleView.PushTextStatic("Starting periodic statistic thread...");
             Collector.SendStatisticsPeriodic();
-            PyroConsoleView.PushTextStatic("Started periodic statistic thread.");
+            PyroConsoleView.PushTextStatic("Started periodic statistic thread!");
+            PyroConsoleView.PushTextStatic("Statistics Startup initialized!");
             PyroConsoleView.PushTextStatic("Startup complete!");
         }
 

@@ -2,6 +2,7 @@ using System.IO;
 using System.Linq;
 using Pyro.IO;
 using Pyro.Nc.Parsing;
+using Pyro.Nc.UI;
 using UnityEngine;
 
 namespace Pyro.Nc.Configuration
@@ -11,8 +12,13 @@ namespace Pyro.Nc.Configuration
         static ReferencePointParser()
         {
             var fullPath = $"{CommandHelper._storage.StorageDirectory.FullName}\\Configuration\\referencePoints.txt";
+            PyroConsoleView.PushTextStatic("Starting ReferencePointParser in path:", fullPath);
             referencePointsTxt = File.ReadAllLines(fullPath);
+            PyroConsoleView.PushTextStatic("ReferencePointParser:", $"{referencePointsTxt.Length} lines");
             Init();
+            PyroConsoleView.PushTextStatic(string.Join("\n", _cachedValues
+                                                             .Select(x => x.ToString())
+                                                             .Prepend("ReferencePointParser:")));
         }
 
         private static readonly string[] referencePointsTxt;

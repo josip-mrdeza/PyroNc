@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Pyro.IO;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands.Exceptions;
@@ -32,7 +33,7 @@ namespace Pyro.Nc.UI
         {
             var fileInfo = Globals.Variables.AddVariable("pyroLog.txt");
             Stream = fileInfo.CreateText();
-            PushText($"Created Log Stream in: {fileInfo.FullName}.");
+            PushTextStatic($"Created Log Stream in: {fileInfo.FullName}.");
             return fileInfo;
         }
 
@@ -47,25 +48,29 @@ namespace Pyro.Nc.UI
         {
             Application.logMessageReceived += (condition, stackTrace, type) =>
             {
-                PushText($"LogType.{type}:\n    --{condition ?? "Empty"}\n    --StackTrace:{stackTrace ?? "Empty"}");
+                PushTextStatic($"LogType.{type}:\n    --{condition ?? "Empty"}\n    --StackTrace:{stackTrace ?? "Empty"}");
             };
-            PushText("Added handler for Application.logMessageReceived.");
+            PushTextStatic("Added handler for Application.logMessageReceived.");
             Application.quitting += () =>
             {
-                PushText($"Quitting Application...");
-                PushText($"Disposing log stream in: {fileInfo.FullName}...");
+                PushTextStatic($"Quitting Application...");
+                PushTextStatic($"Disposing log stream in: {fileInfo.FullName}...");
                 DisposeStream();
             };
-            PushText("Added handler for Application.quitting.");
+            PushTextStatic("Added handler for Application.quitting.");
         }
 
         private void PushCreation()
         {
-            PushText(
-                $"Initialized Local App Data from LocalVariables, with {Globals.Variables.Files.Count.ToString()} preexisting files." +
-                $"\n    --Folders\n        ---{string.Join(",\n        ---", Globals.Variables.Folders.Values.Select(d => d.Name + " | LWT: " + d.LastWriteTimeUtc))}" +
-                $"\n    --Files  \n        ---{string.Join(",\n        ---", Globals.Variables.Files.Values.Select(f => f.Name + " | " + f.Length + " bytes"))}");
-            PushText("Finished PyroConsoleView Setup!");
+            //string.Join(",\n        ---", Globals.Variables.Folders.Values.Select(d => d.Name + " | LWT: " + d.LastWriteTimeUtc))
+            //string.Join(",\n        ---", Globals.Variables.Files.Values.Select(f => f.Name + " | " + f.Length + " bytes"))
+            PushTextStatic(
+                $"Initialized Local App Data from LocalVariables, with {Globals.Variables.Files.Count.ToString()} preexisting files.",
+                string.Join(",\n    --", Globals.Variables.Folders.Values.Select(d => "[Folder]" + d.Name + " | LWT: " + d.LastWriteTimeUtc)),
+                "--------",
+                string.Join(",\n    --",
+                            Globals.Variables.Files.Values.Select(f => "[File]" + f.Name + " | " + f.Length + " bytes")));
+                PushTextStatic("Finished PyroConsoleView Setup!");
         }
 
         public void PushText(string message, LogType type = LogType.Log)
@@ -92,14 +97,24 @@ namespace Pyro.Nc.UI
             }
         }
 
-        public static void PushTextStatic(string message, LogType type = LogType.Log)
+        public static void PushTextStatic(params string[] message)
         {
             if (Globals.Console is null)
             {
                 return;
             }
-            
-            Globals.Console.PushText(message, type);
+
+            StringBuilder builder = new StringBuilder();
+            builder.AppendLine(message.FirstOrDefault());
+            for (int i = 1; i < message.Length; i++)
+            {
+                builder.Append("    --");
+                builder.Append(message[i]);
+                builder.Append('\n');
+            }
+
+            builder.AppendLine("<-------------");
+            Globals.Console.PushText(builder.ToString());
         }
 
         public void DisposeStream()

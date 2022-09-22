@@ -26,8 +26,15 @@ namespace Pyro.Nc.Configuration.Statistics
             _time = Stopwatch.StartNew();
             Globals.Variables.AddVariable("baseAddress.txt");
             Globals.Variables.AddVariable("machineId.txt", Environment.MachineName);
+            PyroConsoleView.PushTextStatic("Registered:\n" +
+                                           "    --baseAddress.txt\n" +
+                                           "    --machineId.txt");
             BaseAddress = Globals.Variables.GetVariableDataAsString("baseAddress.txt");
             ID = Globals.Variables.GetVariableDataAsString("machineId.txt");
+            
+            PyroConsoleView.PushTextStatic("Read Registered Data:\n" +
+                                           $"    --baseAddress.txt -> {BaseAddress},\n" +
+                                           $"    --machineId.txt -> {ID}");
         }
 
         public static async Task PushToLog(this Task<HttpResponseMessage> message)
