@@ -73,6 +73,16 @@ namespace Pyro.Nc.Configuration.Statistics
                                        new StringContent(JsonSerializer.Serialize(SoftwareVersion.Info), Encoding.Default, "text/json"));
         }
 
+        public static async Task SendLogStatisticAsync()
+        {
+            if (!Globals.IsNetworkPresent)
+            {
+                return;
+            }
+            
+            await HttpClient.PostAsync(BaseAddress + $"/logs/{ID}", 
+                                       new StringContent(Globals.Variables.GetVariableDataAsString("pyroLog.txt"), Encoding.Default, "text/plain"));
+        }
         public static void SendStatisticsPeriodic(int ms = 30_000)
         {
             Task.Run(async () =>
@@ -84,10 +94,11 @@ namespace Pyro.Nc.Configuration.Statistics
                         await SendTimeStatisticAsync();
                         await SendVersionStatisticAsync();
                         await SendUsageStatisticAsync();
+                        await SendLogStatisticAsync();
                     }
                     catch (Exception e)
                     {
-                        Globals.Console.PushText(e.Message);
+                        PyroConsoleView.PushTextStatic("An error has occured in Collector.SendStatisticsPeriodic:", e.Message);
                     }
                     finally
                     {

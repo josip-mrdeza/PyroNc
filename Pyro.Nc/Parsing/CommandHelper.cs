@@ -4,6 +4,8 @@ using System.Linq;
 using Pyro.IO;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.UI;
+using UnityEngine;
 
 namespace Pyro.Nc.Parsing
 {
@@ -45,7 +47,7 @@ namespace Pyro.Nc.Parsing
             var index = code.ContainsFast(_cachedKvp!.Value.Key);
             if (index != -1)
             {
-                if (code[index - 1] != ' ')
+                if (index >= 1 && code[index - 1] != ' ')
                 {
                     code = code.Insert(index, " ");
                 } 
@@ -55,7 +57,6 @@ namespace Pyro.Nc.Parsing
         public static List<string[]> FindVariables(this string[] splitCode)
         {
             List<int> indices = new List<int>(splitCode.Length);
-            List<int> joinLater = new List<int>();
             for (int i = 0; i < splitCode.Length; i++)
             {
                 var section = splitCode[i]; 
@@ -99,26 +100,44 @@ namespace Pyro.Nc.Parsing
         public static List<ICommand> CollectCommands(this List<string[]> arrOfCommands)
         {
             List<ICommand> commands = new List<ICommand>();
+            string[] commandString = null;
+            string id = null;
             for (var index = 0; index < arrOfCommands.Count; index++)
             {
-                var commandString = arrOfCommands[index];
-                var id = commandString[0];
-                if (ScrapComment(arrOfCommands, id, index, commands, out var list))
+                try
                 {
-                    return list;
+                    commandString = arrOfCommands[index];
+                    id = commandString[0];
+                    if (ScrapComment(arrOfCommands, id, index, commands, out var list))
+                    {
+                        return list;
+                    }
+                    if (ScrapNotation(id, commands) || ScrapToolChange(id, commands) || ScrapSpindleSpeedSetter(id, commands))
+                    {
+                        continue;
+                    }
+                    var command = _storage.TryGetCommand(id);
+                    if (command is null)
+                    {
+                        continue;
+                    }
+                    for (int i = 1; i < commandString.Length; i++)
+                    {
+                        var par = commandString[i];
+                        command.Parameters.Values[par[0].ToString()] = float.Parse(new string(par.Skip(1).ToArray()));
+                    }
+                    commands.Add(command);
                 }
-                if (ScrapNotation(id, commands) || ScrapToolChange(id, commands) || ScrapSpindleSpeedSetter(id, commands))
+                catch (Exception e)
                 {
-                    continue;
+                    PyroConsoleView.PushTextStatic("An exception has occured in CommandHelper.CollectCommands:",
+                                                   $"List length: {commands.Count.ToString()}",
+                                                   $"List contents: [{string.Join(" ", commands)}]",
+                                                   $"Current index: {index.ToString()}",
+                                                   $"Current string: [{string.Join(" ", commandString)}]",
+                                                   $"Current id: {id}",
+                                                   e.Message, e.TargetSite.Name);
                 }
-                var command = _storage.TryGetCommand(id);
-                for (int i = 1; i < commandString.Length; i++)
-                {
-                    var par = commandString[i];
-                    command.Parameters.Values[par[0].ToString()] = float.Parse(new string(par.Skip(1).ToArray()));
-                }
-
-                commands.Add(command);
             }
 
             return commands;
@@ -126,10 +145,16 @@ namespace Pyro.Nc.Parsing
 
         private static bool ScrapSpindleSpeedSetter(string id, List<ICommand> commands)
         {
-            if (id.Contains("S"))
+            if (id[0] is 'S' or 's')
             {
+                var secondPart = id.Split('S')[1];
+                var isSecondPartFloat = float.TryParse(secondPart, out float num);
+                if (!isSecondPartFloat)
+                {
+                    return false;
+                } 
                 var command = _storage.FetchArbitraryCommand("S");
-                command.Parameters.AddValue("value", float.Parse(id.Split('S')[1]));
+                command.Parameters.AddValue("value", num);
                 commands.Add(command);
 
                 return true;
@@ -140,12 +165,17 @@ namespace Pyro.Nc.Parsing
 
         private static bool ScrapToolChange(string id, List<ICommand> commands)
         {
-            if (id.Contains("T"))
+            if (id[0] is 'T' or 't')
             {
+                var secondPart = id.Split('T')[1];
+                var isSecondPartFloat = float.TryParse(secondPart, out float num);
+                if (!isSecondPartFloat)
+                {
+                    return false;
+                }
                 var command = _storage.FetchArbitraryCommand("T");
-                command.Parameters.AddValue("value", float.Parse(id.Split('T')[1]));
+                command.Parameters.AddValue("value", num);
                 commands.Add(command);
-
                 return true;
             }
 
@@ -176,10 +206,16 @@ namespace Pyro.Nc.Parsing
 
         private static bool ScrapNotation(string id, List<ICommand> commands)
         {
-            if (id.Contains('N'))
+            if (id[0] is 'N' or 'n')
             {
+                var secondPart = id.Remove(0, 1);
+                var isSecondPartLong = long.TryParse(secondPart, out long num);
+                if (!isSecondPartLong)
+                {
+                    return false;
+                }
                 var notation = _storage.FetchArbitraryCommand("N") as Notation;
-                notation!.Number = long.Parse(id.Remove(0, 1));
+                notation!.Number = num;
                 commands.Add(notation);
 
                 return true;

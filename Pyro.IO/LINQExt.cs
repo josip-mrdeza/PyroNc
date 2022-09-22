@@ -103,7 +103,7 @@ namespace Pyro.IO
 
                 if (match)
                 {
-                    return i - substring.Length + 1;
+                    return (i - substring.Length) + 1;
                 }
             }
 

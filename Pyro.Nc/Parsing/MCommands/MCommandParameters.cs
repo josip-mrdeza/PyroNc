@@ -10,7 +10,7 @@ namespace Pyro.Nc.Parsing.MCommands
 {
     public class MCommandParameters : ICommandParameters
     {
-        public Dictionary<string, float> Values { get; set; }
+        public Dictionary<string, float> Values { get; set; } = new Dictionary<string, float>();
 
         public float GetValue(string s)
         {

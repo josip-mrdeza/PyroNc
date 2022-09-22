@@ -9,6 +9,7 @@ using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.UI;
 using TrCore;
 
 namespace Pyro.Nc.Parsing
@@ -92,9 +93,8 @@ namespace Pyro.Nc.Parsing
 
         public ICommand Copy()
         {
-            var console = Globals.Console;
             var type = GetType().Name;
-            console.PushText($"{type}: Copy()\n   --Copying ICommand::{type}!");
+            PyroConsoleView.PushTextStatic($"{type}: Copy()", "Copying ICommand::{type}!");
             var parameters = Parameters.GetType().Name switch
             {
                 "GCommandParameters"         => new GCommandParameters(0, 0, 0, Parameters.LineSmoothness),

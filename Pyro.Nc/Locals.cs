@@ -2,6 +2,7 @@ namespace Pyro.Nc
 {
     public static class Locals
     {
+        public const string Trans = "Work Offset";
         public const string Lims = "Spindle Speed Limiter";
         public const string Comment = "Comment";
         public const string ToolSetter = "Sets the tool";

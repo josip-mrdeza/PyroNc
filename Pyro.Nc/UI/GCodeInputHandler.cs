@@ -12,32 +12,46 @@ namespace Pyro.Nc.UI
     {
         public TMP_InputField Text;
         public TextMeshProUGUI SuggestionDisplay;
-        public bool Loop;
-
         private void Start()
         {
-            Text = GetComponent<TMP_InputField>();
-            ApplySuggestions();
+            Text.onValueChanged.AddListener(_ => ApplySuggestions());
         }
 
-        public async void ApplySuggestions()
+        public void ApplySuggestions()
         {
-            while (Loop)
+            var snip = Snip(Text.caretPosition);
+            if (string.IsNullOrEmpty(snip))
             {
-                var suggestions = GetSuggestions().ToArray();
-                SuggestionDisplay.text = "Suggestions:\n";
-                SuggestionDisplay.text = string.Join("\n", suggestions);
-                await Task.Delay(1);
-                await Task.Yield();
+                return;
             }
+            var suggestions = GetSuggestions(snip);
+            SuggestionDisplay.text = string.Join("\n", suggestions);
         }
 
-        public IEnumerable<string> GetSuggestions()
+        public IEnumerable<string> GetSuggestions(string line)
         {
-            var variables = Text.text.FindVariables();
+            var variables = line.Trim().FindVariables();
             var commands = variables.CollectCommands();
 
             return commands.Select(x => $"{x.GetType().Name}, {x.Description}");
+        }
+
+        public string Snip(int caretPos)
+        {
+            var lines = Text.text.Split('\n');
+            var count = Text.text.Count(x => x == '\n');
+            var sum = count;
+            for (int i = 0; i < lines.Length; i++)
+            {
+                var line = lines[i];
+                sum += line.Length;
+                if (caretPos <= sum)
+                {
+                    return line;
+                }
+            }
+
+            throw new Exception($"GCode Snip exception, no line matched the caret's position. Caret pos: {caretPos}, Text len: {Text.text.Length}; sum = {sum}");
         }
     }
 }

@@ -9,5 +9,7 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
         public Trans(ITool tool, ArbitraryCommandParameters parameters) : base(tool, parameters)
         {
         }
+
+        public override string Description => Locals.Trans;
     }
 }

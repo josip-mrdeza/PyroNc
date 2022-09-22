@@ -10,6 +10,7 @@ using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.UI;
 using TrCore;
 using TrCore.Logging;
 using TrCore.Reflection;
@@ -68,10 +69,15 @@ namespace Pyro.Nc.Parsing
                 {
                     return kvp!.Value.Value.Copy();
                 }
+            }
+
+            if (ic is null)
+            {
+                PyroConsoleView.PushTextStatic($"ACommand '{code}' does not exist in the dictionary!");
+
                 return null;
             }
-            
-            return ic.GuardNull($"ACommand '{code}' does not exist in the dictionary!").Copy();
+            return ic.Copy();
         }
 
         public ICommand TryGetCommand(string code)
