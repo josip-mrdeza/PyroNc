@@ -13,6 +13,8 @@ namespace Pyro.Nc.Simulation
     {
         public static ITool Tool;
         public static PyroConsoleView Console;
+        public static CommentView Comment;
         public static LocalVariables Variables;
+        public static bool IsNetworkPresent = true;
     }
 }

@@ -60,6 +60,10 @@ namespace Pyro.Nc
             }
         }
 
+        public void Remove()
+        {
+            
+        }
         public void Remove(int index, Vector3 offset)
         {
             var arr = CurrentMesh.vertices;

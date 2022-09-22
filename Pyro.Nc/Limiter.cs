@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Pyro.Nc
 {
     public class Limiter
@@ -5,6 +7,12 @@ namespace Pyro.Nc
         private float Value;
         public float UpperLimit;
 
+        public Limiter(float value, float upperLimit)
+        {
+            Value = value;
+            UpperLimit = upperLimit;
+        }
+        
         public void Set(float val)
         {
             if (val > UpperLimit)
@@ -30,5 +38,7 @@ namespace Pyro.Nc
         {
             return limiter.Value;
         }
+
+        public override string ToString() => Value.ToString(CultureInfo.InvariantCulture);
     }
 }

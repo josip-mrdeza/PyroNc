@@ -15,17 +15,16 @@ namespace Pyro.Nc.UI
     {
         public TextMeshProUGUI TextMesh;
         public StreamWriter Stream;
+        public int Count;
+        private object _lock = new object();
 
         private void Awake()
         {
+            //TextMesh ??= GetComponentInChildren<TextMeshProUGUI>();
             UpdateGlobals();
             var fileInfo = CreateFileStream();
             PushEventCreation(fileInfo);
-        }
-
-        private void Start()
-        {
-            base.Start();
+            //Start();
             PushCreation();
         }
 
@@ -69,12 +68,38 @@ namespace Pyro.Nc.UI
             PushText("Finished PyroConsoleView Setup!");
         }
 
-        public void PushText(string message)
+        public void PushText(string message, LogType type = LogType.Log)
         {
-            var msg = $"-{message}";
-            TextMesh.text += msg;
-            Stream.WriteLine(msg);
-            Stream.Flush();
+            var msg = $"[{DateTime.Now.ToLongTimeString()}] - {message}";
+            if (type is LogType.Warning or LogType.Error or LogType.Exception)
+            {
+                if (Count > 13)
+                {
+                    TextMesh.text = "Console:\n" + msg + '\n';
+                    Count = 0;
+                }
+                else
+                {
+                    TextMesh.text += msg + '\n';
+                    Count++;
+                }
+            }
+
+            lock (_lock)
+            {
+                Stream.WriteLine(msg);
+                Stream.Flush();
+            }
+        }
+
+        public static void PushTextStatic(string message, LogType type = LogType.Log)
+        {
+            if (Globals.Console is null)
+            {
+                return;
+            }
+            
+            Globals.Console.PushText(message, type);
         }
 
         public void DisposeStream()

@@ -32,6 +32,8 @@ namespace Pyro.Nc.Pathing
 
         private void Awake()
         {
+            OnCollision += Cut;
+            Values = new ToolValues(this);
             Globals.Tool = this;
         }
 
@@ -40,8 +42,6 @@ namespace Pyro.Nc.Pathing
             meshPointer ??= Plane.GetComponent<MeshFilter>().mesh;
             Workpiece = new PObject(meshPointer);
             Triangulator = new Triangulator(Workpiece.Mesh);
-            Values = new ToolValues(this);
-            OnCollision += Cut;
         }
         
         public async Task UseCommand(ICommand command, bool draw)

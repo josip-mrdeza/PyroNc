@@ -15,8 +15,8 @@ namespace Pyro.Nc.Simulation
             Storage = ValueStorage.CreateFromFile(tool);
             ModalStorage = new Dictionary<string, ICommand>();
             Destination = new Target(new Vector3());
-            SpindleSpeed = new Limiter();
-            FeedRate = new Limiter();
+            SpindleSpeed = new Limiter(500, 3500);
+            FeedRate = new Limiter(10, 350);
             IsAllowed = true;
             IsIncremental = false;
             IsImperial = false;

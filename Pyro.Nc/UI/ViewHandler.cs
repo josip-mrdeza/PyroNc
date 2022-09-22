@@ -17,10 +17,39 @@ namespace Pyro.Nc.UI
         {
             Views.First(x => x.Id == id).Show();
         }
+
+        public static void ShowOne(string id)
+        {
+            foreach (var view in Views)
+            {
+                if (view.Id == id)
+                {
+                    view.Show();
+                }
+                else
+                {
+                    if (view.IsActive)
+                    {
+                        view.Hide();
+                    }
+                }
+            }
+        }
         
         public static void Hide(string id)
         {
             Views.First(x => x.Id == id).Hide();
+        }
+
+        public static void HideOne(string id)
+        {
+            foreach (var view in Views)
+            {
+                if (view.Id == id)
+                {
+                    view.Hide();
+                }
+            } 
         }
     }
 }

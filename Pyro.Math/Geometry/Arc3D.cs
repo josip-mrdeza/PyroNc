@@ -6,6 +6,5 @@ namespace Pyro.Math.Geometry
         public Vector3D[] Points { get; }
         public Vector3D Start { get; }
         public Vector3D End { get; }
-        
     }
 }
