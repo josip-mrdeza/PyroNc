@@ -44,42 +44,23 @@ namespace Pyro.Nc.Configuration.Statistics
         }
 
         public static async Task SendTimeStatisticAsync()
-        {
-            if (!Globals.IsNetworkPresent)
-            {
-                return;
-            }
-
+        { 
             await HttpClient.PostAsync(BaseAddress + $"/time/{ID}", new StringContent(_time.Elapsed.TotalMinutes + "min", Encoding.Default, "text/plain")).PushToLog();
         }
 
         public static async Task SendUsageStatisticAsync()
         {
-            if (!Globals.IsNetworkPresent)
-            {
-                return;
-            }
             await HttpClient.PostAsync(BaseAddress + $"/usage/{ID}", new StringContent((GC.GetTotalMemory(false)/1_000_000).ToString()+"MB", Encoding.Default, "text/plain")).PushToLog();
         }
 
         public static async Task SendVersionStatisticAsync()
         {
-            if (!Globals.IsNetworkPresent)
-            {
-                return;
-            }
-
             await HttpClient.PostAsync(BaseAddress + $"/version/{ID}", 
                                        new StringContent(JsonSerializer.Serialize(SoftwareVersion.Info), Encoding.Default, "text/json"));
         }
 
         public static async Task SendLogStatisticAsync()
         {
-            if (!Globals.IsNetworkPresent)
-            {
-                return;
-            }
-            
             await HttpClient.PostAsync(BaseAddress + $"/logs/{ID}", 
                                        new StringContent(Globals.Variables.GetVariableDataAsString("pyroLog.txt"), Encoding.Default, "text/plain"));
         }
@@ -91,6 +72,10 @@ namespace Pyro.Nc.Configuration.Statistics
                 {
                     try
                     {
+                        if (!Globals.IsNetworkPresent)
+                        {
+                            continue;
+                        }
                         await SendTimeStatisticAsync();
                         await SendVersionStatisticAsync();
                         await SendUsageStatisticAsync();
