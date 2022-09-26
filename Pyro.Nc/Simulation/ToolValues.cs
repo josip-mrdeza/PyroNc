@@ -37,9 +37,10 @@ namespace Pyro.Nc.Simulation
         public bool ExactStopCheck { get; set; }
         public Limiter SpindleSpeed { get; set; }
         public Limiter FeedRate { get; set; }
+        public float Radius { get; set; }
         public float SpindleSpeedLimit { set => SpindleSpeed.UpperLimit = value; } 
         public float FeedRateLimit { set => FeedRate.UpperLimit = value; }
-        public TimeSpan FastMoveTick = TimeSpan.FromMilliseconds(0.1d);
+        public TimeSpan FastMoveTick = TimeSpan.FromMilliseconds(10f);
         public CancellationTokenSource TokenSource { get; set; } = new CancellationTokenSource();
     }
 }

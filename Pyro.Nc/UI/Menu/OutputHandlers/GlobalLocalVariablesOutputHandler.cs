@@ -9,7 +9,7 @@ namespace Pyro.Nc.UI.Menu.OutputHandlers
         Stopwatch _stopwatch = Stopwatch.StartNew();
         private void Update()
         {
-            if (Globals.Variables is null)
+            if (Globals.Roaming is null)
             {
                 ValueText.text = $"Null - {_stopwatch.Elapsed.TotalSeconds.ToString(CultureInfo.InvariantCulture)}s";
             }

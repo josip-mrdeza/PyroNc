@@ -19,5 +19,7 @@ namespace Pyro.Nc.Pathing
         {
             HasArrived = true;
         }
+
+        public override string ToString() => Location.ToString();
     }
 }

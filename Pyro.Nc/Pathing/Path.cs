@@ -1,3 +1,4 @@
+using System.Linq;
 using UnityEngine;
 
 namespace Pyro.Nc.Pathing
@@ -10,5 +11,7 @@ namespace Pyro.Nc.Pathing
         {
             Points = points;
         }
+
+        public override string ToString() => $"{Points.First().ToString()}->{Points.Last().ToString()}";
     }
 }

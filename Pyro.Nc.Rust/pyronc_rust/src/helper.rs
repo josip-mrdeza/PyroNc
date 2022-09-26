@@ -14,7 +14,7 @@ impl Handler {
         self.receivers.push(rec);
         return self;
     }
-    pub fn notify(&self){
+    pub fn notify(self){
         let iterator = self.receivers.iter();
         for item in iterator {
             item.on_receive();

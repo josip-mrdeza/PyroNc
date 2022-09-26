@@ -1,13 +1,17 @@
 using System;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 using Pyro.IO;
+using Pyro.Math;
 using Pyro.Math.Geometry;
 using Pyro.Nc.Parsing;
+using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Simulation;
 using UnityEngine;
 using Random = System.Random;
+using Vector3 = UnityEngine.Vector3;
 
 namespace Pyro.Nc.Pathing
 {
@@ -131,7 +135,7 @@ namespace Pyro.Nc.Pathing
         {
             await Traverse(line.ToVector3s(), draw);
         }
-        public virtual async Task Traverse(Vector3 toPoint, LineTranslationSmoothness smoothness = LineTranslationSmoothness.Crude, bool draw = false)
+        public virtual async Task Traverse(Vector3 toPoint, LineTranslationSmoothness smoothness = LineTranslationSmoothness.Fine, bool draw = false)
         {
             await Traverse(new Line3D(Position.ToVector3D(), toPoint.ToVector3D(), 
                                       (int) smoothness), draw);
@@ -153,7 +157,7 @@ namespace Pyro.Nc.Pathing
                 {
                     circleCenter.y = 0;
                 }
-                c.Shift(circleCenter.ToVector3D());
+                //c.Shift(circleCenter.ToVector3D());
 
                 if (reverse)
                 {

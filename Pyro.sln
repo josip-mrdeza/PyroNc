@@ -26,9 +26,15 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyro.Net", "Pyro.Net\Pyro.N
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TriangulationBenchmarks", "TriangulationBenchmarks\TriangulationBenchmarks.csproj", "{9246782D-AEA8-4B7B-BF77-10176E6C4FA7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyro.IO.GPIO", "Pyro.IO.GPIO\Pyro.IO.GPIO.csproj", "{CCD7AB5F-87B2-46C6-9478-5FB695427DAE}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RaspberryPiDHT11", "RaspberryPiDHT11\RaspberryPiDHT11.csproj", "{4572D731-C0F1-4571-AE26-10DCDCA09DA9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyro.Injector", "Pyro.Injector\Pyro.Injector.csproj", "{9E54B44E-7442-4885-8D75-C153F91E1993}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyro.Threading", "Pyro.Threading\Pyro.Threading.csproj", "{3A58B061-A91D-4A6B-B8A2-F2A0065D40C8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesktopTester", "DesktopTester\DesktopTester.csproj", "{0138D722-1A50-4C69-8829-82DC353E7FB4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroSoftwareUpdater", "PyroSoftwareUpdater\PyroSoftwareUpdater.csproj", "{A2AA4FA5-70B3-4155-A550-E6B50281F397}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -88,13 +94,25 @@ Global
 		{9246782D-AEA8-4B7B-BF77-10176E6C4FA7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9246782D-AEA8-4B7B-BF77-10176E6C4FA7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9246782D-AEA8-4B7B-BF77-10176E6C4FA7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CCD7AB5F-87B2-46C6-9478-5FB695427DAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CCD7AB5F-87B2-46C6-9478-5FB695427DAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CCD7AB5F-87B2-46C6-9478-5FB695427DAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CCD7AB5F-87B2-46C6-9478-5FB695427DAE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4572D731-C0F1-4571-AE26-10DCDCA09DA9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4572D731-C0F1-4571-AE26-10DCDCA09DA9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4572D731-C0F1-4571-AE26-10DCDCA09DA9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4572D731-C0F1-4571-AE26-10DCDCA09DA9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E54B44E-7442-4885-8D75-C153F91E1993}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E54B44E-7442-4885-8D75-C153F91E1993}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E54B44E-7442-4885-8D75-C153F91E1993}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E54B44E-7442-4885-8D75-C153F91E1993}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A58B061-A91D-4A6B-B8A2-F2A0065D40C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A58B061-A91D-4A6B-B8A2-F2A0065D40C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A58B061-A91D-4A6B-B8A2-F2A0065D40C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A58B061-A91D-4A6B-B8A2-F2A0065D40C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0138D722-1A50-4C69-8829-82DC353E7FB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0138D722-1A50-4C69-8829-82DC353E7FB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0138D722-1A50-4C69-8829-82DC353E7FB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0138D722-1A50-4C69-8829-82DC353E7FB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A2AA4FA5-70B3-4155-A550-E6B50281F397}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A2AA4FA5-70B3-4155-A550-E6B50281F397}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A2AA4FA5-70B3-4155-A550-E6B50281F397}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A2AA4FA5-70B3-4155-A550-E6B50281F397}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
@@ -12,7 +13,9 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
         public override string Description => Locals.ToolSetter;
         public override async Task Execute(bool draw)
         {
-            //TODO Change the tool object & replace radius.
+            var value = (int) Parameters.GetValue("value");
+            //Globals.ToolManager.
+            //set the correct tool
         }
     }
 }

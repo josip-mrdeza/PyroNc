@@ -121,6 +121,10 @@ namespace Pyro.Nc.Parsing
                     {
                         continue;
                     }
+                    foreach (var key in command.Parameters.Values.Keys.ToArray())
+                    {
+                        command.Parameters.Values[key] = Single.NaN;
+                    }
                     for (int i = 1; i < commandString.Length; i++)
                     {
                         var par = commandString[i];
@@ -134,7 +138,7 @@ namespace Pyro.Nc.Parsing
                                                    $"List length: {commands.Count.ToString()}",
                                                    $"List contents: [{string.Join(" ", commands)}]",
                                                    $"Current index: {index.ToString()}",
-                                                   $"Current string: [{string.Join(" ", commandString)}]",
+                                                   $"Current string: [{string.Join(" ", commandString!)}]",
                                                    $"Current id: {id}",
                                                    e.Message, e.TargetSite.Name);
                 }

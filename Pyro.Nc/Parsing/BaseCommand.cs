@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Pyro.Math;
 using Pyro.Math.Geometry;
+using Pyro.Nc.Configuration;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Parsing.MCommands;
@@ -34,6 +35,16 @@ namespace Pyro.Nc.Parsing
             var type = GetType().Name;
             var toDraw = draw.ToString();
             UpdateCurrent();
+            if (Startup.RichPresence is not null)
+            {
+                var clientType = Startup.RichPresence.GetType();
+                var clientInfo = clientType.GetField("Client");
+                var client = clientInfo.GetValue(Startup.RichPresence);
+            
+                clientType = client.GetType();
+                var method = clientType.GetMethod("UpdateDetails");
+                method.Invoke(client, new object[]{$"{type}: '{Description}'"});
+            }
             if (Tool.Values.IsImperial)
             {
                 Parameters.SwitchToImperial();

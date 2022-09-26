@@ -10,13 +10,12 @@ using System.Text.Json.Serialization.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Pyro.IO;
-
 namespace Pyro.Net
 {
     public static class PersistentClient
     {
         private static readonly HttpClient _client = new HttpClient();
-        private static LocalVariables Variables = new LocalVariables();
+        private static LocalRoaming Roaming = LocalRoaming.OpenOrCreate("Pyro.Net");
         public static string ID = null;
         
         public static async Task<DefaultContent> Get(this string id, string url, CancellationToken token)
@@ -29,7 +28,6 @@ namespace Pyro.Net
             {
                 PropertyNameCaseInsensitive = true    
             });
-
         }
         
         public static async Task<T> Get<T>(this string id, string url, CancellationToken token)
@@ -58,9 +56,8 @@ namespace Pyro.Net
         {
             if (ID == null)
             {
-                Variables.Init("Pyro.Net");
-                Variables.AddVariable("PlayerInfo.txt", new Random().Next(-69420, 69420).ToString());
-                ID = Variables.GetVariableDataAsString("PlayerInfo.txt");
+                Roaming.AddFile("PlayerInfo.txt", new Random().Next(-69420, 69420).ToString());
+                ID = Roaming.ReadFileAsText("PlayerInfo.txt");
                 url = url.Replace("id=", $"id={ID}");
             }
             obj.SenderId = ID;

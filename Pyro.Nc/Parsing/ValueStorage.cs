@@ -71,13 +71,13 @@ namespace Pyro.Nc.Parsing
                 }
             }
 
-            if (ic is null)
-            {
-                PyroConsoleView.PushTextStatic($"ACommand '{code}' does not exist in the dictionary!");
-
-                return null;
-            }
-            return ic.Copy();
+            // if (ic is null)
+            // {
+            //     PyroConsoleView.PushTextStatic($"ACommand '{code}' does not exist in the dictionary!");
+            //
+            //     return null;
+            // }
+            return ic is null ? null : ic.Copy();
         }
 
         public ICommand TryGetCommand(string code)

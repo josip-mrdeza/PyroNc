@@ -27,7 +27,9 @@ namespace Pyro.Nc.Parsing.GCommands
         {
             var parameters = (Parameters as GCommandParameters);
             var pos = Tool.Position;
-            var altPos = new Vector3(pos.x + parameters.I, pos.y, pos.z + parameters.J);
+            var altPos = new Vector3(pos.x + (float.IsNaN(parameters.I) ? 0 : parameters.I), 
+                                     pos.y, 
+                                     pos.z + (float.IsNaN(parameters.J) ? 0 : parameters.J));
             var diff = Space3D.Distance(pos.ToVector3D(), altPos.ToVector3D());
             await Tool.Traverse(altPos, diff, reverse, draw);
             Expire();

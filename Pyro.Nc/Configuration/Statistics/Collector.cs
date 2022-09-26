@@ -6,8 +6,8 @@ using System.Net.Http;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Pyro.Injector;
 using Pyro.IO;
-using Pyro.Nc.Configuration.Updates;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
 using UnityEngine.Device;
@@ -24,13 +24,13 @@ namespace Pyro.Nc.Configuration.Statistics
         public static void Init()
         {
             _time = Stopwatch.StartNew();
-            Globals.Variables.AddVariable("baseAddress.txt");
-            Globals.Variables.AddVariable("machineId.txt", Environment.MachineName);
+            Globals.Roaming.AddFile("baseAddress.txt");
+            Globals.Roaming.AddFile("machineId.txt", Environment.MachineName);
             PyroConsoleView.PushTextStatic("Registered:\n" +
                                            "    --baseAddress.txt\n" +
                                            "    --machineId.txt");
-            BaseAddress = Globals.Variables.GetVariableDataAsString("baseAddress.txt");
-            ID = Globals.Variables.GetVariableDataAsString("machineId.txt");
+            BaseAddress = Globals.Roaming.ReadFileAsText("baseAddress.txt");
+            ID = Globals.Roaming.ReadFileAsText("machineId.txt");
             
             PyroConsoleView.PushTextStatic("Read Registered Data:\n" +
                                            $"    --baseAddress.txt -> {BaseAddress},\n" +
@@ -55,14 +55,14 @@ namespace Pyro.Nc.Configuration.Statistics
 
         public static async Task SendVersionStatisticAsync()
         {
-            await HttpClient.PostAsync(BaseAddress + $"/version/{ID}", 
-                                       new StringContent(JsonSerializer.Serialize(SoftwareVersion.Info), Encoding.Default, "text/json"));
+            // await HttpClient.PostAsync(BaseAddress + $"/version/{ID}", 
+            //                            new StringContent(JsonSerializer.Serialize(), Encoding.Default, "text/json"));
         }
 
         public static async Task SendLogStatisticAsync()
         {
             await HttpClient.PostAsync(BaseAddress + $"/logs/{ID}", 
-                                       new StringContent(Globals.Variables.GetVariableDataAsString("pyroLog.txt"), Encoding.Default, "text/plain"));
+                                       new StringContent(Globals.Roaming.ReadFileAsText("pyroLog.txt"), Encoding.Default, "text/plain"));
         }
         public static void SendStatisticsPeriodic(int ms = 30_000)
         {
@@ -78,8 +78,8 @@ namespace Pyro.Nc.Configuration.Statistics
                         }
                         await SendTimeStatisticAsync();
                         await SendVersionStatisticAsync();
-                        await SendUsageStatisticAsync();
                         await SendLogStatisticAsync();
+                        await SendUsageStatisticAsync();
                     }
                     catch (Exception e)
                     {

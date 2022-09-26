@@ -14,7 +14,7 @@ namespace Pyro.Nc.Parsing.GCommands
 {
     public class G00 : BaseCommand
     {
-        public G00(ITool tool, ICommandParameters parameters) : base(tool, parameters)
+        public G00(ITool tool, GCommandParameters parameters) : base(tool, parameters)
         {
         }       
         
@@ -42,14 +42,30 @@ namespace Pyro.Nc.Parsing.GCommands
                     throw new LinearInterpolationParameterMismatchException(this);
                 }
 
-                point = Tool.Position + new Vector3(parameters.X, parameters.Y, parameters.Z);
+                var pos = Tool.Position;
+                point = new Vector3(pos.x + ResolveNan(parameters.X, 0),
+                                    pos.y + ResolveNan(parameters.Y, 0), 
+                                    pos.z + ResolveNan(parameters.Z, 0));
             }
             else
             {
-                point = new Vector3(parameters.X, parameters.Y, parameters.Z);
+                var pos = Tool.Position;
+                point = new Vector3(ResolveNan(parameters.X, pos.x),
+                                    ResolveNan(parameters.Y, pos.y),
+                                    ResolveNan(parameters.Z, pos.z));
             }
 
             return point;
+        }
+
+        public float ResolveNan(float val, float defaultVal)
+        {
+            if (float.IsNaN(val))
+            {
+                return defaultVal;
+            }
+
+            return val;
         }
     }
 }

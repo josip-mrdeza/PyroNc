@@ -6,13 +6,34 @@ using System.Text.Json;
 
 namespace Pyro.IO
 {
-    public class LocalVariables
+    public class LocalRoaming
     {
         public Dictionary<string, FileInfo> Files { get; private set; }
         public Dictionary<string, DirectoryInfo> Folders { get; private set; }
         public string Site { get; set; }
+        private static readonly Dictionary<string, LocalRoaming> Roamings = new Dictionary<string, LocalRoaming>();
 
-        public void Init(string name)
+        private LocalRoaming(string id)
+        {
+            Init(id);
+            Roamings.Add(id, this);
+        }
+
+        public static LocalRoaming OpenOrCreate(string id)
+        {
+            LocalRoaming roaming;
+            if (Roamings.ContainsKey(id))
+            {
+                roaming = Roamings[id];
+                return roaming;
+            }
+
+            roaming = new LocalRoaming(id);
+
+            return roaming;
+        }
+        
+        private void Init(string name)
         {
             Site = $"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}\\{name}\\";
             if (!Directory.Exists(Site))
@@ -31,44 +52,49 @@ namespace Pyro.IO
             return Files.Values.Select(x => JsonSerializer.Deserialize<T>(File.ReadAllText(x.FullName)));
         }
         
-        public byte[] GetVariableDataAsBytes(string variableId)
+        public byte[] ReadFile(string variableId)
         {
             var fn = Files[variableId].FullName;
 
             return File.ReadAllBytes(fn);
         }
         
-        public string GetVariableDataAsString(string variableId)
+        public string ReadFileAsText(string variableId)
         {
             var fn = Files[variableId].FullName;
 
             return File.ReadAllText(fn);
         }
         
-        public T GetVariableDataAsT<T>(string variableId)
+        public T ReadFileAs<T>(string variableId)
         {
             var fn = Files[variableId].FullName;
 
             return JsonSerializer.Deserialize<T>(File.ReadAllText(fn));
         }
 
-        public void ChangeVariable(string variableId, byte[] content)
+        public void ModifyFile(string variableId, byte[] content)
         {
             var fn = Files[variableId].FullName;
             File.WriteAllBytes(fn, content);
         }
 
-        public void ChangeVariable(string variableId, string content)
+        public void ModifyFile(string variableId, string content)
         {
             if (!Files.ContainsKey(variableId))
             {
-                AddVariable(variableId);
+                AddFile(variableId);
             }
             var fn = Files[variableId].FullName;
             File.WriteAllText(fn, content);
         }
         
-        public FileInfo AddVariable(string variableId)
+        public void ModifyFile<T>(string variableId, T content)
+        {
+            ModifyFile(variableId, JsonSerializer.Serialize(content));
+        }
+        
+        public FileInfo AddFile(string variableId)
         {
             if (Files.ContainsKey(variableId))
             {
@@ -80,7 +106,7 @@ namespace Pyro.IO
             return fn;
         }
         
-        public FileInfo AddVariable(string variableId, string content)
+        public FileInfo AddFile(string variableId, string content)
         {
             if (Files.ContainsKey(variableId))
             {
@@ -93,17 +119,9 @@ namespace Pyro.IO
             return fn;
         }
         
-        public FileInfo AddVariable<T>(string variableId, T content)
+        public FileInfo AddFile<T>(string variableId, T content)
         {
-            if (Files.ContainsKey(variableId))
-            {
-                File.WriteAllText(Files[variableId].FullName, JsonSerializer.Serialize(content));
-                return Files[variableId];
-            }
-            var fn = new FileInfo($"{Site}\\{variableId}");
-            Files.Add(variableId, fn);
-            File.Create(fn.FullName).Dispose();
-            File.WriteAllText(fn.FullName, JsonSerializer.Serialize(content));
+            var fn = AddFile(variableId, JsonSerializer.Serialize(content));
             return fn;
         }
 

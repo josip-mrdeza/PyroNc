@@ -3,6 +3,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Pyro.IO;
+using Pyro.Nc.Configuration;
+using Pyro.Nc.Configuration.Statistics;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands.Exceptions;
 using Pyro.Nc.Simulation;
@@ -31,7 +33,7 @@ namespace Pyro.Nc.UI
 
         private FileInfo CreateFileStream()
         {
-            var fileInfo = Globals.Variables.AddVariable("pyroLog.txt");
+            var fileInfo = Globals.Roaming.AddFile("pyroLog.txt");
             Stream = fileInfo.CreateText();
             PushTextStatic($"Created Log Stream in: {fileInfo.FullName}.");
             return fileInfo;
@@ -40,8 +42,7 @@ namespace Pyro.Nc.UI
         private void UpdateGlobals()
         {
             Globals.Console = this;
-            Globals.Variables ??= new LocalVariables();
-            Globals.Variables.Init("PyroNc");
+            Globals.Roaming ??= LocalRoaming.OpenOrCreate("PyroNc");
         }
 
         private void PushEventCreation(FileInfo fileInfo)
@@ -65,11 +66,11 @@ namespace Pyro.Nc.UI
             //string.Join(",\n        ---", Globals.Variables.Folders.Values.Select(d => d.Name + " | LWT: " + d.LastWriteTimeUtc))
             //string.Join(",\n        ---", Globals.Variables.Files.Values.Select(f => f.Name + " | " + f.Length + " bytes"))
             PushTextStatic(
-                $"Initialized Local App Data from LocalVariables, with {Globals.Variables.Files.Count.ToString()} preexisting files.",
-                string.Join(",\n    --", Globals.Variables.Folders.Values.Select(d => "[Folder]" + d.Name + " | LWT: " + d.LastWriteTimeUtc)),
+                $"Initialized Local App Data from LocalVariables, with {Globals.Roaming.Files.Count.ToString()} preexisting files.",
+                string.Join(",\n    --", Globals.Roaming.Folders.Values.Select(d => "[Folder]" + d.Name + " | LWT: " + d.LastWriteTimeUtc)),
                 "--------",
                 string.Join(",\n    --",
-                            Globals.Variables.Files.Values.Select(f => "[File]" + f.Name + " | " + f.Length + " bytes")));
+                            Globals.Roaming.Files.Values.Select(f => "[File]" + f.Name + " | " + f.Length + " bytes")));
                 PushTextStatic("Finished PyroConsoleView Setup!");
         }
 
@@ -120,6 +121,12 @@ namespace Pyro.Nc.UI
         public void DisposeStream()
         {
             Stream.Dispose();
+            if (!Globals.IsNetworkPresent)
+            {
+                return;
+            }
+
+            //Collector.SendLogStatisticAsync();
         }
     }
 }

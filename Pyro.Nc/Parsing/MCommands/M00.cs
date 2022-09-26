@@ -14,7 +14,7 @@ namespace Pyro.Nc.Parsing.MCommands
             Tool = tool;
             Parameters = parameters;
         }
-        public override string Description { get => Locals.M00; }
+        public override string Description => Locals.M00;
 
         public override async Task Execute(bool draw)
         {
