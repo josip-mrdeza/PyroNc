@@ -87,17 +87,17 @@ namespace Pyro.Nc.Pathing
         }
         protected virtual async Task CheckPositionForCut()
         {
-            if (Workpiece.IsPointInside(Position.ToVector3D()))
-            {
-                if (OnCollision is not null)
-                {
-                    await OnCollision.Invoke(Values.Current, Position);
-                }
-            }
-            else
-            {
-                Debug.Log($"[{(Values.Current is null ? "nullC" : Values.Current.Description)}] Tool did not cut the workpiece at position {Position.ToString()}");
-            }
+            // if (Workpiece.IsPointInside(Position.ToVector3D()))
+            // {
+            //     if (OnCollision is not null)
+            //     {
+            //         await OnCollision.Invoke(Values.Current, Position);
+            //     }
+            // }
+            // else
+            // {
+            //     Debug.Log($"[{(Values.Current is null ? "nullC" : Values.Current.Description)}] Tool did not cut the workpiece at position {Position.ToString()}");
+            // }
         }
         public virtual async Task Traverse(Vector3[] points, bool draw)
         {
@@ -106,10 +106,10 @@ namespace Pyro.Nc.Pathing
             foreach (var point in points)
             {
                 var pos = point;
-                if (Values.IsIncremental)
-                {
-                    pos += transform.position;
-                }
+                // if (Values.IsIncremental)
+                // {
+                //     pos += transform.position;
+                // }
                 transform.position = pos;
                 DrawLine(draw, rnd, prev, pos);
                 prev = pos;

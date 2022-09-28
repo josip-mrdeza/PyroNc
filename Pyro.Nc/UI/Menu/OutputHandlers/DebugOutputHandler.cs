@@ -22,6 +22,15 @@ namespace Pyro.Nc.UI.Menu.OutputHandlers
                 {
                     ValueText.text = property.GetValue(Globals.Tool.Values).ToString();
                 }
+                else
+                {
+                    var fieldInfo = typeof(ToolValues).GetField(id);
+                    if (fieldInfo is not null)
+                    {
+                        ValueText.text = fieldInfo.GetValue(Globals.Tool.Values).ToString();
+
+                    }
+                }
             }
             else
             {
@@ -29,6 +38,14 @@ namespace Pyro.Nc.UI.Menu.OutputHandlers
                 if (property is not null)
                 {
                     ValueText.text = property.GetValue(Globals.Tool).ToString();
+                }
+                else
+                {
+                    var fieldInfo = ToolType.GetField(id);
+                    if (fieldInfo is not null)
+                    {
+                        ValueText.text = fieldInfo.GetValue(Globals.Tool).ToString();
+                    }
                 }
             }
         }
