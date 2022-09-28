@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Pyro.IO;
+using Pyro.Math;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.UI;
@@ -128,7 +130,18 @@ namespace Pyro.Nc.Parsing
                     for (int i = 1; i < commandString.Length; i++)
                     {
                         var par = commandString[i];
-                        command.Parameters.Values[par[0].ToString()] = float.Parse(new string(par.Skip(1).ToArray()));
+                        var reqStr = new string(par.Skip(1).ToArray());
+                        var success = float.TryParse(reqStr, out var f);
+                        if (!success)
+                        {
+                            reqStr = reqStr.Replace("(", "").Replace(")", "");
+                            var nums = reqStr.LookForNumbers();
+                            var results = nums.Solve();
+                            f = (float) results[1].Value;
+                            Debug.Log($"Solver result: {f.ToString(CultureInfo.InvariantCulture)}");
+                        }
+
+                        command.Parameters.Values[par[0].ToString()] = f;
                     }
                     commands.Add(command);
                 }

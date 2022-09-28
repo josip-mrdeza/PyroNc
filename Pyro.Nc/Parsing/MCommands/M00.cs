@@ -25,19 +25,9 @@ namespace Pyro.Nc.Parsing.MCommands
                 Parameters.Values.TryGetValue("P", out ms);
             }
 
-            var parameters = Parameters as MCommandParameters;
-            for (int i = 0; i < ms; i++)
-            {
-                await Task.Yield();
-                if (parameters!.Token.IsCancellationRequested)
-                {
-                    break;
-                }
-
-                await Task.Delay(1);
-                Tool.Values.IsAllowed = false;
-            }
-
+            Tool.Values.IsAllowed = false;
+            var timeSpan = TimeSpan.FromMilliseconds(ms);
+            await Task.Delay(timeSpan);
             Tool.Values.IsAllowed = true;
         }
     }

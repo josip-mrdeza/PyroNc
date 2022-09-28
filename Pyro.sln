@@ -36,6 +36,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DesktopTester", "DesktopTes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroSoftwareUpdater", "PyroSoftwareUpdater\PyroSoftwareUpdater.csproj", "{A2AA4FA5-70B3-4155-A550-E6B50281F397}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroTester2", "PyroTester2\PyroTester2.csproj", "{0364EE5C-AB27-4A67-95C7-BD75C80DF183}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -114,5 +116,9 @@ Global
 		{A2AA4FA5-70B3-4155-A550-E6B50281F397}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A2AA4FA5-70B3-4155-A550-E6B50281F397}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A2AA4FA5-70B3-4155-A550-E6B50281F397}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0364EE5C-AB27-4A67-95C7-BD75C80DF183}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0364EE5C-AB27-4A67-95C7-BD75C80DF183}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0364EE5C-AB27-4A67-95C7-BD75C80DF183}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0364EE5C-AB27-4A67-95C7-BD75C80DF183}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
