@@ -45,14 +45,14 @@ namespace Pyro.Math
             {
                 for (int i = 0; i < 360;  i += (int) multiplier)
                 {
-                    arr[(int) (i / multiplier)] = new Vector3D(-(i.Cos() * r), i.Sin() * r, depth);
+                    arr[(int) (i / multiplier)] = new Vector3D(-(i.Cos() * r), depth, (i.Sin() * r));
                 }
             }
             else
             {
                 for (int i = 0; i < 360; i++)
                 {
-                    arr[i] = new Vector3D(-((i * multiplier).Cos() * r), (i * multiplier).Sin() * r, depth);
+                    arr[i] = new Vector3D(-((i * multiplier).Cos() * r), depth, (i * multiplier).Sin() * r);
                 }
             }
 
@@ -61,12 +61,12 @@ namespace Pyro.Math
 
         public static Vector3D[] PlotCircle3D(float r, Vector3D circleCenterPoint, CircleSmoothness circleSmoothness = CircleSmoothness.Fine)
         {
-            Vector3D[] arr = PlotCircle3D(r, circleCenterPoint.z, circleSmoothness);
+            Vector3D[] arr = PlotCircle3D(r, circleCenterPoint.y, circleSmoothness);
             for (int i = 0; i < arr.Length; i++)
             {
                 var a = arr[i];
-                a.x = circleCenterPoint.x + a.x;
-                a.y = circleCenterPoint.y + a.y;
+                a.x += circleCenterPoint.x;
+                a.z += circleCenterPoint.z;
                 arr[i] = a;
             }
             return arr;

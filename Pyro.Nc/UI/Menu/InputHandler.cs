@@ -73,8 +73,11 @@ namespace Pyro.Nc.UI.Menu
         {
             if (Tool is null)
             {
-                Globals.Console.PushText($"Could not write to property: {ToolValuesIdTypeInfo.Name} in ToolValues.\n" +
-                                         $"    --Reason: Tool object is null!", LogType.Error);
+                if (Globals.Console is not null)
+                {
+                    Globals.Console.PushText($"Could not write to property: {ToolValuesIdTypeInfo.Name} in ToolValues.\n" +
+                                             $"    --Reason: Tool object is null!", LogType.Error);   
+                }
 
                 return true;
             }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -27,7 +28,15 @@ namespace Pyro.Nc.Pathing
         public ToolValues Values { get; set; }
         public event Func<Task> OnConsumeStopCheck;
         public event Func<ICommand, Vector3, Task> OnCollision;
-        public ComputeBuffer Buffer;
+        [NonSerialized] public List<Vector3> Vertices;
+        [NonSerialized] public List<int> Triangles;
+        [NonSerialized] public List<Color32> Colors;
+        /// <summary>
+        /// Key = vertex index;
+        /// <value>Triangle begin index</value>
+        /// </summary>
+        [NonSerialized] public Dictionary<int, int> VertToTrigMapping;
+        [NonSerialized] public Dictionary<Vector3, List<int>> VectorToTriangleMap;
 
         public async Task InvokeOnConsumeStopCheck()
         {
@@ -50,6 +59,13 @@ namespace Pyro.Nc.Pathing
             Workpiece = new PObject(meshPointer);
             Triangulator = new Triangulator(Workpiece.Mesh);
             Plane.GetComponent<MeshFilter>().mesh = Triangulator.CurrentMesh;
+            Vertices = Triangulator.CurrentMesh.vertices.ToList();
+            Triangles = Triangulator.CurrentMesh.triangles.ToList();
+            Colors = Vertices.Select(x => new Color32(255, 255, 255, 255)).ToList();
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            Map();
+            stopwatch.Stop();
+            Debug.Log(stopwatch.ElapsedMilliseconds + "ms");
             Collider = Plane.GetComponent<MeshCollider>();
             var bounds = Collider.bounds;
             var tr = Plane.transform;
@@ -61,6 +77,34 @@ namespace Pyro.Nc.Pathing
             minX = min.x;
             minY = min.y;
             minZ = min.z;
+        }
+
+        public void Map()
+        {
+            /*VectorToTriangleMap = new Dictionary<Vector3, List<int>>();
+            // for (var i = 1; i < Triangles.Count;i+=3)
+            // {
+            //     var val = Triangles[i - 1];
+            //     if (!VertToTrigMapping.ContainsKey(val))
+            //     {
+            //         VertToTrigMapping.Add(val, i);
+            //     }
+            // }
+
+            for (int i = 1; i < Triangles.Count; i+=3)
+            {
+                var realValue = i - 1;
+                var index = Triangles[realValue];
+                var val = Vertices[index];
+                if (VectorToTriangleMap.ContainsKey(val))
+                {
+                    VectorToTriangleMap[val].Add(index);
+                }
+                else
+                {
+                    VectorToTriangleMap.Add(val, new List<int>(){index});
+                }
+            }*/
         }
 
         public async Task UseCommand(ICommand command, bool draw)
@@ -97,39 +141,22 @@ namespace Pyro.Nc.Pathing
             {
                 var val = rnd.Next(10, 100) / 100f;
                 var color = new Color(1, val + 0.1f, val - 0.2f, 1f);
-                Debug.DrawLine(prev, p, color, 1f);
+                Debug.DrawLine(prev, p, color, 10f);
             }
         }
 
         public float minX = 0f;
         public float minY = 0f;
         public float minZ = 0f;
-        public MeshCollider Collider;
+        private MeshCollider Collider;
         public float maxX;
         public float maxY;
         public float maxZ;
-        /*public virtual Direction IsOverLimit(Vector3 dest)
-        {
-            var d = new Direction();
-            if (dest.x < minX || dest.x > maxX)
-            {
-                d.X = dest.x.Abs();
-            }
-            if (dest.y < minY || dest.y > maxY)
-            {
-                d.Y = dest.y.Abs();
-            }
-            if (dest.z < minZ || dest.z > maxZ)
-            {
-                d.Z = dest.z.Abs();
-            }
-
-            return d;
-        }*/
         
         public virtual bool IsOkayToCut(Vector3 dest)
         {
             var d = new Direction();
+            dest = Plane.transform.TransformVector(dest);
             if (dest.x < minX || dest.x > maxX)
             {
                 d.X = dest.x.Abs();
@@ -145,32 +172,41 @@ namespace Pyro.Nc.Pathing
 
             return d.X == 0 && d.Y == 0 && d.Z == 0;
         }
+
         protected virtual Task CheckPositionForCut(Direction direction)
         {
             //find the fastest way to traverse an array and find the appropriate vertex to 'remove'.
             Stopwatch stopwatch = Stopwatch.StartNew();
             var pos = Position;
-            var verts = Triangulator.CurrentMesh.vertices;
             var tr = Plane.transform;
             var v = new Vector3(direction.X, direction.Y, direction.Z);
-            for (int i = 0; i < verts.Length; i++)
+            for (int i = 0; i < Vertices.Count; i++)
             {
-                ref var vert = ref verts[i];
+                var vert = Vertices[i];
                 var realVert = tr.TransformVector(vert);
                 var distance = Vector3.Distance(pos, realVert);
-                var result = vert - v;
+                //var v = Vector3.one * 0.5F;
+                v.y = 0.5F;
+                //var result = realVert - v;
+
                 //where we remove a vertex, we append a new one
-                if (distance < 0.3F && IsOkayToCut(result))
+
+                if (distance < 0.5F && IsOkayToCut(realVert))
                 {
-                    var final = v;
-                    vert -= final;
+                    Colors[i] = new Color32(255, 0, 0, 255);
+                    Vertices[i] -= v;
                 }
             }
+            
 
-            Triangulator.CurrentMesh.vertices = verts;
-            stopwatch.Stop();  
+            Triangulator.CurrentMesh.vertices = Vertices.GetInternalArray();
+            Triangulator.CurrentMesh.triangles = Triangles.GetInternalArray();
+            Triangulator.CurrentMesh.colors32 = Colors.GetInternalArray();
+            stopwatch.Stop();
+
             return Task.CompletedTask;
         }
+
         public virtual async Task Traverse(Vector3[] points, bool draw)
         {
             await UntilValid();
@@ -220,7 +256,7 @@ namespace Pyro.Nc.Pathing
         {
             await Traverse(new Circle3D(circleRadius, Position.y).Mutate(c =>
             {
-                c.SwitchYZ();
+                //c.SwitchYZ();
                 if (reverse)
                 {
                     c.Reverse();

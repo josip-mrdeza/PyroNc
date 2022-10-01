@@ -56,13 +56,13 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
 
         public LineTranslationSmoothness LineSmoothness
         {
-            get => throw new NotSupportedException(); 
+            get => default;
             set => throw new NotSupportedException();  
         }
 
         public CircleSmoothness CircleSmoothness
         {
-            get => throw new NotSupportedException(); 
+            get => default;
             set => throw new NotSupportedException();  
         }
     }

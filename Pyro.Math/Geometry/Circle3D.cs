@@ -27,7 +27,7 @@ namespace Pyro.Math.Geometry
             Radius = radius;
             Points = Space3D.PlotCircle3D(radius, depth, smoothness);
             Start = Points[0];
-            End = Points[Points.Length - 1];
+            End = Start;
             Smoothness = smoothness;
             XLimits = new[]
             {
@@ -76,7 +76,6 @@ namespace Pyro.Math.Geometry
             {
                 var p = Points[i];
                 p.x += x;
-                p.y += y;
                 p.z += z;
                 Points[i] = p;
             }
