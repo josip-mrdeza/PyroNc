@@ -7,8 +7,12 @@ using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Math;
 using Pyro.Math.Geometry;
+using Pyro.Nc.Configuration;
 using Pyro.Nc.Parsing;
+using Pyro.Nc.Parsing.GCommands;
+using Pyro.Nc.Parsing.GCommands.Exceptions;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.UI;
 using Pyro.Threading;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -17,7 +21,7 @@ using Vector3 = UnityEngine.Vector3;
 
 namespace Pyro.Nc.Pathing
 {
-    public class ToolDebug : MonoBehaviour, ITool
+    public class ToolDebug : InitializerRoot, ITool
     {
         public Mesh meshPointer;
         public GameObject Plane;
@@ -31,12 +35,6 @@ namespace Pyro.Nc.Pathing
         [NonSerialized] public List<Vector3> Vertices;
         [NonSerialized] public List<int> Triangles;
         [NonSerialized] public List<Color32> Colors;
-        /// <summary>
-        /// Key = vertex index;
-        /// <value>Triangle begin index</value>
-        /// </summary>
-        [NonSerialized] public Dictionary<int, int> VertToTrigMapping;
-        [NonSerialized] public Dictionary<Vector3, List<int>> VectorToTriangleMap;
 
         public async Task InvokeOnConsumeStopCheck()
         {
@@ -46,15 +44,11 @@ namespace Pyro.Nc.Pathing
             }
         }
 
-        private void Awake()
+        public override void Initialize()
         {
             OnCollision += Cut;
             Values = new ToolValues(this);
             Globals.Tool = this;
-        }
-
-        public void Start()
-        {
             meshPointer ??= Plane.GetComponent<MeshFilter>().mesh;
             Workpiece = new PObject(meshPointer);
             Triangulator = new Triangulator(Workpiece.Mesh);
@@ -62,10 +56,6 @@ namespace Pyro.Nc.Pathing
             Vertices = Triangulator.CurrentMesh.vertices.ToList();
             Triangles = Triangulator.CurrentMesh.triangles.ToList();
             Colors = Vertices.Select(x => new Color32(255, 255, 255, 255)).ToList();
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            Map();
-            stopwatch.Stop();
-            Debug.Log(stopwatch.ElapsedMilliseconds + "ms");
             Collider = Plane.GetComponent<MeshCollider>();
             var bounds = Collider.bounds;
             var tr = Plane.transform;
@@ -77,34 +67,6 @@ namespace Pyro.Nc.Pathing
             minX = min.x;
             minY = min.y;
             minZ = min.z;
-        }
-
-        public void Map()
-        {
-            /*VectorToTriangleMap = new Dictionary<Vector3, List<int>>();
-            // for (var i = 1; i < Triangles.Count;i+=3)
-            // {
-            //     var val = Triangles[i - 1];
-            //     if (!VertToTrigMapping.ContainsKey(val))
-            //     {
-            //         VertToTrigMapping.Add(val, i);
-            //     }
-            // }
-
-            for (int i = 1; i < Triangles.Count; i+=3)
-            {
-                var realValue = i - 1;
-                var index = Triangles[realValue];
-                var val = Vertices[index];
-                if (VectorToTriangleMap.ContainsKey(val))
-                {
-                    VectorToTriangleMap[val].Add(index);
-                }
-                else
-                {
-                    VectorToTriangleMap.Add(val, new List<int>(){index});
-                }
-            }*/
         }
 
         public async Task UseCommand(ICommand command, bool draw)
@@ -173,10 +135,11 @@ namespace Pyro.Nc.Pathing
             return d.X == 0 && d.Y == 0 && d.Z == 0;
         }
 
-        protected virtual Task CheckPositionForCut(Direction direction)
+        protected virtual Task<CutResult> CheckPositionForCut(Direction direction, bool throwIfCut)
         {
             //find the fastest way to traverse an array and find the appropriate vertex to 'remove'.
             Stopwatch stopwatch = Stopwatch.StartNew();
+            long verticesCut = 0;
             var pos = Position;
             var tr = Plane.transform;
             var v = new Vector3(direction.X, direction.Y, direction.Z);
@@ -193,8 +156,13 @@ namespace Pyro.Nc.Pathing
 
                 if (distance < 0.5F && IsOkayToCut(realVert))
                 {
+                    if (throwIfCut)
+                    {
+                        throw new RapidFeedCollisionException(Values.Current);
+                    }
                     Colors[i] = new Color32(255, 0, 0, 255);
                     Vertices[i] -= v;
+                    verticesCut++;
                 }
             }
             
@@ -204,19 +172,24 @@ namespace Pyro.Nc.Pathing
             Triangulator.CurrentMesh.colors32 = Colors.GetInternalArray();
             stopwatch.Stop();
 
-            return Task.CompletedTask;
+            return Task.FromResult(new CutResult(stopwatch.ElapsedMilliseconds, verticesCut));
         }
 
         public virtual async Task Traverse(Vector3[] points, bool draw)
         {
             await UntilValid();
             var prev = SetupMove(points, out var rnd);
+            bool throwIfCutIsDetected = Values.Current.GetType() == typeof(G00);
+            double averageTimeForCut = 0;
+            long totalCut = 0;
             foreach (var point in points)
             {
                 var pos = point;
                 transform.position = pos;
                 DrawLine(draw, rnd, prev, pos);
-                await CheckPositionForCut(Direction.FromVectors(prev, pos));
+                var cutResult = await CheckPositionForCut(Direction.FromVectors(prev, pos), throwIfCutIsDetected);
+                averageTimeForCut = (averageTimeForCut + cutResult.TotalTime) / 2d;
+                totalCut += cutResult.TotalVerticesCut;
                 await Task.Delay(Values.FastMoveTick);
                 await Task.Yield();
                 prev = pos;
@@ -228,12 +201,16 @@ namespace Pyro.Nc.Pathing
 
             if (Values.ExactStopCheck)
             {
-                //Already is at the exact pos, so no need to do checks.
+                //Already is at the exact pos, so no need to do checks but kk.
                 if (OnConsumeStopCheck != null)
                 {
                     await OnConsumeStopCheck();
                 }
             }
+
+            PyroConsoleView.PushTextStatic("Traverse finished!",
+                                           $"Total vertices cut: {totalCut} ({((double) totalCut/Vertices.Count).Round()}%)",
+                                           $"Average time spent cutting: {averageTimeForCut.Round()}ms");
         }
         public virtual async Task Traverse(Line3D line, bool draw)
         {

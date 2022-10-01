@@ -175,10 +175,10 @@ namespace Pyro.Nc.Parsing
                 }
                 catch (FormatException e)
                 {
-                    PyroConsoleView.PushTextStatic(
-                        "A FormatException has occured in CommandHelper.CollectCommands:",
-                        $"Current id: {id}",
-                        e.Message);
+                    // PyroConsoleView.PushTextStatic(
+                    //     "A FormatException has occured in CommandHelper.CollectCommands:",
+                    //     $"Current id: {id}",
+                    //     e.Message);
                 }
                 catch (Exception e)
                 {

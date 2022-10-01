@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Pyro.IO;
+using Pyro.Nc.Configuration;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.Simulation;
 using TMPro;
@@ -11,15 +12,14 @@ using UnityEngine.UI;
 
 namespace Pyro.Nc.UI
 {
-    public class GCodeInputHandler : MonoBehaviour
+    public class GCodeInputHandler : View
     {
         public TMP_InputField Text;
         public TextMeshProUGUI LineNumber;
         public TextMeshProUGUI SuggestionDisplay;
         public Button Button;
-        private void Start()
+        public override void Initialize()
         {
-            Debug.Log("Init GCodeEditor");
             Text.onValueChanged.AddListener(_ => ApplySuggestions());
             Button.onClick.AddListener(async () =>
             {
@@ -33,6 +33,7 @@ namespace Pyro.Nc.UI
                     await Globals.Tool.UseCommand(command, true);
                 }
             });
+            base.Initialize();
         }
 
         public void ApplySuggestions()

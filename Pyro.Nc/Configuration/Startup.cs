@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,35 +15,24 @@ using UnityEngine;
 
 namespace Pyro.Nc.Configuration
 {
-    public class Startup : MonoBehaviour
+    public class Startup : InitializerRoot
     {
-        public GameObject Tool;
-        public Mesh DefaultMesh;
-        public GameObject Cube;
-        public GameObject PointerObject;
-        private void Start()
+        public static List<IManager> Managers = new List<IManager>();
+        public override void Initialize()
         {
             PyroConsoleView.PushTextStatic("Application Startup initializing...");
-            ManagerStorage.InitAll();
-            var td = Tool.AddComponent<ToolDebug>();
-            td.meshPointer = DefaultMesh;
-            td.Plane = Cube;
-            td.PObj = PointerObject;
-            string appId = "PyNc";
-            Globals.Info = SoftwareInfo.GetFromCache(appId);
-            Globals.Info.Refresh(appId);
-            // var fn2 = "dev.pyro";
-            // if (roaming.Exists(fn2))
-            // {
-            //     Process.Start("PyroSoftwareUpdater.exe", "pack PyNc update.json");
-            // }
-            Collector.Init();
-            PyroConsoleView.PushTextStatic("Collector Startup initialized!");
-            PyroConsoleView.PushTextStatic("Starting periodic statistic thread...");
-            Collector.SendStatisticsPeriodic();
-            PyroConsoleView.PushTextStatic("Started periodic statistic thread!");
-            PyroConsoleView.PushTextStatic("Statistics Startup initialized!");
+            InitializeManagers();
             PyroConsoleView.PushTextStatic("Startup complete!");
+        }
+
+        public void InitializeManagers()
+        {
+            var types = typeof(ManagerStorage).Assembly.GetTypes().Where(x => x.GetInterface("IManager") != null).ToArray();
+            Managers = types.Select(x => (IManager) Activator.CreateInstance(x)).ToList();
+            foreach (var manager in Managers)
+            {
+                manager.Init();
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using Pyro.Nc.Configuration;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
 using TMPro;
@@ -9,7 +10,7 @@ using UnityEngine.Serialization;
 
 namespace Pyro.Nc.UI.Menu
 {
-    public class InputHandler : MonoBehaviour
+    public class InputHandler : InitializerRoot
     {
         public string PropertyId;
         public string Description;
@@ -20,17 +21,18 @@ namespace Pyro.Nc.UI.Menu
         public Type ToolValuesType;
         public PropertyInfo ToolValuesIdTypeInfo;
         public Type ToolValuesIdType;
-        protected ITool Tool;
-        private void Start()
+        public ITool Tool;
+        public override void Initialize()
         {
-            Init();
+            Tool = Globals.Tool;
+            DescriptionComponent ??= GetComponentInChildren<TextMeshProUGUI>();
+            InputFieldComponent ??= GetComponentInChildren<TMP_InputField>();
+            DescriptionComponent.text = Description ??= "Not-Defined";
+            InputFieldComponent.text = DefaultValue;
             CheckForInvalidId();
             InitTypeInfos();
             DefaultValue = (((Limiter) ToolValuesIdTypeInfo.GetValue(Tool.Values)).ToString());
-            if (InputFieldPlaceHolderText is not null)
-            {
-                InputFieldPlaceHolderText.text = DefaultValue;
-            }
+            InputFieldPlaceHolderText.text = DefaultValue;
             InputFieldComponent.onEndEdit.AddListener(OnEndEdit);
         }
 
@@ -73,27 +75,13 @@ namespace Pyro.Nc.UI.Menu
         {
             if (Tool is null)
             {
-                if (Globals.Console is not null)
-                {
-                    Globals.Console.PushText($"Could not write to property: {ToolValuesIdTypeInfo.Name} in ToolValues.\n" +
-                                             $"    --Reason: Tool object is null!", LogType.Error);   
-                }
+                Globals.Console.PushText($"Could not write to property: {ToolValuesIdTypeInfo.Name} in ToolValues.\n" +
+                                         $"    --Reason: Tool object is null!", LogType.Error);
 
                 return true;
             }
 
             return false;
-        }
-
-        private void Init()
-        {
-            Tool = Globals.Tool;
-            if (CheckForInvalidTool()) return;
-            DescriptionComponent ??= GetComponentInChildren<TextMeshProUGUI>();
-            InputFieldComponent ??= GetComponentInChildren<TMP_InputField>();
-
-            DescriptionComponent.text = Description ??= "Not-Defined";
-            InputFieldComponent.text = DefaultValue;
         }
     }
 }
