@@ -5,9 +5,9 @@ namespace Pyro.Nc.UI
 {
     public class CommentView : View
     {
-        public override void Start()
+        public override void Initialize()
         {
-            base.Start();
+            base.Initialize();
             Globals.Comment = this;
             PyroConsoleView.PushTextStatic("CommentView Initialized.");
         }

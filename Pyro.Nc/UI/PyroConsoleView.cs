@@ -21,15 +21,13 @@ namespace Pyro.Nc.UI
         public StreamWriter Stream;
         public int Count;
         private object _lock = new object();
-
-        private void Awake()
+        public override void Initialize()
         {
-            //TextMesh ??= GetComponentInChildren<TextMeshProUGUI>();
             UpdateGlobals();
             var fileInfo = CreateFileStream();
             PushEventCreation(fileInfo);
-            //Start();
             PushCreation();
+            base.Initialize();
         }
 
         private FileInfo CreateFileStream()

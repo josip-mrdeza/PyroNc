@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using Pyro.Nc.Configuration;
 using Pyro.Nc.Simulation;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Pyro.Nc.UI
 {
-    public class View : MonoBehaviour
+    public class View : InitializerRoot
     {
         public string Id;
         public bool ActiveByDefault;
@@ -16,9 +17,8 @@ namespace Pyro.Nc.UI
         public List<Button> Buttons;
         public List<View> LinkedViews;
 
-        public virtual void Start()
+        public override void Initialize()
         {
-            PyroConsoleView.PushTextStatic("Begun Start() in View");
             if (string.IsNullOrEmpty(Id))
             {
                 Id = gameObject.name;
@@ -28,7 +28,6 @@ namespace Pyro.Nc.UI
             {
                 Objects.Add(gameObject.transform.GetChild(i).gameObject);
             }
-            PyroConsoleView.PushTextStatic("Ended Start() in View:", $"Id: {Id}", $"View has {Objects.Count} items.");
             ViewHandler.Add(this);
             for (var i = 0; i < Buttons.Count; i++)
             {
@@ -41,6 +40,7 @@ namespace Pyro.Nc.UI
             {
                 Hide(); 
             }
+            PyroConsoleView.PushTextStatic($"Initialized View: {gameObject.name}", $"View has {Objects.Count} children.");
         }
 
         public void ShowAtIndex(int index)
@@ -54,7 +54,6 @@ namespace Pyro.Nc.UI
                 go.SetActive(true);
             }
             IsActive = true;
-            PyroConsoleView.PushTextStatic($"Showed GO: {gameObject.name}!",$"Active: {IsActive}");
         }
 
         public void Hide()
@@ -64,8 +63,6 @@ namespace Pyro.Nc.UI
                 go.SetActive(false);
             }
             IsActive = false;
-            PyroConsoleView.PushTextStatic($"Hid GO: {gameObject.name}!",$"Active: {IsActive}");
         }
-        
     }
 }

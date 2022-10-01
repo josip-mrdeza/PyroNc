@@ -1,16 +1,17 @@
 using System;
+using Pyro.Nc.Configuration;
 using TMPro;
 using UnityEngine;
 
 namespace Pyro.Nc.UI.Menu
 {
-    public class OutputHandler : MonoBehaviour
+    public class OutputHandler : InitializerRoot
     {
         public TextMeshProUGUI ValueText;
         public TextMeshProUGUI DescriptionText;
         public string Description;
 
-        private void Start()
+        public override void Initialize()
         {
             DescriptionText.text = Description;
         }
