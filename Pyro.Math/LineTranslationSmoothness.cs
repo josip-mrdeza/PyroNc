@@ -4,7 +4,7 @@ namespace Pyro.Math.Geometry
     {
         Rough = 10,
         Crude = 50,
-        Standard = 100,
+        Standard = 250,
         Fine = 500,
         Perfect = 1000
     }

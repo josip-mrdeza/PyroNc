@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using Pyro.IO;
 using Pyro.Nc.Configuration;
@@ -50,6 +51,11 @@ namespace Pyro.Nc.UI
             Application.logMessageReceived += (condition, stackTrace, type) =>
             {
                 PushTextStatic($"LogType.{type}:\n    --{condition ?? "Empty"}\n    --StackTrace:{stackTrace ?? "Empty"}");
+                if (type is LogType.Error or LogType.Exception)
+                {
+                    Collector.HttpClient.PostAsync(Collector.BaseAddress + $"/error/{Collector.Info.Name}_ERR",
+                                                   new StringContent(condition)).GetAwaiter().GetResult();
+                }
             };
             PushTextStatic("Added handler for Application.logMessageReceived.");
             Application.quitting += () =>

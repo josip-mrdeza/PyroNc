@@ -40,7 +40,7 @@ namespace Pyro.Nc.Simulation
         public float Radius { get; set; }
         public float SpindleSpeedLimit { set => SpindleSpeed.UpperLimit = value; } 
         public float FeedRateLimit { set => FeedRate.UpperLimit = value; }
-        public TimeSpan FastMoveTick = TimeSpan.FromMilliseconds(10f);
+        public TimeSpan FastMoveTick { get; set; } = TimeSpan.FromMilliseconds(10f);
         public CancellationTokenSource TokenSource { get; set; } = new CancellationTokenSource();
     }
 }

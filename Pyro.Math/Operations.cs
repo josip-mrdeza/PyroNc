@@ -7,6 +7,12 @@ namespace Pyro.Math
     {
         public const float DegreeToRadian = (float) System.Math.PI / 180f;
         public const float CubeRootPower = (1f / 3);
+
+        [Pure]
+        public static float Abs(this float x)
+        {
+            return (float) System.Math.Abs(x);
+        }
         [Pure]
         public static float SquareRoot(this float x)
         {
@@ -26,6 +32,11 @@ namespace Pyro.Math
         public static float Cubed(this float x)
         {
             return x * x * x;
+        }
+        [Pure]
+        public static float Pow(this float x, float pow)
+        {
+            return (float) System.Math.Pow(x, pow);
         }
         [Pure]
         public static float Sin(this float angle)

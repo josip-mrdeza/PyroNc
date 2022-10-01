@@ -49,7 +49,7 @@ namespace Pyro.Nc.Parsing.GCommands
         public LineTranslationSmoothness LineSmoothness { get; set; }
         public CircleSmoothness CircleSmoothness { get; set; }
 
-        public GCommandParameters(float x, float y, float z, LineTranslationSmoothness smoothness = LineTranslationSmoothness.Crude)
+        public GCommandParameters(float x, float y, float z, LineTranslationSmoothness smoothness = LineTranslationSmoothness.Standard)
         {
             Values = new Dictionary<string, float>()
             {

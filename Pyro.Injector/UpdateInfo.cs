@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using System.Text.Json.Serialization;
 using Pyro.IO;
@@ -64,17 +65,33 @@ namespace Pyro.Injector
             {
                 return;
             }
-            UpdateFiles(Folders[0].Documents, softwareInfo.Folders[0].Documents);
-            for (int i = 0; i < Folders.Length; i++)
+            //UpdateFiles(Folders[0].Documents, softwareInfo.Folders[0].Documents);
+            void Recurse(FolderInfo folderInfoUpdate, FolderInfo folderInfoSoftware)
             {
-                var updateDirectory = Folders[i];
-                if (softwareInfo.Folders.Length < i + 1)
+                UpdateFiles(folderInfoUpdate.Documents, folderInfoSoftware is null ? null : folderInfoSoftware.Documents);
+                if (folderInfoUpdate.Directories.Length > 0)
                 {
-                    UpdateFiles(updateDirectory.Documents, null);
-                    continue;
+                    for (var i = 0; i < folderInfoUpdate.Directories.Length; i++)
+                    {
+                        var directory = folderInfoUpdate.Directories[i];
+                        if (folderInfoSoftware == null)
+                        {
+                            Recurse(directory, null);
+
+                            continue;
+                        }
+                        var sDir = folderInfoSoftware.Directories.FirstOrDefault(x => x.Path == directory.Path);
+                        if (sDir != null)
+                        {
+                            Recurse(directory, sDir);
+
+                            continue;
+                        }
+                        Recurse(directory, null);
+                    }
                 }
-                UpdateFiles(updateDirectory.Documents, softwareInfo.Folders[i].Documents);
             }
+            Recurse(Folders.FirstOrDefault(), softwareInfo.Folders.FirstOrDefault());
         }
 
         public void CreateAsDev()
@@ -105,6 +122,7 @@ namespace Pyro.Injector
             RefreshData(Folders);
 
             var roaming = LocalRoaming.OpenOrCreate("PyroNc");
+            File.Delete(roaming.Site + Name);
             roaming.AddFile(Name, this);
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine($"\n\nTotal data written: {(Folders.Sum(x => x.Size) / 1_000_000f):F} MB!\n");

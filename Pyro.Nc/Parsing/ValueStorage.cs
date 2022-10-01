@@ -100,7 +100,6 @@ namespace Pyro.Nc.Parsing
             CommandHelper._storage = strg;
             strg.Recents = new Queue<ICommand>();
             strg.CreateLocalLowDir();
-            ManagerStorage.InitAll();
 
             string fullPath = $"{strg.StorageDirectory.FullName}\\{CommandIDPath}";
             var separator1 = "##G";
@@ -150,29 +149,17 @@ namespace Pyro.Nc.Parsing
 
         private void CreateLocalLowDir()
         {
-            // void CreateMissingFile(string s)
-            // {
-            //     File.ReadAllBytes($"{}\\{CommandIDPath}").Do(x =>
-            //     {
-            //         File.Create(s).Do(y =>
-            //         {
-            //             y.Write(x, 0, x.Length);
-            //             y.Dispose();
-            //         });
-            //     });
-            // }
-
             StorageDirectory = new DirectoryInfo(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "\\PyroNc");
             var fullPath = $"{StorageDirectory.FullName}\\{CommandIDPath}";
             if (!StorageDirectory.Exists)
             {
                 Directory.CreateDirectory(StorageDirectory.FullName);
-                //CreateMissingFile(fullPath);
             }
 
-            if (!File.Exists(fullPath))
+            FileInfo fi = new FileInfo(fullPath);
+            if (!fi.Exists)
             {
-                //CreateMissingFile(fullPath);
+                Directory.CreateDirectory(fi.DirectoryName!);
                 File.CreateText(fullPath).Dispose();
             }
         }

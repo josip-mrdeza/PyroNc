@@ -100,9 +100,9 @@ namespace Pyro.Injector
             throw new Exception($"No update info was found in path {roaming.Site}!");
         }
 
-        public void Refresh()
+        public void Refresh(string id)
         {
-            var assemblyId = Assembly.GetCallingAssembly().GetName().Name;
+            var assemblyId = id;
             LocalRoaming roaming = LocalRoaming.OpenOrCreate($"PyroNc/{assemblyId}");
             var jsonId = "SoftwareInfo_Cache.json";
             Init();
@@ -121,6 +121,8 @@ namespace Pyro.Injector
             public long Size { get; set; }
             public string BasePath { get; set; }
             internal FolderInfo Parent { get; set; }
+
+            public override string ToString() => Path + $" - {Size}";
         }
         public class DocumentInfo : BasicInfo
         {
@@ -153,7 +155,16 @@ namespace Pyro.Injector
 
             public void Update()
             {
-                File.WriteAllBytes(Path, Data);
+                var fi = new FileInfo(Path);
+                if (fi.Exists)
+                {
+                    File.WriteAllBytes(Path, Data);
+                }
+                else
+                {
+                    Directory.CreateDirectory(fi.DirectoryName);
+                    File.WriteAllBytes(Path, Data);
+                }
             }
 
             public bool IsSameAs(DocumentInfo other)

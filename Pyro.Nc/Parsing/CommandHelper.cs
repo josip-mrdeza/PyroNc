@@ -114,19 +114,24 @@ namespace Pyro.Nc.Parsing
                     {
                         return list;
                     }
-                    if (ScrapNotation(id, commands) || ScrapToolChange(id, commands) || ScrapSpindleSpeedSetter(id, commands))
+
+                    if (ScrapNotation(id, commands) || ScrapToolChange(id, commands) ||
+                        ScrapSpindleSpeedSetter(id, commands))
                     {
                         continue;
                     }
+
                     var command = _storage.TryGetCommand(id);
                     if (command is null)
                     {
                         continue;
                     }
+
                     foreach (var key in command.Parameters.Values.Keys.ToArray())
                     {
                         command.Parameters.Values[key] = Single.NaN;
                     }
+
                     for (int i = 1; i < commandString.Length; i++)
                     {
                         var par = commandString[i];
@@ -143,17 +148,48 @@ namespace Pyro.Nc.Parsing
 
                         command.Parameters.Values[par[0].ToString()] = f;
                     }
+
                     commands.Add(command);
+                }
+                catch (NullReferenceException e)
+                {
+                    PyroConsoleView.PushTextStatic(
+                        "A NullReferenceException has occured in CommandHelper.CollectCommands:",
+                        $"List length: {commands.Count.ToString()}",
+                        $"List contents: [{string.Join(" ", commands)}]",
+                        $"Current index: {index.ToString()}",
+                        $"Current string: [{string.Join(" ", commandString!)}]",
+                        $"Current id: {id}",
+                        e.Message, e.TargetSite.Name);
+                }
+                catch (IndexOutOfRangeException e)
+                {
+                    PyroConsoleView.PushTextStatic(
+                        "A IndexOutOfRangeException has occured in CommandHelper.CollectCommands:",
+                        $"List length: {commands.Count.ToString()}",
+                        $"List contents: [{string.Join(" ", commands)}]",
+                        $"Current index: {index.ToString()}",
+                        $"Current string: [{string.Join(" ", commandString!)}]",
+                        $"Current id: {id}",
+                        e.Message, e.TargetSite.Name);
+                }
+                catch (FormatException e)
+                {
+                    PyroConsoleView.PushTextStatic(
+                        "A FormatException has occured in CommandHelper.CollectCommands:",
+                        $"Current id: {id}",
+                        e.Message);
                 }
                 catch (Exception e)
                 {
-                    PyroConsoleView.PushTextStatic("An exception has occured in CommandHelper.CollectCommands:",
-                                                   $"List length: {commands.Count.ToString()}",
-                                                   $"List contents: [{string.Join(" ", commands)}]",
-                                                   $"Current index: {index.ToString()}",
-                                                   $"Current string: [{string.Join(" ", commandString!)}]",
-                                                   $"Current id: {id}",
-                                                   e.Message, e.TargetSite.Name);
+                    PyroConsoleView.PushTextStatic(
+                        "An Exception has occured in CommandHelper.CollectCommands:",
+                        $"List length: {commands.Count.ToString()}",
+                        $"List contents: [{string.Join(" ", commands)}]",
+                        $"Current index: {index.ToString()}",
+                        $"Current string: [{string.Join(" ", commandString!)}]",
+                        $"Current id: {id}",
+                        e.Message, e.TargetSite.Name);
                 }
             }
 

@@ -22,7 +22,7 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override async Task Execute(bool draw)
         {
-            await Tool.Traverse(ResolvePosition(), LineTranslationSmoothness.Rough, draw);
+            await Tool.Traverse(ResolvePosition(), Parameters.LineSmoothness, draw);
             Expire();
         }
 

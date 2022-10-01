@@ -21,6 +21,7 @@ namespace Pyro.Nc.Pathing
         public event Func<ICommand, Vector3, Task> OnCollision;
         public Task InvokeOnConsumeStopCheck();
         public Task UseCommand(ICommand command, bool draw);
+        public Task UntilValid();
         public Task Traverse(Vector3[] points, bool draw);
         public Task Traverse(Line3D line, bool draw);
         public Task Traverse(Vector3 toPoint, LineTranslationSmoothness smoothness, bool draw);

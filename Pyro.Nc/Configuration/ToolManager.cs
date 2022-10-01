@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Pyro.Nc.Simulation;
 using UnityEngine;
 
@@ -15,6 +16,11 @@ namespace Pyro.Nc.Configuration
         {
             try
             {
+                while (Globals.Roaming is null)
+                {
+                    Task.Delay(10).Wait();
+                    Task.Yield().GetAwaiter().GetResult();
+                }
                 if (Globals.Roaming.Exists(FileName))
                 {
                     var json = Globals.Roaming.ReadFileAsText(FileName);
@@ -28,7 +34,7 @@ namespace Pyro.Nc.Configuration
                         new(6),
                         new(8)
                     };
-                    Debug.Log($"Adding list to file {FileName}!"); //asdka
+                    Debug.Log($"Adding list to file {FileName}!");
                     Globals.Roaming.AddFile(FileName, Tools);
                 }
             }

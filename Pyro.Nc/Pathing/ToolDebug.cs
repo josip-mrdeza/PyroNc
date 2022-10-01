@@ -1,15 +1,16 @@
 using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Numerics;
-using System.Threading;
 using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Math;
 using Pyro.Math.Geometry;
 using Pyro.Nc.Parsing;
-using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Simulation;
+using Pyro.Threading;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 using Random = System.Random;
 using Vector3 = UnityEngine.Vector3;
 
@@ -19,12 +20,14 @@ namespace Pyro.Nc.Pathing
     {
         public Mesh meshPointer;
         public GameObject Plane;
+        public GameObject PObj;
         public Triangulator Triangulator { get; set; }
         public Vector3 Position => transform.position;
         public PObject Workpiece { get; set; }
         public ToolValues Values { get; set; }
         public event Func<Task> OnConsumeStopCheck;
         public event Func<ICommand, Vector3, Task> OnCollision;
+        public ComputeBuffer Buffer;
 
         public async Task InvokeOnConsumeStopCheck()
         {
@@ -46,17 +49,29 @@ namespace Pyro.Nc.Pathing
             meshPointer ??= Plane.GetComponent<MeshFilter>().mesh;
             Workpiece = new PObject(meshPointer);
             Triangulator = new Triangulator(Workpiece.Mesh);
+            Plane.GetComponent<MeshFilter>().mesh = Triangulator.CurrentMesh;
+            Collider = Plane.GetComponent<MeshCollider>();
+            var bounds = Collider.bounds;
+            var tr = Plane.transform;
+            var max = tr.TransformVector(bounds.max);
+            maxX = max.x;
+            maxY = max.y;
+            maxZ = max.z;
+            var min = tr.TransformVector(bounds.min);
+            minX = min.x;
+            minY = min.y;
+            minZ = min.z;
         }
-        
+
         public async Task UseCommand(ICommand command, bool draw)
         {
             await command.ExecuteFinal(draw);
         }
         public async Task UseCommandDebugDraw(ICommand command)
         {
-            await command.ExecuteFinal(true);
+            await UseCommand(command, true);
         }
-        protected virtual async Task UntilValid()
+        public virtual async Task UntilValid()
         {
             if (Values.Destination.IsValid)
             {
@@ -85,19 +100,76 @@ namespace Pyro.Nc.Pathing
                 Debug.DrawLine(prev, p, color, 1f);
             }
         }
-        protected virtual async Task CheckPositionForCut()
+
+        public float minX = 0f;
+        public float minY = 0f;
+        public float minZ = 0f;
+        public MeshCollider Collider;
+        public float maxX;
+        public float maxY;
+        public float maxZ;
+        /*public virtual Direction IsOverLimit(Vector3 dest)
         {
-            // if (Workpiece.IsPointInside(Position.ToVector3D()))
-            // {
-            //     if (OnCollision is not null)
-            //     {
-            //         await OnCollision.Invoke(Values.Current, Position);
-            //     }
-            // }
-            // else
-            // {
-            //     Debug.Log($"[{(Values.Current is null ? "nullC" : Values.Current.Description)}] Tool did not cut the workpiece at position {Position.ToString()}");
-            // }
+            var d = new Direction();
+            if (dest.x < minX || dest.x > maxX)
+            {
+                d.X = dest.x.Abs();
+            }
+            if (dest.y < minY || dest.y > maxY)
+            {
+                d.Y = dest.y.Abs();
+            }
+            if (dest.z < minZ || dest.z > maxZ)
+            {
+                d.Z = dest.z.Abs();
+            }
+
+            return d;
+        }*/
+        
+        public virtual bool IsOkayToCut(Vector3 dest)
+        {
+            var d = new Direction();
+            if (dest.x < minX || dest.x > maxX)
+            {
+                d.X = dest.x.Abs();
+            }
+            if (dest.y < minY || dest.y > maxY)
+            {
+                d.Y = dest.y.Abs();
+            }
+            if (dest.z < minZ || dest.z > maxZ)
+            {
+                d.Z = dest.z.Abs();
+            }
+
+            return d.X == 0 && d.Y == 0 && d.Z == 0;
+        }
+        protected virtual Task CheckPositionForCut(Direction direction)
+        {
+            //find the fastest way to traverse an array and find the appropriate vertex to 'remove'.
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            var pos = Position;
+            var verts = Triangulator.CurrentMesh.vertices;
+            var tr = Plane.transform;
+            var v = new Vector3(direction.X, direction.Y, direction.Z);
+            for (int i = 0; i < verts.Length; i++)
+            {
+                ref var vert = ref verts[i];
+                var realVert = tr.TransformVector(vert);
+                var distance = Vector3.Distance(pos, realVert);
+                var result = vert - v;
+                //where we remove a vertex, we append a new one
+                if (distance < 0.3F && IsOkayToCut(result))
+                {
+                    var final = v;
+                    vert -= final;
+                }
+            }
+
+            Triangulator.CurrentMesh.vertices = verts;
+            stopwatch.Stop();  
+            return Task.CompletedTask;
         }
         public virtual async Task Traverse(Vector3[] points, bool draw)
         {
@@ -106,16 +178,12 @@ namespace Pyro.Nc.Pathing
             foreach (var point in points)
             {
                 var pos = point;
-                // if (Values.IsIncremental)
-                // {
-                //     pos += transform.position;
-                // }
                 transform.position = pos;
                 DrawLine(draw, rnd, prev, pos);
-                prev = pos;
-                await CheckPositionForCut();
+                await CheckPositionForCut(Direction.FromVectors(prev, pos));
                 await Task.Delay(Values.FastMoveTick);
                 await Task.Yield();
+                prev = pos;
                 if (Values.Current.Parameters.Token.IsCancellationRequested)
                 {
                     return;
@@ -135,10 +203,10 @@ namespace Pyro.Nc.Pathing
         {
             await Traverse(line.ToVector3s(), draw);
         }
-        public virtual async Task Traverse(Vector3 toPoint, LineTranslationSmoothness smoothness = LineTranslationSmoothness.Fine, bool draw = false)
+        public virtual async Task Traverse(Vector3 toPoint, LineTranslationSmoothness smoothness, bool draw = false)
         {
-            await Traverse(new Line3D(Position.ToVector3D(), toPoint.ToVector3D(), 
-                                      (int) smoothness), draw);
+            await Traverse(new Line3D(Position.ToVector3D(), toPoint.ToVector3D(), (int) smoothness), 
+                           draw);
         }
         public virtual async Task Traverse(Circle3D circle, bool draw)
         {
@@ -153,17 +221,11 @@ namespace Pyro.Nc.Pathing
             await Traverse(new Circle3D(circleRadius, Position.y).Mutate(c =>
             {
                 c.SwitchYZ();
-                if (System.Math.Abs(Position.y - circleCenter.y) < 0.1f)
-                {
-                    circleCenter.y = 0;
-                }
-                //c.Shift(circleCenter.ToVector3D());
-
                 if (reverse)
                 {
                     c.Reverse();
                 }
-                Debug.Log($"Sample 0: {c.Points[0].ToVector3().ToString()}");
+                c.Shift(circleCenter.ToVector3D());
                 return c;
             }), draw);
         }
