@@ -14,13 +14,9 @@ namespace Pyro.Nc.Configuration
         public string FileName = "ToolConfig.json";
         public void Init()
         {
+            Globals.ToolManager = this;
             try
             {
-                while (Globals.Roaming is null)
-                {
-                    Task.Delay(10).Wait();
-                    Task.Yield().GetAwaiter().GetResult();
-                }
                 if (Globals.Roaming.Exists(FileName))
                 {
                     var json = Globals.Roaming.ReadFileAsText(FileName);
@@ -30,9 +26,9 @@ namespace Pyro.Nc.Configuration
                 {
                     Tools = new List<ToolConfiguration>()
                     {
-                        new(3),
-                        new(6),
-                        new(8)
+                        new(3, 0, Color.red),
+                        new(6, 1, Color.green),
+                        new(8, 2, Color.blue)
                     };
                     Debug.Log($"Adding list to file {FileName}!");
                     Globals.Roaming.AddFile(FileName, Tools);

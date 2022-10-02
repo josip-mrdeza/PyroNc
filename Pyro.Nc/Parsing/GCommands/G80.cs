@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Math.Geometry;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation;
 
 namespace Pyro.Nc.Parsing.GCommands
 {

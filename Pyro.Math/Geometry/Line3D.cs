@@ -12,16 +12,23 @@ namespace Pyro.Math.Geometry
         public readonly int NumberOfPoints;
         public readonly string ExplicitEquation;
         public readonly string ImplictEquation;
-        public Vector3D[] Points { get; }
+        public Vector3D[] Points { get; set; }
         public Limit[] XLimits { get; }
         public Limit[] YLimits { get; }
         public Limit[] ZLimits { get; }
+        public float Radius { get; }
 
         public Vector3D this[int num]
         {
             get => Points[num];
             set => Points[num] = value;
-        } 
+        }
+
+        public void Reverse()
+        {
+            
+        }
+
         public Shape GeometricalShape { get; }
         public Line3D(Vector3D p1, Vector3D p2, int numOfPoints = 10)
         {

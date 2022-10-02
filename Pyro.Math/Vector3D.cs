@@ -22,5 +22,7 @@ namespace Pyro.Math
         {
             return new Vector3D(tuple.x, tuple.y, tuple.z);
         }
+
+        public override string ToString() => $"({x}, {y}, {z})";
     }
 }

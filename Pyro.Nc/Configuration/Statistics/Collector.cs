@@ -38,11 +38,12 @@ namespace Pyro.Nc.Configuration.Statistics
 
         private static void GenerateSoftwareInfo()
         {
-            var roaming = LocalRoaming.OpenOrCreate("PyroNc/PyroSoftwareUpdater");
+            var roaming = LocalRoaming.OpenOrCreate("PyroNc\\PyroSoftwareUpdater");
             var fn = "SystemInformation.json";
             if (!roaming.Exists(fn))
             {
                 Process.Start("PyroSoftwareUpdater.exe", "generate").WaitForExit();
+                roaming.Files.Add(fn, new FileInfo(roaming.Site + fn));
             }
             var fn2 = "dev.pyro";
             if (roaming.Exists(fn2))
@@ -84,7 +85,7 @@ namespace Pyro.Nc.Configuration.Statistics
         public static async Task PushToLog(Task<HttpResponseMessage> message)
         {
             var msg = await message;
-            PyroConsoleView.PushTextStatic($"HttpResult: {await msg.Content.ReadAsStringAsync()} - {msg.StatusCode.ToString()}!");
+            PyroConsoleView.PushTextStatic($"HttpResult from {BaseAddress}: {await msg.Content.ReadAsStringAsync()} - {msg.StatusCode.ToString()}!");
         }
 
         public static async Task SendTimeStatisticAsync()

@@ -14,8 +14,7 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
         public override async Task Execute(bool draw)
         {
             var value = (int) Parameters.GetValue("value");
-            //Globals.ToolManager.
-            //set the correct tool
+            Tool.ToolConfig = Globals.ToolManager.Tools[value];
         }
     }
 }

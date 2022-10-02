@@ -4,6 +4,7 @@ using Pyro.IO;
 using Pyro.Math;
 using Pyro.Math.Geometry;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation;
 using UnityEngine;
 
 namespace Pyro.Nc.Parsing.GCommands
@@ -22,7 +23,7 @@ namespace Pyro.Nc.Parsing.GCommands
         {
             await Execute(false, draw);
         }
-
+        //TODO this only defines the beginning of the circle, not it's center as i thought before.This needs fixing...
         protected async Task Execute(bool reverse, bool draw)
         {
             var parameters = (Parameters as GCommandParameters);
@@ -30,8 +31,12 @@ namespace Pyro.Nc.Parsing.GCommands
             var altPos = new Vector3(pos.x + (float.IsNaN(parameters.I) ? 0 : parameters.I), 
                                      pos.y, 
                                      pos.z + (float.IsNaN(parameters.J) ? 0 : parameters.J));
-            var diff = Space3D.Distance(pos.ToVector3D(), altPos.ToVector3D());
-            await Tool.Traverse(altPos, diff, reverse, draw);
+            var diff = Vector3.Distance(pos, altPos);
+            var endPos = new Vector3D(float.IsNaN(parameters.X) ? pos.x : parameters.X, 
+                                      pos.y, 
+                                      float.IsNaN(parameters.Z) ? pos.z : parameters.Z);
+            var arc = new Arc3D(diff, pos.ToVector3D(), endPos, altPos.ToVector3D(), pos.ToVector3D(), pos.y);
+            await Tool.Traverse(arc, reverse, draw);
             Expire();
         }
     }

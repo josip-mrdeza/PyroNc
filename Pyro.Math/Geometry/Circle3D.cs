@@ -3,15 +3,15 @@ using System.Linq;
 namespace Pyro.Math.Geometry
 {
     public class Circle3D : I3DShape, IPrimitive
-    {
-        public readonly float Radius;
+    { 
         public readonly Vector3D Start;
         public readonly Vector3D End;
 
-        public Vector3D[] Points { get; }
+        public Vector3D[] Points { get; set; }
         public Limit[] XLimits { get; }
         public Limit[] YLimits { get; }
         public Limit[] ZLimits { get; }
+        public float Radius { get; }
 
         public Vector3D this[int num]
         {
@@ -29,18 +29,6 @@ namespace Pyro.Math.Geometry
             Start = Points[0];
             End = Start;
             Smoothness = smoothness;
-            XLimits = new[]
-            {
-                new Limit(Axis3D.X, -radius, radius)
-            };
-            YLimits = new[]
-            {
-                new Limit(Axis3D.Y, -radius, radius)
-            };
-            ZLimits = new[]
-            {
-                new Limit(Axis3D.Z, -depth / 2, depth / 2)
-            };
             GeometricalShape = Shape.Circle;
         }
 
@@ -109,6 +97,6 @@ namespace Pyro.Math.Geometry
             }
         }
 
-        private static Vector3D[] _RevArr = new Vector3D[360];
+        private static readonly Vector3D[] _RevArr = new Vector3D[360];
     }
 }

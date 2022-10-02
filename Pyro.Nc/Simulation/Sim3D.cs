@@ -1,0 +1,252 @@
+using System.Diagnostics;
+using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
+using Pyro.IO;
+using Pyro.Math;
+using Pyro.Math.Geometry;
+using Pyro.Nc.Parsing.GCommands;
+using Pyro.Nc.Parsing.GCommands.Exceptions;
+using Pyro.Nc.Pathing;
+using Pyro.Nc.UI;
+using UnityEngine;
+using Debug = UnityEngine.Debug;
+
+namespace Pyro.Nc.Simulation
+{
+    public static class Sim3D
+    {
+        /// <summary>
+        /// Stalls the next action (ICommand) asynchronously until the previous one completes.
+        /// </summary>
+        /// <param name="tool">The tool.</param>
+        public static async Task WaitUntilActionIsValid(this ITool tool)
+        {
+            var toolValues = tool.Values;
+            if (toolValues.Destination.IsValid)
+            {
+                while (toolValues.Destination.IsValid && !toolValues.IsAllowed)
+                {
+                    await Task.Delay(toolValues.FastMoveTick, toolValues.Current.Parameters.Token);
+                    await Task.Yield();
+                }
+            }
+        }
+        /// <summary>
+        /// Sets the tool's current destination and path.
+        /// </summary>
+        /// <param name="tool">The tool.</param>
+        /// <param name="points">The tool's current path.</param>
+        public static void SetupTranslation(this ITool tool, Vector3[] points)
+        {
+            var toolValues = tool.Values;
+            toolValues.Destination = new Target(points.Last());
+            toolValues.CurrentPath = new Path(points);
+        }
+        /// <summary>
+        /// Draws a line from the previous point to the current/next for x seconds.
+        /// </summary>
+        public static void DrawTranslation(this bool draw, Vector3 previous, Vector3 next, float duration = 10f)
+        {
+            if (draw)
+            {
+                Debug.DrawLine(previous, next, new Color(255, 0, 0), duration);
+            }
+        }
+        /// <summary>
+        /// Checks whether the vertex provided is within the mesh's bounds.
+        /// </summary>
+        /// <param name="tool">The tool.</param>
+        /// <param name="vertex">A point in 3D space.</param>
+        /// <returns>Whether the vertex provided is within the mesh's bounds.</returns>
+        public static bool IsOkayToCutVertex(this ITool tool, Vector3 vertex)
+        {
+            var d = new Direction();
+            vertex = tool.Cube.transform.TransformVector(vertex);
+            if (vertex.x < tool.MinX || vertex.x > tool.MaxX)
+            {
+                d.X = vertex.x.Abs();
+            }
+            if (vertex.y < tool.MinY || vertex.y > tool.MaxY)
+            {
+                d.Y = vertex.y.Abs();
+            }
+            if (vertex.z < tool.MinZ || vertex.z > tool.MaxZ)
+            {
+                d.Z = vertex.z.Abs();
+            }
+
+            return d.X == 0 && d.Y == 0 && d.Z == 0;
+        }
+        /// <summary>
+        /// Checks if the tool has come in (radius) distance of some vertex in the <see cref="ITool.Cube"/>'s mesh, if it has then it attempts to 'cut' it.
+        /// </summary>
+        /// <param name="tool">The tool.</param>
+        /// <param name="direction">The direction of the tool (The way it is cutting).</param>
+        /// <param name="throwIfCut">A boolean defining whether the exception below is going to be thrown or not due to the <see cref="G00"/> command.</param>
+        /// <returns>An asynchronous task resulting in a <see cref="CutResult"/> statistic, defining time spent cutting and total vertices cut.</returns>
+        /// <exception cref="RapidFeedCollisionException">This exception is thrown if the command used for the execution of this action is of type <see cref="G00"/>,
+        /// causing a rapid feed collision (High speed hit into the workpiece).</exception>
+        public static Task<CutResult> CheckPositionForCut(this ITool tool, Direction direction, bool throwIfCut)
+        {
+            //find the fastest way to traverse an array and find the appropriate vertex to 'remove'.
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            var toolRadius = tool.ToolConfig.Radius;
+            long verticesCut = 0;
+            var pos = tool.Position;
+            var tr = tool.Cube.transform;
+            var v = new Vector3(direction.X, toolRadius, direction.Z);
+            var vertices = tool.Vertices;
+            for (int i = 0; i < vertices.Count; i++)
+            {
+                var vert = vertices[i];
+                var realVert = tr.TransformVector(vert);
+                var distance = Vector3.Distance(pos, realVert);
+                if (distance < toolRadius && tool.IsOkayToCutVertex(realVert))
+                {
+                    if (throwIfCut)
+                    {
+                        throw new RapidFeedCollisionException(tool.Values.Current);
+                    }
+
+                    tool.Colors[i] = tool.ToolConfig.ToolColor;
+                    vertices[i] -= v;
+                    verticesCut++;
+                }
+            }
+
+            var mesh = tool.Triangulator.CurrentMesh;
+            mesh.vertices = vertices.GetInternalArray();
+            mesh.triangles = tool.Triangles.GetInternalArray();
+            mesh.colors = tool.Colors.GetInternalArray();
+            stopwatch.Stop();
+
+            return Task.FromResult(new CutResult(stopwatch.ElapsedMilliseconds, verticesCut));
+        }
+        /// <summary>
+        /// Attempts to traverse the along the path defined by a <see cref="Vector3"/>[].
+        /// </summary>
+        /// <param name="tool">The tool.</param>
+        /// <param name="points">The tool's current path.</param>
+        /// <param name="draw">Whether to draw the path or not.</param>
+        /// <param name="logStats">Whether to log the (averageTimeForCut) and (totalCut).</param>
+        public static async Task Traverse(this ITool tool, Vector3[] points, bool draw, bool logStats = false)
+        {
+            var toolValues = tool.Values;
+            var throwIfCutIsDetected = toolValues.Current.GetType() == typeof(G00);
+            double averageTimeForCut = 0;
+            long totalCut = 0;
+            await tool.WaitUntilActionIsValid();
+            tool.SetupTranslation(points);
+            var currentPosition = tool.Position;
+            var last = points.Last();
+            foreach (var point in points)
+            {
+                draw.DrawTranslation(currentPosition, point);
+                tool.Position = point;
+                var cutResult = await tool.CheckPositionForCut(Direction.FromVectors(currentPosition, point), throwIfCutIsDetected);
+                LogCutStatistics(logStats, cutResult,  ref averageTimeForCut, ref totalCut);
+                currentPosition = point;
+                if (await FinishCurrentMove(toolValues))
+                {
+                    return;
+                }
+
+                if (currentPosition == last)
+                {
+                    break;
+                }
+            }
+
+            if (toolValues.ExactStopCheck)
+            {
+                await tool.InvokeOnConsumeStopCheck();
+            }
+            if (logStats)
+            {
+                PyroConsoleView.PushTextStatic("Traverse finished!", $"Total vertices cut: {totalCut} ({((double) totalCut/tool.Vertices.Count).Round().ToString(CultureInfo.InvariantCulture)}%)",
+                                               $"Average time spent cutting: {averageTimeForCut.Round().ToString(CultureInfo.InvariantCulture)}ms");  
+            }
+        }
+        /// <summary>
+        /// Attempts to traverse the along the path defined by a <see cref="Line3D"/>.
+        /// </summary>
+        /// <param name="tool">The tool.</param>
+        /// <param name="line">The tool's current path.</param>
+        /// <param name="draw">Whether to draw the path or not.</param>
+        /// <param name="logStats">Whether to log the (averageTimeForCut) and (totalCut).</param>
+        public static async Task Traverse(this ITool tool, Line3D line, bool draw, bool logStats = false)
+        {
+            await tool.Traverse(line.ToVector3s(), draw, logStats);
+        }
+        /// <summary>
+        /// Attempts to traverse the along the path defined by either a <see cref="Circle"/>, <see cref="Circle3D"/> or <see cref="Arc3D"/>.
+        /// </summary>
+        /// <param name="tool">The tool.</param>
+        /// <param name="arc">The tool's current path.</param>
+        /// <param name="reverse">Whether to reverse the direction of movement for the <see cref="I3DShape"/>.</param>
+        /// <param name="draw">Whether to draw the path or not.</param>
+        /// <param name="logStats">Whether to log the (averageTimeForCut) and (totalCut).</param>
+        public static async Task Traverse(this ITool tool, I3DShape arc, bool reverse, bool draw, bool logStats = false)
+        {
+            if (reverse)
+            {
+                arc.Reverse();
+            }
+            await tool.Traverse(arc.ToVector3s(), draw, logStats);
+        }
+        /// <summary>
+        /// Attempts to traverse the along the path defined by either a <see cref="Circle"/>, <see cref="Circle3D"/> or <see cref="Arc3D"/>.
+        /// </summary>
+        /// <param name="tool">The tool.</param>
+        /// <param name="circleCenter">The circle's center.</param>
+        /// <param name="circleRadius">The circle's radius.</param>
+        /// <param name="reverse">Whether to reverse the direction of movement for the <see cref="Circle3D"/>.</param>
+        /// <param name="draw">Whether to draw the path or not.</param>
+        /// <param name="logStats">Whether to log the (averageTimeForCut) and (totalCut).</param>
+        public static async Task Traverse(this ITool tool, Vector3 circleCenter, float circleRadius, bool reverse, bool draw, bool logStats = false)
+        {
+            var circle3d = new Circle3D(circleRadius, tool.Position.y);
+            if (reverse)
+            {
+                circle3d.Reverse();
+            }
+            circle3d.Shift(circleCenter.ToVector3D());
+            
+            await tool.Traverse(circle3d.ToVector3s(), draw, logStats);
+        }
+        /// <summary>
+        /// Attempts to traverse the along the path defined by a <see cref="Vector3"/> destination, later converted to a <see cref="Line3D"/>.
+        /// </summary>
+        /// <param name="tool">The tool.</param>
+        /// <param name="destination">The tool's current destination.</param>
+        /// <param name="smoothness">The total amount of points the tool is to traverse through.</param>
+        /// <param name="draw">Whether to draw the path or not.</param>
+        /// <param name="logStats">Whether to log the (averageTimeForCut) and (totalCut).</param>
+        public static async Task Traverse(this ITool tool, Vector3 destination, LineTranslationSmoothness smoothness, bool draw, bool logStats = false)
+        {
+            var line = new Line3D(tool.Position.ToVector3D(), destination.ToVector3D(), (int) smoothness);
+            await tool.Traverse(line, draw, logStats);
+        }
+        private static async Task<bool> FinishCurrentMove(ToolValues toolValues)
+        {
+            if (toolValues.Current.Parameters.Token.IsCancellationRequested)
+            {
+                return true;
+            }
+
+            await Task.Delay(toolValues.FastMoveTick);
+            await Task.Yield();
+
+            return false;
+        }
+        private static void LogCutStatistics(bool logStats, CutResult cutResult, ref double averageTimeForCut, ref long totalCut)
+        {
+            if (logStats)
+            {
+                averageTimeForCut = (averageTimeForCut + cutResult.TotalTime) / 2d;
+                totalCut += cutResult.TotalVerticesCut;
+            }
+        } 
+    }
+}

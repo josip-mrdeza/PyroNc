@@ -112,7 +112,7 @@ namespace Pyro.IO
             }
             var fn = new FileInfo(Site + variableId);
             Files.Add(variableId, fn);
-            File.Create(fn.FullName);
+            File.Create(fn.FullName).Dispose();
             return fn;
         }
         

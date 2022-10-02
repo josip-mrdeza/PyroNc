@@ -56,11 +56,12 @@ namespace Pyro.Nc.UI
                 }
             };
             PushTextStatic("Added handler for Application.logMessageReceived.");
-            Application.quitting += () =>
+            Application.quitting += async () =>
             {
                 PushTextStatic($"Quitting Application...");
                 PushTextStatic($"Disposing log stream in: {fileInfo.FullName}...");
                 DisposeStream();
+                await Collector.SendLogStatisticAsync();
             };
             PushTextStatic("Added handler for Application.quitting.");
         }
