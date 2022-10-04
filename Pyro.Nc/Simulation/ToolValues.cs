@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Pyro.Nc.Configuration;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
@@ -17,6 +18,7 @@ namespace Pyro.Nc.Simulation
             Destination = new Target(new Vector3());
             SpindleSpeed = new Limiter(500, 3500);
             FeedRate = new Limiter(10, 350);
+            //TransPosition = ReferencePointParser.MachineZeroPoint;
             IsAllowed = true;
             IsIncremental = false;
             IsImperial = false;
@@ -35,6 +37,7 @@ namespace Pyro.Nc.Simulation
         public bool IsMilling { get; set; }
         public ICommand Current { get; set; }
         public bool ExactStopCheck { get; set; }
+        public Vector3 TransPosition { get; set; }
         public Limiter SpindleSpeed { get; set; }
         public Limiter FeedRate { get; set; }
         public float Radius { get; set; }

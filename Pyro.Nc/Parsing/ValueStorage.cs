@@ -19,21 +19,14 @@ namespace Pyro.Nc.Parsing
 {
     public class ValueStorage                         
     {
-        public DirectoryInfo StorageDirectory
-        {
-            get;
-            set;
-        }
-
+        public DirectoryInfo StorageDirectory { get; set; }
         public Dictionary<int, ICommand> GCommands { get; set; }
         public Dictionary<int, ICommand> MCommands { get; set; }
         public Dictionary<string, ICommand> ArbitraryCommands { get; set; }
-        
-        public Queue<ICommand> Recents { get; set; }
-        
+        public List<ICommand> Past { get; set; }
         private ValueStorage()
         {
-            CommandHelper._storage = this;
+            CommandHelper.Storage = this;
         }
 
         public ICommand FetchGCommand(string code)
@@ -79,6 +72,13 @@ namespace Pyro.Nc.Parsing
             // }
             return ic is null ? null : ic.Copy();
         }
+        
+        public ICommand QueryModalCommand()
+        {
+            ICommand command = Past.LastOrDefault(x => x.IsModal);
+            
+            return command;
+        }
 
         public ICommand TryGetCommand(string code)
         {
@@ -92,59 +92,105 @@ namespace Pyro.Nc.Parsing
 
         public static ValueStorage CreateFromFile(ITool tool)
         {                         
-            if (CommandHelper._storage is not null)
+            if (CommandHelper.Storage is not null)
             {
-                return CommandHelper._storage;
+                return CommandHelper.Storage;
             }
             ValueStorage strg = new ValueStorage();
-            CommandHelper._storage = strg;
-            strg.Recents = new Queue<ICommand>();
+            CommandHelper.Storage = strg;
             strg.CreateLocalLowDir();
-
             string fullPath = $"{strg.StorageDirectory.FullName}\\{CommandIDPath}";
             var separator1 = "##G";
             var separator2 = "##M";
             var separator3 = "##A";
             var spaceSeparator = '|';
-
             var typePrefixG = "Pyro.Nc.Parsing.GCommands.G";
             var typePrefixM = "Pyro.Nc.Parsing.MCommands.M";
             var typePrefixA = "Pyro.Nc.Parsing.ArbitraryCommands.";
-            
-
-
-            
             string[] lines = File.ReadAllLines(fullPath);
             var gcoms = lines.TakeWhile(x => x != separator1).Where(y => !y.Contains("##") && !y.Contains("//")).ToArray();
             var mcoms = lines.SkipWhile(x => x != separator1).TakeWhile(y => y != separator2).Where(z => !z.Contains("##") && !z.Contains("//")).ToArray();
             var acoms = lines.SkipWhile(x => x != separator2).TakeWhile(y => y != separator3).Where(z => !z.Contains("##") && !z.Contains("//")).ToArray();
 
-            strg.GCommands = gcoms.ToDictionary(k => int.Parse(k.Split(spaceSeparator)[0]), v =>
-            {
-                var typeFullName = typePrefixG + v.Split(spaceSeparator)[0];
-                var type = Type.GetType(typeFullName);
-                var instance = type is null ? null : Activator.CreateInstance(type, tool, new GCommandParameters(0, 0, 0)) as ICommand;
-                return instance;
-            });
-            
-            strg.MCommands = mcoms.ToDictionary(k => int.Parse(k.Split(spaceSeparator)[0]), v =>
-            {
-                var typeFullName = typePrefixM + v.Split(spaceSeparator)[0];
-                var type = Type.GetType(typeFullName);
-                var instance = type is null ? null : Activator.CreateInstance(type, tool, new MCommandParameters()) as ICommand;
-                return instance;
-            });
-            
-            strg.ArbitraryCommands = acoms.ToDictionary(k => k.Split(spaceSeparator)[1], v =>
-            {
-                var typeFullName = typePrefixA + v.Split(spaceSeparator)[0];
-                var type = Type.GetType(typeFullName);
-                var instance = type is null ? null : Activator.CreateInstance(type, tool, new ArbitraryCommandParameters()) as ICommand;
-                return instance;
-            }); 
-            
+            strg.GCommands = gcoms.ToDictionary(k => int.Parse(k.Split(spaceSeparator)[0]), v => CreateGCommand(tool, typePrefixG, v, spaceSeparator)
+                                                );
+            strg.MCommands = mcoms.ToDictionary(k => int.Parse(k.Split(spaceSeparator)[0]), 
+                                                v => CreateMCommand(tool, typePrefixM, v, spaceSeparator));
+            strg.ArbitraryCommands = acoms.ToDictionary(k => k.Split(spaceSeparator)[1], 
+                                                        v => CreateOtherCommand(tool, typePrefixA, v, spaceSeparator));
             CommandHelper._cachedKvp ??= strg.ArbitraryCommands.FirstOrDefault(kvp => kvp.Value.GetType() == typeof(Comment));
             return strg;
+        }
+
+        private static ICommand CreateGCommand(ITool tool, string typePrefixG, string v, char spaceSeparator)
+        {
+            ICommand instance;
+            string typeFullName = null;
+            Type type = null;
+            try
+            {
+                typeFullName = typePrefixG + v.Split(spaceSeparator)[0];
+                type = Type.GetType(typeFullName);
+                instance = type is null ? null
+                    : Activator.CreateInstance(type, tool, new GCommandParameters(0, 0, 0)) as ICommand;
+                instance.Family = Group.GCommand;
+            }
+            catch (Exception e)
+            {
+                PyroConsoleView.PushTextStatic("An exception has occured in ValueStorage::CreateGCommand", e.Message,
+                                               $"typeFullName: {typeFullName}",
+                                               $"Type: {type}");
+                return new UnresolvedCommand(tool, new ArbitraryCommandParameters());
+            }
+
+            return instance;
+        }
+
+        private static ICommand CreateMCommand(ITool tool, string typePrefixM, string v, char spaceSeparator)
+        {
+            ICommand instance;
+            string typeFullName = null;
+            Type type = null;
+            try
+            {
+                typeFullName = typePrefixM + v.Split(spaceSeparator)[0]; 
+                type = Type.GetType(typeFullName);
+                instance = type is null ? null : Activator.CreateInstance(type, tool, new MCommandParameters()) as ICommand;
+                instance.Family = Group.MCommand;
+            }
+            catch (Exception e)
+            {
+                PyroConsoleView.PushTextStatic("An exception has occured in ValueStorage::CreateMCommand", e.Message,
+                                               $"typeFullName: {typeFullName}", 
+                                               $"Type: {type}");
+                return new UnresolvedCommand(tool, new ArbitraryCommandParameters());
+            }
+
+            return instance;
+        }
+
+        private static ICommand CreateOtherCommand(ITool tool, string typePrefixA, string v, char spaceSeparator)
+        {
+            ICommand instance;
+            string typeFullName = null;
+            Type type = null;
+            try
+            {
+                typeFullName = typePrefixA + v.Split(spaceSeparator)[0];
+                type = Type.GetType(typeFullName);
+                instance = type is null ? null
+                    : Activator.CreateInstance(type, tool, new ArbitraryCommandParameters()) as ICommand;
+                instance.Family = Group.Other;
+            }
+            catch (Exception e)
+            {
+                PyroConsoleView.PushTextStatic("An exception has occured in ValueStorage::CreateOtherCommand", e.Message,
+                                               $"typeFullName: {typeFullName}", 
+                                               $"Type: {type}");             
+                return new UnresolvedCommand(tool, new ArbitraryCommandParameters());
+            }
+
+            return instance;
         }
 
         private void CreateLocalLowDir()

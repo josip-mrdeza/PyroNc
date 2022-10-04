@@ -13,7 +13,10 @@ namespace Pyro.Nc.Parsing
 {
     public static class CommandHelper
     {
-        internal static ValueStorage _storage;
+        internal static ValueStorage Storage;
+        internal static readonly List<int> CachedIndices = new List<int>(14);
+        internal static readonly List<string[]> CachedArrOfCommands = new List<string[]>(7);
+        internal static readonly List<ICommand> CachedCommands = new List<ICommand>(7);
         public static bool IsTrue<T>(this T obj, Predicate<T> predicate)
         {
             return predicate(obj);
@@ -58,29 +61,27 @@ namespace Pyro.Nc.Parsing
         }
         public static List<string[]> FindVariables(this string[] splitCode)
         {
-            List<int> indices = new List<int>(splitCode.Length);
+            List<int> indices = new List<int>();
             for (int i = 0; i < splitCode.Length; i++)
             {
-                var section = splitCode[i]; 
-                if (_storage.FetchArbitraryCommand(section) != null || _storage.FetchGCommand(section) != null || _storage.FetchMCommand(section) != null)
+                var section = splitCode[i].Trim(); 
+                if (Storage.FetchArbitraryCommand(section) != null || Storage.FetchGCommand(section) != null || Storage.FetchMCommand(section) != null)
                 {
                     indices.Add(i);
-                    continue;
                 }
                 else
                 {
-                    for (int j = 0; j < _storage.ArbitraryCommands.Keys.Count; j++)
+                    for (int j = 0; j < Storage.ArbitraryCommands.Keys.Count; j++)
                     {
-                        if (section.Contains(_storage.ArbitraryCommands.Keys.ElementAt(j)))
+                        if (section.Contains(Storage.ArbitraryCommands.Keys.ElementAt(j)))
                         {
                             indices.Add(i);
-                            continue;
                         }
                     }
                 }
             }
 
-            List<string[]> arrOfCommands = new List<string[]>(indices.Count);
+            List<string[]> arrOfCommands = new List<string[]>();
             for (int i = 0; i < indices.Count; i++)
             {
                 int range;
@@ -121,7 +122,7 @@ namespace Pyro.Nc.Parsing
                         continue;
                     }
 
-                    var command = _storage.TryGetCommand(id);
+                    var command = Storage.TryGetCommand(id);
                     if (command is null)
                     {
                         continue;
@@ -206,7 +207,7 @@ namespace Pyro.Nc.Parsing
                 {
                     return false;
                 } 
-                var command = _storage.FetchArbitraryCommand("S");
+                var command = Storage.FetchArbitraryCommand("S");
                 command.Parameters.AddValue("value", num);
                 commands.Add(command);
 
@@ -226,7 +227,7 @@ namespace Pyro.Nc.Parsing
                 {
                     return false;
                 }
-                var command = _storage.FetchArbitraryCommand("T");
+                var command = Storage.FetchArbitraryCommand("T");
                 command.Parameters.AddValue("value", num);
                 commands.Add(command);
                 return true;
@@ -267,7 +268,7 @@ namespace Pyro.Nc.Parsing
                 {
                     return false;
                 }
-                var notation = _storage.FetchArbitraryCommand("N") as Notation;
+                var notation = Storage.FetchArbitraryCommand("N") as Notation;
                 notation!.Number = num;
                 commands.Add(notation);
 

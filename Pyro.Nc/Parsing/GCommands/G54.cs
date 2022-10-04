@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+using Pyro.Nc.Configuration;
 using Pyro.Nc.Pathing;
 
 namespace Pyro.Nc.Parsing.GCommands
@@ -6,6 +8,11 @@ namespace Pyro.Nc.Parsing.GCommands
     {
         public G54(ITool tool, ICommandParameters parameters) : base(tool, parameters)
         {
+        }
+
+        public override async Task Execute(bool draw)
+        {
+            
         }
     }
 }

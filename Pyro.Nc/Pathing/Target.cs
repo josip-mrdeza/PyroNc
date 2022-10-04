@@ -18,6 +18,7 @@ namespace Pyro.Nc.Pathing
         public void MarkArrived()
         {
             HasArrived = true;
+            IsValid = false;
         }
 
         public override string ToString() => Location.ToString();

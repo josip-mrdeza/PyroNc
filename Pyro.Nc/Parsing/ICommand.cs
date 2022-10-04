@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Pyro.Nc.Parsing.GCommands;
@@ -10,6 +11,7 @@ namespace Pyro.Nc.Parsing
     {
         public bool IsModal { get; }
         public bool IsArc { get; }
+        public Guid Id { get; }
         public ICommandParameters Parameters { get; set; }
         public void UpdateCurrent();
         public Task Execute(bool draw);
@@ -17,6 +19,8 @@ namespace Pyro.Nc.Parsing
         public Task ExecuteFinal(bool draw);
         public void Expire();
         public void Plan();
+        public void Cancel();
+        public void Renew();
         public ICommand Copy();
     }
 }

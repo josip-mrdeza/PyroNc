@@ -17,13 +17,20 @@ namespace Pyro.Nc
         public Mesh OriginalMesh;
         public Mesh CurrentMesh;
         public Dictionary<Vector3, int> Points = new Dictionary<Vector3, int>();
-        public Triangulator(Mesh mesh)
+        public Triangulator(Mesh mesh, bool copy)
         {
             OriginalMesh = mesh;
-            CurrentMesh = new Mesh();
-            CurrentMesh.vertices = mesh.vertices;
-            CurrentMesh.uv = mesh.uv;
-            CurrentMesh.triangles = mesh.triangles;
+            if (copy)
+            {
+                CurrentMesh = new Mesh();
+                CurrentMesh.vertices = mesh.vertices;
+                CurrentMesh.uv = mesh.uv;
+                CurrentMesh.triangles = mesh.triangles;
+            }
+            else
+            {
+                CurrentMesh = mesh;
+            }
             // for (int i = 0; i < CurrentMesh.vertexCount; i++)
             // {
             //     var vert = CurrentMesh.vertices[i];

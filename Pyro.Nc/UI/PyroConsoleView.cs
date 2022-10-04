@@ -46,13 +46,13 @@ namespace Pyro.Nc.UI
 
         private void PushEventCreation(FileInfo fileInfo)
         {
-            Application.logMessageReceived += (condition, stackTrace, type) =>
+            Application.logMessageReceived += async (condition, stackTrace, type) =>
             {
                 PushTextStatic($"LogType.{type}:\n    --{condition ?? "Empty"}\n    --StackTrace:{stackTrace ?? "Empty"}");
                 if (type is LogType.Error or LogType.Exception)
                 {
-                    Collector.HttpClient.PostAsync(Collector.BaseAddress + $"/error/{Collector.Info.Name}_ERR",
-                                                   new StringContent(condition)).GetAwaiter().GetResult();
+                    await Collector.HttpClient.PostAsync(Collector.BaseAddress + $"/error/{Collector.Info.Name}_ERR",
+                                                   new StringContent(condition));
                 }
             };
             PushTextStatic("Added handler for Application.logMessageReceived.");

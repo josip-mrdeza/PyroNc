@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Pyro.IO;
@@ -8,6 +9,7 @@ using Pyro.Nc.Parsing;
 using Pyro.Nc.Simulation;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Pyro.Nc.UI
@@ -18,21 +20,42 @@ namespace Pyro.Nc.UI
         public TextMeshProUGUI LineNumber;
         public TextMeshProUGUI SuggestionDisplay;
         public Button Button;
+        private PointerEventData _data;
+
+        public override void Show()
+        {
+            base.Show();
+            Focus();
+        }
+
+        public void Focus()
+        {
+            EventSystem.current.SetSelectedGameObject(Text.gameObject);
+            Text.OnPointerClick(_data);
+        }
+
         public override void Initialize()
         {
             Text.onValueChanged.AddListener(_ => ApplySuggestions());
             Button.onClick.AddListener(async () =>
             {
-                var variables = Text.text.Split('\n').Select(x => x.Trim().FindVariables());
-                var commands = variables.Select(x => x.CollectCommands()).SelectMany(y => y);
+                Focus();
+                //var currentCommand = Globals.Tool.Values.Current;
+                var variables = Text.text.ToUpper(CultureInfo.InvariantCulture)
+                                    .Split('\n')
+                                    .Select(x => x.Trim()
+                                                  .FindVariables());
+                var commands = variables
+                               .Select(x => x.CollectCommands())
+                               .SelectMany(y => y);
 
                 var arr = commands.ToArray();
-
                 foreach (var command in arr)
                 {
                     await Globals.Tool.UseCommand(command, true);
                 }
             });
+            _data = new PointerEventData(EventSystem.current);
             base.Initialize();
         }
 

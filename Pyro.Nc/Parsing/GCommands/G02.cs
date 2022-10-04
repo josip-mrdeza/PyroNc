@@ -28,16 +28,17 @@ namespace Pyro.Nc.Parsing.GCommands
         {
             var parameters = (Parameters as GCommandParameters);
             var pos = Tool.Position;
+            var trans = Tool.Values.TransPosition;
             var altPos = new Vector3(pos.x + (float.IsNaN(parameters.I) ? 0 : parameters.I), 
                                      pos.y, 
-                                     pos.z + (float.IsNaN(parameters.J) ? 0 : parameters.J));
+                                     pos.z + (float.IsNaN(parameters.J) ? 0 : parameters.J)) + trans;
             var diff = Vector3.Distance(pos, altPos);
-            var endPos = new Vector3D(float.IsNaN(parameters.X) ? pos.x : parameters.X, 
+            var endPos = new Vector3(float.IsNaN(parameters.X) ? pos.x : parameters.X, 
                                       pos.y, 
-                                      float.IsNaN(parameters.Z) ? pos.z : parameters.Z);
-            var arc = new Arc3D(diff, pos.ToVector3D(), endPos, altPos.ToVector3D(), pos.ToVector3D(), pos.y);
+                                      float.IsNaN(parameters.Z) ? pos.z : parameters.Z) + trans;
+            var arc = new Arc3D(diff, pos.ToVector3D(), endPos.ToVector3D(), altPos.ToVector3D(), pos.ToVector3D(), pos.y);
             await Tool.Traverse(arc, reverse, draw);
-            Expire();
+            //Expire();
         }
     }
 }

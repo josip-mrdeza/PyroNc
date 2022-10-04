@@ -14,7 +14,7 @@ namespace Pyro.Nc.Parsing.GCommands
         public void SwitchToImperial();
         public void SwitchToMetric();
 
-        public CancellationToken Token { get; set; }
+        public CancellationToken Token { get; }
         public LineTranslationSmoothness LineSmoothness { get; set; }
         public CircleSmoothness CircleSmoothness { get; set; }
     }

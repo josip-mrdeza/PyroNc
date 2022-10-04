@@ -23,13 +23,15 @@ namespace Pyro.Nc.Simulation
         public static async Task WaitUntilActionIsValid(this ITool tool)
         {
             var toolValues = tool.Values;
-            if (toolValues.Destination.IsValid)
+            if (!toolValues.IsAllowed)
             {
-                while (toolValues.Destination.IsValid && !toolValues.IsAllowed)
+                Debug.Log("Waiting...");
+                while (!toolValues.IsAllowed)
                 {
-                    await Task.Delay(toolValues.FastMoveTick, toolValues.Current.Parameters.Token);
+                    await Task.Delay(toolValues.FastMoveTick, toolValues.TokenSource.Token);
                     await Task.Yield();
                 }
+                Debug.Log($"Exited: {nameof(WaitUntilActionIsValid)}!");
             }
         }
         /// <summary>
@@ -136,7 +138,7 @@ namespace Pyro.Nc.Simulation
             var throwIfCutIsDetected = toolValues.Current.GetType() == typeof(G00);
             double averageTimeForCut = 0;
             long totalCut = 0;
-            await tool.WaitUntilActionIsValid();
+            //await tool.WaitUntilActionIsValid();
             tool.SetupTranslation(points);
             var currentPosition = tool.Position;
             var last = points.Last();
@@ -147,9 +149,11 @@ namespace Pyro.Nc.Simulation
                 var cutResult = await tool.CheckPositionForCut(Direction.FromVectors(currentPosition, point), throwIfCutIsDetected);
                 LogCutStatistics(logStats, cutResult,  ref averageTimeForCut, ref totalCut);
                 currentPosition = point;
-                if (await FinishCurrentMove(toolValues))
+                await FinishCurrentMove(toolValues);
+                if (toolValues.TokenSource.IsCancellationRequested)
                 {
-                    return;
+                    Debug.Log($"Cancelled task - {toolValues.Current.Id}!");
+                    break;
                 }
 
                 if (currentPosition == last)
@@ -157,7 +161,7 @@ namespace Pyro.Nc.Simulation
                     break;
                 }
             }
-
+            Debug.Log($"Exited loop - {toolValues.Current.Id}!");
             if (toolValues.ExactStopCheck)
             {
                 await tool.InvokeOnConsumeStopCheck();
@@ -228,17 +232,10 @@ namespace Pyro.Nc.Simulation
             var line = new Line3D(tool.Position.ToVector3D(), destination.ToVector3D(), (int) smoothness);
             await tool.Traverse(line, draw, logStats);
         }
-        private static async Task<bool> FinishCurrentMove(ToolValues toolValues)
+        private static async Task FinishCurrentMove(ToolValues toolValues)
         {
-            if (toolValues.Current.Parameters.Token.IsCancellationRequested)
-            {
-                return true;
-            }
-
             await Task.Delay(toolValues.FastMoveTick);
             await Task.Yield();
-
-            return false;
         }
         private static void LogCutStatistics(bool logStats, CutResult cutResult, ref double averageTimeForCut, ref long totalCut)
         {

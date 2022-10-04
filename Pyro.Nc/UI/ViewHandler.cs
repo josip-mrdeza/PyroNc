@@ -28,7 +28,7 @@ namespace Pyro.Nc.UI
                 }
                 else
                 {
-                    if (view.IsActive)
+                    if (view.IsActive && !view.IsPersistent)
                     {
                         view.Hide();
                     }

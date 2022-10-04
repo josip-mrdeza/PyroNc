@@ -13,6 +13,7 @@ namespace Pyro.Nc.Simulation
     {
         public Mesh _MeshPointer;
         public GameObject _Cube;
+        public Material _CubeMaterial;
         private Transform _transform;
         public override void Initialize()
         {
@@ -23,12 +24,13 @@ namespace Pyro.Nc.Simulation
             var meshFilter = Cube.GetComponent<MeshFilter>();
             MeshPointer ??= meshFilter.mesh;
             _MeshPointer = MeshPointer;
-            Triangulator = new Triangulator(MeshPointer);
+            Triangulator = new Triangulator(MeshPointer, false);
             meshFilter.mesh = Triangulator.CurrentMesh;
+            Collider = Cube.GetComponent<MeshCollider>();
+            Collider.sharedMesh = Triangulator.CurrentMesh;
             Vertices = Triangulator.CurrentMesh.vertices.ToList();
             Triangles = Triangulator.CurrentMesh.triangles.ToList();
             Colors = Vertices.Select(x => new Color(255, 255, 255, 255)).ToList();
-            Collider = Cube.GetComponent<MeshCollider>();
             ToolConfig = Globals.ToolManager.Tools.FirstOrDefault();
             var bounds = Collider.bounds;
             var tr = Cube.transform;
@@ -40,10 +42,12 @@ namespace Pyro.Nc.Simulation
             MinX = min.x;
             MinY = min.y;
             MinZ = min.z;
+            CubeMaterial = _CubeMaterial;
         }
 
         public Mesh MeshPointer { get; set; }
         public GameObject Cube { get; set; }
+        public Material CubeMaterial { get; set; }
         public Triangulator Triangulator { get; set; }
         public Vector3 Position {get => _transform.position; set => _transform.position = value; }
         public ToolValues Values { get; set; }

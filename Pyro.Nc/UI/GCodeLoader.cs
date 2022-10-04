@@ -23,10 +23,19 @@ namespace Pyro.Nc.UI
             Dropdown.AddOptions(Roaming.Files.Keys.ToList());
             Dropdown.onValueChanged.AddListener(i =>
             {
-                Debug.Log(i);
-                GCodeInput.Text.text = File.ReadAllText(Files[i]);
+                var text = File.ReadAllText(Files[i]);
+                SetGText(text);
             });
+            if (Files.Count > 0)
+            {
+                SetGText(File.ReadAllText(Files.First()));
+            }
             base.Initialize();
+        }
+
+        public void SetGText(string text)
+        {
+            GCodeInput.Text.text = text;
         }
     }
 }

@@ -16,7 +16,14 @@ namespace Pyro.Nc.Configuration
             for (var i = 0; i < Scripts.Count; i++)
             {
                 var root = Scripts[i];
-                root.InitializeComplete();
+                try
+                {
+                    root.InitializeComplete();
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
+                }
             }
         }
     }

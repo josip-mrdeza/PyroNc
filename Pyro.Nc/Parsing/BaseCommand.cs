@@ -22,20 +22,26 @@ namespace Pyro.Nc.Parsing
     public class BaseCommand : ICommand
     {
         /// <summary>
-        /// The base contructor.
+        /// The base constructor.
         /// </summary>
         /// <param name="tool">The tool used.</param>
         /// <param name="parameters">The parameters of the current ICommand.</param>
         /// <param name="throwOnNull">If the runtime should throw an error if the tool/parameters are null.</param>
-        public BaseCommand(ITool tool, ICommandParameters parameters, bool throwOnNull = false)
+        /// <param name="family">A family of commands.</param>
+        public BaseCommand(ITool tool, ICommandParameters parameters, bool throwOnNull = false, Group family = Group.None)
         {
             Tool = tool.GuardNullVariable("BaseCommand<ctor>.Tool", throwOnNull);
             Parameters = parameters.GuardNullVariable("BaseCommand<ctor>.Parameters", throwOnNull);
+            Family = family;
+            Id = Guid.NewGuid();
         }
         /// <summary>
         /// The tool used.
         /// </summary>
         public ITool Tool { get; set; }
+
+        public Group Family { get; set; }
+
         /// <summary>
         /// The command's unique description.
         /// </summary>
@@ -48,6 +54,9 @@ namespace Pyro.Nc.Parsing
         /// Defines whether the command is of arc movement type.
         /// </summary>
         public virtual bool IsArc { get; }
+
+        public Guid Id { get; }
+
         /// <summary>
         /// Defines all parameters passed to the command from the parser (GCodeInputHandler->CommandHelper).
         /// </summary>
@@ -55,72 +64,10 @@ namespace Pyro.Nc.Parsing
         /// <summary>
         /// Updates the tool's current command.
         /// </summary>
-        public void UpdateCurrent() => Tool.Values.Current = this;
-        public Axis CurrentAxis { get; set; } = Axis.XZ;
-        public void SwitchAxis(Vector3 v, Axis axis)
-        {   
-            if(CurrentAxis == axis)
-            {
-                return;
-            }
-            //to be implemented
-            switch (CurrentAxis)
-            {
-                 case XY:
-                 {
-                    var vn = new Vector3();
-                    if(axis == Axis.XZ)
-                    {
-                        vn.x = v.x;
-                        vn.y = v.z;
-                        vn.z = v.z;
-                    }
-                    else if(axis == Axis.YZ)
-                    {
-                        vn.x = v.y;
-                        vn.y = v.z;
-                        vn.z = v.x;
-                    }
-                    break;
-                 }  
-                 //Case XZ
-                 case XZ:
-                 {
-                    var vn = new Vector3();
-                    if(axis == Axis.XY)
-                    {
-                        vn.x = v.x;
-                        vn.z = v.y;
-                        vn.y = v.z;
-                    }
-                    else if(axis == Axis.YZ)
-                    {
-                        vn.x = v.y;
-                        vn.y = v.z;
-                        vn.z = v.x;
-                    }
-                    break;
-                 }
-                 //Case XZ
-                 case YZ:
-                 {
-                    var vn = new Vector3();
-                    if(axis == Axis.XY)
-                    {
-                        vn.x = v.x;
-                        vn.z = v.y;
-                        vn.y = v.z;
-                    }
-                    else if(axis == Axis.XZ)
-                    {
-                        vn.x = v.y;
-                        vn.y = v.z;
-                        vn.z = v.x;
-                    }
-                    break;
-                 }  
-            }
-            CurrentAxis = axis;
+        public void UpdateCurrent()
+        {
+            Tool.Values.Current = this;
+            Tool.Values.IsAllowed = false;
         }
         /// <summary>
         /// A final execution of the command, logging every step of the way and executing <see cref="ICommand.Execute"/> defined on the class inheriting <see cref="BaseCommand"/>.
@@ -149,23 +96,15 @@ namespace Pyro.Nc.Parsing
             if (Tool.Values.IsImperial)
             {
                 Parameters.SwitchToImperial();
-                PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw})",
+                PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw}) - {Id}",
                                                "Switched units to the imperial standard.");
             }
-            if (Tool.Values.TokenSource.IsCancellationRequested)
-            {
-                PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw})",
-                                               "Cancellation Requested!",
-                                               "Cancelling operation...");
-                Tool.Values.TokenSource.Dispose();
-                Tool.Values.TokenSource = new CancellationTokenSource();
-            }
-            Parameters.Token = Tool.Values.TokenSource.Token;
+            //Cancel();
             if (Tool.Values.IsMilling)
             {
                 List<string> msgs = new()
                 {
-                    $"{type}: ExecuteFinal({toDraw})",
+                    $"{type}: ExecuteFinal({toDraw}) - {Id}",
                     $"CircleSmoothness: {Parameters.CircleSmoothness}",
                     $"LineSmoothness: {Parameters.LineSmoothness}",
                 };
@@ -173,14 +112,14 @@ namespace Pyro.Nc.Parsing
                 msgs.Add("Executing in Mill mode...");
                 PyroConsoleView.PushTextStatic(msgs.ToArray());
                 await Execute(draw);
-                PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw})",
+                PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw}) - {Id}",
                                                "Finished execution!");
             }
             else
             {
                 List<string> msgs = new()
                 {
-                    $"{type}: ExecuteFinal({toDraw})",
+                    $"{type}: ExecuteFinal({toDraw}) - {Id}",
                     $"CircleSmoothness: {Parameters.CircleSmoothness}",
                     $"LineSmoothness: {Parameters.LineSmoothness}",
                     string.Join(",\n", Parameters.Values),
@@ -189,16 +128,32 @@ namespace Pyro.Nc.Parsing
                 PyroConsoleView.PushTextStatic(msgs.ToArray());
                 if(Parameters.GetValue("Y") != 0)
                 {
-                    PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw})",
+                    PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw}) - {Id}",
                                                    $"Parameters contained a 'Y' value, which is forbidden in Turn mode!",
                                                    "Throwing!!");
                     throw new NotSupportedException("Y axis is not supported in TURN Mode");
                 }
                 await ExecuteTurning(draw);
-                PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw})",
+                PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw}) - {Id}",
                                                "Finished execution!");
             }
+            Expire();
         }
+
+        public void Cancel()
+        {
+            PyroConsoleView.PushTextStatic($"{GetType().Name}: ExecuteFinal(??) - {Id}",
+                                           "Cancellation Requested!",
+                                           "Cancelling operation...");
+            Expire();
+            Tool.Values.TokenSource.Cancel();
+        }
+
+        public void Renew()
+        {
+            Tool.Values.TokenSource = new CancellationTokenSource();
+        }
+
         /// <summary>
         /// A method defining what a <see cref="ICommand"/> inheriting <see cref="BaseCommand"/> should do when executed in MILL Mode.
         /// </summary>
@@ -228,12 +183,9 @@ namespace Pyro.Nc.Parsing
         /// </summary>
         /// <exception cref="NotImplementedException">This exception is thrown when the <see cref="ICommand"/> inheriting from <see cref="BaseCommand"/> does not implement it's own
         /// <see cref="Expire"/> method.This is not allowed.</exception>
-        public virtual void Expire()
+        public void Expire()
         {
-            var type = GetType().Name;
-            PyroConsoleView.PushTextStatic($"{type}: Expire()",
-                                           $"This method is not defined/overriden on the specific type of '{type}'!");
-            throw new System.NotImplementedException();
+            Tool.Values.IsAllowed = true;
         }
         /// <summary>
         /// A method that tells the <see cref="ITool"/> which path it should define for the current <see cref="ICommand"/>.
@@ -246,6 +198,15 @@ namespace Pyro.Nc.Parsing
             PyroConsoleView.PushTextStatic($"{type}: Plan()",
                                            $"This method is not defined/overriden on the specific type of '{type}'!");
             throw new System.NotImplementedException();
+        }
+        public float ResolveNan(float val, float defaultVal)
+        {
+            if (float.IsNaN(val))
+            {
+                return defaultVal;
+            }
+
+            return val;
         }
         /// <summary>
         /// Copies the current <see cref="ICommand"/> and creates a new <see cref="ICommand"/> with the same values but a different address in memory.
@@ -261,18 +222,14 @@ namespace Pyro.Nc.Parsing
             };
             parameters.Values = Parameters.Values?.ToDictionary(k => k.Key, v => v.Value);
 
-            return Activator.CreateInstance(this.GetType(), new object[]
+            var instance = Activator.CreateInstance(this.GetType(), new object[]
             {
                 Tool,
                 parameters
             }) as ICommand;
+            instance.Family = Family;
+
+            return instance;
         }
-        
-        public enum Axis
-        {
-            XY,
-            XZ,
-            YZ
-         }
     }
 }

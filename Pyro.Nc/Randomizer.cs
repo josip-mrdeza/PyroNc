@@ -72,7 +72,7 @@ namespace Pyro.Nc
             }
             if (val == 0)
             {
-                builder.Append("G00;G00 ");
+                builder.Append("G00 ");
                 bool tr = false;
                 if (_random.Next(0, 2) == 0)
                 {
@@ -104,7 +104,7 @@ namespace Pyro.Nc
             }
             else if (val == 1)
             {
-                builder.Append("G01;G01 ");
+                builder.Append("G01 ");
                 bool tr = false;
                 if (_random.Next(0, 2) == 0)
                 {
@@ -136,17 +136,17 @@ namespace Pyro.Nc
             }
             else if (val == 2)
             {
-                builder.Append("G02;G02 ");
+                builder.Append("G02 ");
                 generateCircle(builder);
             }
             else if (val == 3)
             {
-                builder.Append("G03;G03 ");
+                builder.Append("G03 ");
                 generateCircle(builder);
             }
             else if (val == 4)
             {
-                builder.Append("G04;G04 ");
+                builder.Append("G04 ");
                 if (_random.Next(0, 3) == 2)
                 {
                     builder.Append("P");

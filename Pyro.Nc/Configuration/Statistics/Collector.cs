@@ -42,13 +42,17 @@ namespace Pyro.Nc.Configuration.Statistics
             var fn = "SystemInformation.json";
             if (!roaming.Exists(fn))
             {
-                Process.Start("PyroSoftwareUpdater.exe", "generate").WaitForExit();
+                ProcessStartInfo psi = new ProcessStartInfo();
+                psi.FileName = $"{Environment.CurrentDirectory}\\Updater\\PyroSoftwareUpdater.exe";
+                psi.WorkingDirectory = Environment.CurrentDirectory;
+                psi.Arguments = "generate";
+                Process.Start(psi).WaitForExit();
                 roaming.Files.Add(fn, new FileInfo(roaming.Site + fn));
             }
             var fn2 = "dev.pyro";
             if (roaming.Exists(fn2))
             {
-                Process.Start("PyroSoftwareUpdater.exe", "pack PyNc update.json");
+                Process.Start("{Environment.CurrentDirectory}\\Updater\\PyroSoftwareUpdater.exe", "pack PyNc update.json");
             }
             Info = roaming.ReadFileAs<SystemInformation>(fn);
         }
@@ -111,7 +115,7 @@ namespace Pyro.Nc.Configuration.Statistics
         {
             var msg = HttpClient.PostAsync(BaseAddress + $"/logs/{Info.Name}", 
                                        new StringContent(Globals.Roaming.ReadFileAsText("pyroLog.txt"), Encoding.Default, "text/plain"));
-            await PushToLog(msg);
+            await msg;
         }
         public static void SendStatisticsPeriodic(int ms = 30_000)
         {

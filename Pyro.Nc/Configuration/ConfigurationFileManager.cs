@@ -56,7 +56,9 @@ namespace Pyro.Nc.Configuration
             {
                 if (!roaming.Exists(value))
                 {
-                    PyroConsoleView.PushTextStatic($"File '{value}' does not exist in path '{roaming.Site}', continuing...");
+                    PyroConsoleView.PushTextStatic($"File '{value}' does not exist in path '{roaming.Site}', trying to fetch from *Interop...");
+                    DirectoryInfo info = new DirectoryInfo("Interop");
+                    PyroConsoleView.PushTextStatic($"Folder 'Interop'; Exists: {info.Exists}");
                 }
             }
         }

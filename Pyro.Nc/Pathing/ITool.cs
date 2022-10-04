@@ -20,6 +20,7 @@ namespace Pyro.Nc.Pathing
         /// </summary>
         public Mesh MeshPointer { get; set; }
         public GameObject Cube { get; set; }
+        public Material CubeMaterial { get; set; }
         public Triangulator Triangulator { get; set; }
         public Vector3 Position { get; set; }
         public ToolValues Values { get; set; }

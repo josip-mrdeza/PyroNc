@@ -24,13 +24,7 @@ namespace Pyro.Nc.Parsing.GCommands
         public override async Task Execute(bool draw)
         {
             await Tool.Traverse(ResolvePosition(), Parameters.LineSmoothness, draw);
-            Expire();
-        }
-
-        /// <inheritdoc />
-        public override void Expire()
-        {
-            Tool.Values.CurrentPath.Expired = true;
+            //Expire();
         }
         /// <summary>
         /// Resolves the position in which ever mode is set at the time. (Incremental / Absolute [Default])
@@ -42,6 +36,7 @@ namespace Pyro.Nc.Parsing.GCommands
         {
             var parameters = (Parameters as GCommandParameters);
             Vector3 point;
+            var trans = Tool.Values.TransPosition;
             if (Tool.Values.IsIncremental)
             {
                 if ((ResolveNan(parameters.X, 0) == 0 && ResolveNan(parameters.Y, 0) == 0 && ResolveNan(parameters.Z, 0) == 0))
@@ -59,19 +54,11 @@ namespace Pyro.Nc.Parsing.GCommands
                 var pos = Tool.Position;
                 point = new Vector3(ResolveNan(parameters.X, pos.x),
                                     ResolveNan(parameters.Y, pos.y),
-                                    ResolveNan(parameters.Z, pos.z));
+                                    ResolveNan(parameters.Z, pos.z))  + trans;
+                
             }
 
             return point;
-        }
-        public float ResolveNan(float val, float defaultVal)
-        {
-            if (float.IsNaN(val))
-            {
-                return defaultVal;
-            }
-
-            return val;
         }
     }
 }

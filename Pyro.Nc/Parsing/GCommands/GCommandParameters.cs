@@ -3,8 +3,10 @@ using System.Linq;
 using System.Threading;
 using Pyro.Math;
 using Pyro.Math.Geometry;
+using Pyro.Nc.Parsing.GCommands;
+using Pyro.Nc.Simulation;
 
-namespace Pyro.Nc.Parsing.GCommands
+namespace Pyro.Nc.Parsing
 {
     public class GCommandParameters : ICommandParameters
     {
@@ -45,7 +47,7 @@ namespace Pyro.Nc.Parsing.GCommands
             }
         }
 
-        public CancellationToken Token { get; set; }
+        public CancellationToken Token => Globals.Tool.Values.TokenSource.Token;
         public LineTranslationSmoothness LineSmoothness { get; set; }
         public CircleSmoothness CircleSmoothness { get; set; }
 

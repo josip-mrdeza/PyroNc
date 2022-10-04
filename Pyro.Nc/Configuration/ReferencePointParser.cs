@@ -11,7 +11,7 @@ namespace Pyro.Nc.Configuration
     {
         static ReferencePointParser()
         {
-            var fullPath = $"{CommandHelper._storage.StorageDirectory.FullName}\\Configuration\\referencePoints.txt";
+            var fullPath = $"{CommandHelper.Storage.StorageDirectory.FullName}\\Configuration\\referencePoints.txt";
             PyroConsoleView.PushTextStatic("Starting ReferencePointParser in path:", fullPath);
             referencePointsTxt = File.ReadAllLines(fullPath);
             PyroConsoleView.PushTextStatic("ReferencePointParser:", $"{referencePointsTxt.Length} lines");

@@ -11,6 +11,7 @@ namespace Pyro.Nc.UI
     {
         public string Id;
         public bool ActiveByDefault;
+        public bool IsPersistent;
         public bool IsActive;
         public KeyCode Key;
         public List<GameObject> Objects;
@@ -47,7 +48,7 @@ namespace Pyro.Nc.UI
         {
             ViewHandler.Show(LinkedViews[index].Id);
         }
-        public void Show()
+        public virtual void Show()
         {
             foreach (var go in Objects)
             {
@@ -56,7 +57,7 @@ namespace Pyro.Nc.UI
             IsActive = true;
         }
 
-        public void Hide()
+        public virtual void Hide()
         {
             foreach (var go in Objects)
             {

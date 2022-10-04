@@ -5,6 +5,7 @@ using System.Threading;
 using Pyro.Math;
 using Pyro.Math.Geometry;
 using Pyro.Nc.Parsing.GCommands;
+using Pyro.Nc.Simulation;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
@@ -52,7 +53,7 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
             }
         }
 
-        public CancellationToken Token { get; set; }
+        public CancellationToken Token => Globals.Tool.Values.TokenSource.Token;
 
         public LineTranslationSmoothness LineSmoothness
         {

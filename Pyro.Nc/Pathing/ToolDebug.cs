@@ -28,6 +28,7 @@ namespace Pyro.Nc.Pathing
         public GameObject _Cube;
         public Mesh MeshPointer { get; set; }
         public GameObject Cube { get; set; }
+        public Material CubeMaterial { get; set; }
         public Triangulator Triangulator { get; set; }
         public Vector3 Position
         {
@@ -63,13 +64,14 @@ namespace Pyro.Nc.Pathing
             Globals.Tool = this;
             Cube = _Cube;
             var meshFilter = Cube.GetComponent<MeshFilter>();
+            Collider = Cube.GetComponent<MeshCollider>();
             MeshPointer ??= meshFilter.mesh;
-            Triangulator = new Triangulator(MeshPointer);
+            Triangulator = new Triangulator(MeshPointer, false);
             meshFilter.mesh = Triangulator.CurrentMesh;
+            Collider.sharedMesh = Triangulator.CurrentMesh;
             Vertices = Triangulator.CurrentMesh.vertices.ToList();
             Triangles = Triangulator.CurrentMesh.triangles.ToList();
             Colors = Vertices.Select(x => new Color(255, 255, 255, 255)).ToList();
-            Collider = Cube.GetComponent<MeshCollider>();
             ToolConfig = Globals.ToolManager.Tools.FirstOrDefault();
             var bounds = Collider.bounds;
             var tr = Cube.transform;

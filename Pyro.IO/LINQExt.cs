@@ -22,20 +22,17 @@ namespace Pyro.IO
 
             return collection;
         }
-
         public static T[] For<T>(this T[] collection, Action<T, int> action, int iterations)
         {
             var i = 0;
 
             return collection.For(action, iterations, ref i);
         }
-        
         public static T[] For<T>(this T[] collection, Action<T, int> action)
         {
             var i = 0;
             return collection.For(action, collection.Length, ref i);
         }
-
         public static T[] For<T>(this T[] collection, Action<T> action)
         {
             for (int i = 0; i < collection.Length; i++)
@@ -45,24 +42,31 @@ namespace Pyro.IO
 
             return collection;   
         }
-
         public static T[] ForApplicable<T>(this T[] collection, Predicate<T> predicate, Action<T, int> action, ref int i)
         {
             collection.For(action, collection.Count(x => predicate(x)), ref i);
             return collection;
         }
-
-        public static TR MutateCastRef<T, TR>(this T obj) where T : class
-                                                          where TR : class
+        public static TR MutateCastRef<T, TR>(this T obj) where T : class where TR : class
         {
             return (TR) (object) obj;
         }
-
         public static TR MutateCastNonRef<T, TR>(this T obj) where TR : T
         {
             return (TR) obj;
         }
 
+        public static IEnumerable<TR> SelectNoAlloc<T, TR>(this IEnumerable<T> collection, Func<T, TR> selector)
+        {
+            using var enumerator = collection.GetEnumerator();
+            T current;
+            while (enumerator.MoveNext())
+            {
+                current = enumerator.Current;
+
+                yield return selector(current);
+            }
+        }
         public static IEnumerable<int> ContainsFastIndices(this string s, string substring)
         {
             if (s.Length < substring.Length)
