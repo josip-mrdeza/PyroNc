@@ -56,6 +56,72 @@ namespace Pyro.Nc.Parsing
         /// Updates the tool's current command.
         /// </summary>
         public void UpdateCurrent() => Tool.Values.Current = this;
+        public Axis CurrentAxis { get; set; } = Axis.XZ;
+        public void SwitchAxis(Vector3 v, Axis axis)
+        {   
+            if(CurrentAxis == axis)
+            {
+                return;
+            }
+            //to be implemented
+            switch (CurrentAxis)
+            {
+                 case XY:
+                 {
+                    var vn = new Vector3();
+                    if(axis == Axis.XZ)
+                    {
+                        vn.x = v.x;
+                        vn.y = v.z;
+                        vn.z = v.z;
+                    }
+                    else if(axis == Axis.YZ)
+                    {
+                        vn.x = v.y;
+                        vn.y = v.z;
+                        vn.z = v.x;
+                    }
+                    break;
+                 }  
+                 //Case XZ
+                 case XZ:
+                 {
+                    var vn = new Vector3();
+                    if(axis == Axis.XY)
+                    {
+                        vn.x = v.x;
+                        vn.z = v.y;
+                        vn.y = v.z;
+                    }
+                    else if(axis == Axis.YZ)
+                    {
+                        vn.x = v.y;
+                        vn.y = v.z;
+                        vn.z = v.x;
+                    }
+                    break;
+                 }
+                 //Case XZ
+                 case YZ:
+                 {
+                    var vn = new Vector3();
+                    if(axis == Axis.XY)
+                    {
+                        vn.x = v.x;
+                        vn.z = v.y;
+                        vn.y = v.z;
+                    }
+                    else if(axis == Axis.XZ)
+                    {
+                        vn.x = v.y;
+                        vn.y = v.z;
+                        vn.z = v.x;
+                    }
+                    break;
+                 }  
+            }
+            CurrentAxis = axis;
+        }
         /// <summary>
         /// A final execution of the command, logging every step of the way and executing <see cref="ICommand.Execute"/> defined on the class inheriting <see cref="BaseCommand"/>.
         /// </summary>
@@ -201,5 +267,12 @@ namespace Pyro.Nc.Parsing
                 parameters
             }) as ICommand;
         }
+        
+        public enum Axis
+        {
+            XY,
+            XZ,
+            YZ
+         }
     }
 }
