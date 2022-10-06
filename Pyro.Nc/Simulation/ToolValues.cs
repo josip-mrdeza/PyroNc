@@ -63,7 +63,6 @@ namespace Pyro.Nc.Simulation
         public float SpindleSpeedLimit { set => SpindleSpeed.UpperLimit = value; } 
         public float FeedRateLimit { set => FeedRate.UpperLimit = value; }
         public TimeSpan FastMoveTick { get; set; }
-        [JsonIgnore]
-        public CancellationTokenSource TokenSource { get; set; }
+        [JsonIgnore] public CancellationTokenSource TokenSource { get; set; }
     }
 }
