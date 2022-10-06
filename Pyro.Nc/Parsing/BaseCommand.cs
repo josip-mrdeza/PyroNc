@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,7 +57,6 @@ namespace Pyro.Nc.Parsing
         public virtual bool IsArc { get; }
 
         public Guid Id { get; }
-
         /// <summary>
         /// Defines all parameters passed to the command from the parser (GCodeInputHandler->CommandHelper).
         /// </summary>
@@ -186,6 +186,7 @@ namespace Pyro.Nc.Parsing
         public void Expire()
         {
             Tool.Values.IsAllowed = true;
+            Tool.Values.Current = null;
         }
         /// <summary>
         /// A method that tells the <see cref="ITool"/> which path it should define for the current <see cref="ICommand"/>.

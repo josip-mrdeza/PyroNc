@@ -1,6 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation;
 
 namespace Pyro.Nc.Parsing.MCommands
 {
@@ -15,6 +19,18 @@ namespace Pyro.Nc.Parsing.MCommands
         {
             //??
             //TODO Change tool mesh and radius
+            var tools = Globals.ToolManager.Tools;
+            var toolIndex = tools.FirstOrDefault(x => x.Radius == Tool.Values.Radius).Index;
+            var toolSetter = new ToolSetter(Tool, new ArbitraryCommandParameters()
+            {
+                Values = new Dictionary<string, float>()
+                {
+                    {
+                        "values", toolIndex + 1
+                    }
+                }
+            });
+            await toolSetter.Execute(draw);
         }
     }
 }

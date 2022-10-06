@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Pyro.Math;
+using Pyro.Nc.Parsing.Exceptions;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
 
@@ -16,9 +17,14 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
 
         public override Task Execute(bool draw)
         {
-            Tool.Values.FeedRate.Set(Parameters.GetValue("value"));
-            Tool.Values.FastMoveTick = TimeSpan.FromMilliseconds((Parameters.GetValue("value").Pow(-1).Squared()));
+            var value = Parameters.GetValue("value");
 
+            var feedRate = Tool.Values.FeedRate;
+            if (feedRate.UpperLimit < value)
+            {
+                throw new FeedRateOverLimitException(this, value, feedRate.UpperLimit);
+            }
+            feedRate.Set(value);
             return Task.CompletedTask;
         }
     }

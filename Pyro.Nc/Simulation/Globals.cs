@@ -21,6 +21,8 @@ namespace Pyro.Nc.Simulation
         public static CommentView Comment;
         public static LocalRoaming Roaming;
         public static SoftwareInfo Info;
+        public static MethodStateManager MethodManager;
+        public static DefaultsManager DefaultsManager;
 
         public static bool IsNetworkPresent = Pyro.Threading.PyroDispatcher.ExecuteOnMain(_isNetworkPresent, null);
     }

@@ -24,7 +24,9 @@ namespace Pyro.Math.Geometry
         
         public readonly CircleSmoothness Smoothness;      
         public Shape GeometricalShape { get; } 
-
+        /// <summary>
+        /// Used with force based movement.
+        /// </summary>
         public Arc3D(float radius, Vector3D start, int degrees, float depth, CircleSmoothness smoothness = CircleSmoothness.Standard)
         {
             Radius = radius;

@@ -51,16 +51,8 @@ namespace Pyro.Nc.Parsing.MCommands
         
         public CancellationToken Token => Globals.Tool.Values.TokenSource.Token;
 
-        public LineTranslationSmoothness LineSmoothness
-        {
-            get => throw new NotSupportedException(); 
-            set => throw new NotSupportedException();  
-        }
+        public LineTranslationSmoothness LineSmoothness { get; set; }
 
-        public CircleSmoothness CircleSmoothness
-        {
-            get => throw new NotSupportedException(); 
-            set => throw new NotSupportedException();  
-        }
+        public CircleSmoothness CircleSmoothness { get; set; }
     }
 }

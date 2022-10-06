@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
+using UnityEngine;
 
 namespace Pyro.Nc.Parsing.MCommands
 {
@@ -14,8 +15,7 @@ namespace Pyro.Nc.Parsing.MCommands
 
         public override async Task Execute(bool draw)
         {
-            //TODO set spindle speed to 0
-            throw new NotImplementedException();
+            Tool.Self.angularVelocity = Vector3.zero;
         }
     }
 }

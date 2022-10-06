@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Pyro.Math;
 using Pyro.Nc.Configuration;
 using Pyro.Nc.Parsing;
+using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.UI;
 using UnityEngine;
 
 namespace Pyro.Nc.Simulation
@@ -18,7 +22,7 @@ namespace Pyro.Nc.Simulation
         public override void Initialize()
         {
             _transform = transform;
-            Values = new ToolValues(this);
+            Values = this.GetDefaultsOrCreate();
             Globals.Tool = this;
             Cube = _Cube;
             var meshFilter = Cube.GetComponent<MeshFilter>();
@@ -43,11 +47,46 @@ namespace Pyro.Nc.Simulation
             MinY = min.y;
             MinZ = min.z;
             CubeMaterial = _CubeMaterial;
+            MovementType = Globals.MethodManager.Get("Traverse").Index;
+            OnConsumeStopCheck += async () =>
+            {
+                Position = Values.CurrentPath.Points.Last();
+            };
+            Self = GetComponent<Rigidbody>();
         }
 
+        private void FixedUpdate()
+        {
+            if (MovementType == -1 && Values.Current is
+            {
+                Family: Group.GCommand
+            })
+            {
+                _contained = true;
+                var pos = Position;
+                var cutResult = this.CheckPositionForCut(Direction.FromVectors(pos, pos + Vector3.down), Values.Current.GetType() == typeof(G00));
+                PyroConsoleView.PushTextStatic("Traverse finished!",
+                                               $"Total vertices cut: {cutResult.TotalVerticesCut.ToString()} ({((double) cutResult.TotalVerticesCut / Vertices.Count).Round().ToString(CultureInfo.InvariantCulture)}%)",
+                                               $"Average time spent cutting: {cutResult.TotalTime.ToString(CultureInfo.InvariantCulture)}ms");
+            }
+            else
+            {
+                if (_contained)
+                {
+                    //Debug.Log($"Before: {Self.velocity}");
+                    Self.velocity = Vector3.zero;
+                    _contained = false;
+                    //Debug.Log($"Afterwards: {Self.velocity}");
+                }
+            }
+        }
+
+        private bool _contained;
+        public sbyte MovementType { get; set; }
         public Mesh MeshPointer { get; set; }
         public GameObject Cube { get; set; }
         public Material CubeMaterial { get; set; }
+        public Rigidbody Self { get; set; }
         public Triangulator Triangulator { get; set; }
         public Vector3 Position {get => _transform.position; set => _transform.position = value; }
         public ToolValues Values { get; set; }

@@ -5,12 +5,16 @@ namespace Pyro.Nc
     public class Limiter
     {
         private float Value;
-        public float UpperLimit;
+        public float UpperLimit { get; set; }
 
         public Limiter(float value, float upperLimit)
         {
             Value = value;
             UpperLimit = upperLimit;
+        }
+
+        public Limiter()
+        {
         }
         
         public void Set(float val)

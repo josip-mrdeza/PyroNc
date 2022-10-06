@@ -1,3 +1,4 @@
+using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -5,12 +6,15 @@ using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Math;
 using Pyro.Math.Geometry;
+using Pyro.Nc.Configuration;
+using Pyro.Nc.Configuration.Sim3D_Legacy;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Parsing.GCommands.Exceptions;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.UI;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
+using Physics = Pyro.Math.Physics;
 
 namespace Pyro.Nc.Simulation
 {
@@ -89,9 +93,8 @@ namespace Pyro.Nc.Simulation
         /// <returns>An asynchronous task resulting in a <see cref="CutResult"/> statistic, defining time spent cutting and total vertices cut.</returns>
         /// <exception cref="RapidFeedCollisionException">This exception is thrown if the command used for the execution of this action is of type <see cref="G00"/>,
         /// causing a rapid feed collision (High speed hit into the workpiece).</exception>
-        public static Task<CutResult> CheckPositionForCut(this ITool tool, Direction direction, bool throwIfCut)
+        public static CutResult CheckPositionForCut(this ITool tool, Direction direction, bool throwIfCut)
         {
-            //find the fastest way to traverse an array and find the appropriate vertex to 'remove'.
             Stopwatch stopwatch = Stopwatch.StartNew();
             var toolRadius = tool.ToolConfig.Radius;
             long verticesCut = 0;
@@ -102,7 +105,7 @@ namespace Pyro.Nc.Simulation
             for (int i = 0; i < vertices.Count; i++)
             {
                 var vert = vertices[i];
-                var realVert = tr.TransformVector(vert);
+                var realVert = tr.TransformPoint(vert);
                 var distance = Vector3.Distance(pos, realVert);
                 if (distance < toolRadius && tool.IsOkayToCutVertex(realVert))
                 {
@@ -123,8 +126,31 @@ namespace Pyro.Nc.Simulation
             mesh.colors = tool.Colors.GetInternalArray();
             stopwatch.Stop();
 
-            return Task.FromResult(new CutResult(stopwatch.ElapsedMilliseconds, verticesCut));
+            return new CutResult(stopwatch.ElapsedMilliseconds, verticesCut);
         }
+
+        public static Task TraverseFinal(this ITool tool, Vector3[] points, bool draw, bool logStats)
+        {
+            var traverseState = Globals.MethodManager.Get("Traverse");
+            switch (traverseState.Index)
+            {
+                case -1:
+                {
+                    return tool.TraverseForceBased(points, draw, logStats);
+                }
+
+                case 0:
+                {
+                    return tool.Traverse(points, draw, logStats);
+                }
+
+                default:
+                {
+                    throw new MissingMethodException("This method has not been re-implemented yet.");
+                }
+            }
+        }
+        
         /// <summary>
         /// Attempts to traverse the along the path defined by a <see cref="Vector3"/>[].
         /// </summary>
@@ -132,13 +158,12 @@ namespace Pyro.Nc.Simulation
         /// <param name="points">The tool's current path.</param>
         /// <param name="draw">Whether to draw the path or not.</param>
         /// <param name="logStats">Whether to log the (averageTimeForCut) and (totalCut).</param>
-        public static async Task Traverse(this ITool tool, Vector3[] points, bool draw, bool logStats = false)
+        public static async Task Traverse(this ITool tool, Vector3[] points, bool draw, bool logStats = true)
         {
             var toolValues = tool.Values;
             var throwIfCutIsDetected = toolValues.Current.GetType() == typeof(G00);
             double averageTimeForCut = 0;
             long totalCut = 0;
-            //await tool.WaitUntilActionIsValid();
             tool.SetupTranslation(points);
             var currentPosition = tool.Position;
             var last = points.Last();
@@ -146,7 +171,7 @@ namespace Pyro.Nc.Simulation
             {
                 draw.DrawTranslation(currentPosition, point);
                 tool.Position = point;
-                var cutResult = await tool.CheckPositionForCut(Direction.FromVectors(currentPosition, point), throwIfCutIsDetected);
+                var cutResult = tool.CheckPositionForCut(Direction.FromVectors(currentPosition, point), throwIfCutIsDetected);
                 LogCutStatistics(logStats, cutResult,  ref averageTimeForCut, ref totalCut);
                 currentPosition = point;
                 await FinishCurrentMove(toolValues);
@@ -179,9 +204,9 @@ namespace Pyro.Nc.Simulation
         /// <param name="line">The tool's current path.</param>
         /// <param name="draw">Whether to draw the path or not.</param>
         /// <param name="logStats">Whether to log the (averageTimeForCut) and (totalCut).</param>
-        public static async Task Traverse(this ITool tool, Line3D line, bool draw, bool logStats = false)
+        public static async Task Traverse(this ITool tool, Line3D line, bool draw, bool logStats = true)
         {
-            await tool.Traverse(line.ToVector3s(), draw, logStats);
+            await tool.TraverseFinal(line.ToVector3s(), draw, logStats);
         }
         /// <summary>
         /// Attempts to traverse the along the path defined by either a <see cref="Circle"/>, <see cref="Circle3D"/> or <see cref="Arc3D"/>.
@@ -191,13 +216,13 @@ namespace Pyro.Nc.Simulation
         /// <param name="reverse">Whether to reverse the direction of movement for the <see cref="I3DShape"/>.</param>
         /// <param name="draw">Whether to draw the path or not.</param>
         /// <param name="logStats">Whether to log the (averageTimeForCut) and (totalCut).</param>
-        public static async Task Traverse(this ITool tool, I3DShape arc, bool reverse, bool draw, bool logStats = false)
+        public static async Task Traverse(this ITool tool, I3DShape arc, bool reverse, bool draw, bool logStats = true)
         {
             if (reverse)
             {
                 arc.Reverse();
             }
-            await tool.Traverse(arc.ToVector3s(), draw, logStats);
+            await tool.TraverseFinal(arc.ToVector3s(), draw, logStats);
         }
         /// <summary>
         /// Attempts to traverse the along the path defined by either a <see cref="Circle"/>, <see cref="Circle3D"/> or <see cref="Arc3D"/>.
@@ -208,7 +233,7 @@ namespace Pyro.Nc.Simulation
         /// <param name="reverse">Whether to reverse the direction of movement for the <see cref="Circle3D"/>.</param>
         /// <param name="draw">Whether to draw the path or not.</param>
         /// <param name="logStats">Whether to log the (averageTimeForCut) and (totalCut).</param>
-        public static async Task Traverse(this ITool tool, Vector3 circleCenter, float circleRadius, bool reverse, bool draw, bool logStats = false)
+        public static async Task Traverse(this ITool tool, Vector3 circleCenter, float circleRadius, bool reverse, bool draw, bool logStats = true)
         {
             var circle3d = new Circle3D(circleRadius, tool.Position.y);
             if (reverse)
@@ -217,7 +242,7 @@ namespace Pyro.Nc.Simulation
             }
             circle3d.Shift(circleCenter.ToVector3D());
             
-            await tool.Traverse(circle3d.ToVector3s(), draw, logStats);
+            await tool.TraverseFinal(circle3d.ToVector3s(), draw, logStats);
         }
         /// <summary>
         /// Attempts to traverse the along the path defined by a <see cref="Vector3"/> destination, later converted to a <see cref="Line3D"/>.
@@ -227,23 +252,23 @@ namespace Pyro.Nc.Simulation
         /// <param name="smoothness">The total amount of points the tool is to traverse through.</param>
         /// <param name="draw">Whether to draw the path or not.</param>
         /// <param name="logStats">Whether to log the (averageTimeForCut) and (totalCut).</param>
-        public static async Task Traverse(this ITool tool, Vector3 destination, LineTranslationSmoothness smoothness, bool draw, bool logStats = false)
+        public static async Task Traverse(this ITool tool, Vector3 destination, LineTranslationSmoothness smoothness, bool draw, bool logStats = true)
         {
             var line = new Line3D(tool.Position.ToVector3D(), destination.ToVector3D(), (int) smoothness);
             await tool.Traverse(line, draw, logStats);
         }
-        private static async Task FinishCurrentMove(ToolValues toolValues)
+        internal static async Task FinishCurrentMove(ToolValues toolValues)
         {
             await Task.Delay(toolValues.FastMoveTick);
             await Task.Yield();
         }
-        private static void LogCutStatistics(bool logStats, CutResult cutResult, ref double averageTimeForCut, ref long totalCut)
+        internal static void LogCutStatistics(bool logStats, CutResult cutResult, ref double averageTimeForCut, ref long totalCut)
         {
             if (logStats)
             {
                 averageTimeForCut = (averageTimeForCut + cutResult.TotalTime) / 2d;
                 totalCut += cutResult.TotalVerticesCut;
             }
-        } 
+        }
     }
 }

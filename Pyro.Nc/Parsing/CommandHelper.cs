@@ -117,7 +117,7 @@ namespace Pyro.Nc.Parsing
                     }
 
                     if (ScrapNotation(id, commands) || ScrapToolChange(id, commands) ||
-                        ScrapSpindleSpeedSetter(id, commands))
+                        ScrapSpindleSpeedSetter(id, commands) || ScrapFeedRateSetter(id, commands))
                     {
                         continue;
                     }
@@ -208,6 +208,26 @@ namespace Pyro.Nc.Parsing
                     return false;
                 } 
                 var command = Storage.FetchArbitraryCommand("S");
+                command.Parameters.AddValue("value", num);
+                commands.Add(command);
+
+                return true;
+            }
+
+            return false;
+        }
+        
+        private static bool ScrapFeedRateSetter(string id, List<ICommand> commands)
+        {
+            if (id[0] is 'F' or 'f')
+            {
+                var secondPart = id.Split('F')[1];
+                var isSecondPartFloat = float.TryParse(secondPart, out float num);
+                if (!isSecondPartFloat)
+                {
+                    return false;
+                } 
+                var command = Storage.FetchArbitraryCommand("F");
                 command.Parameters.AddValue("value", num);
                 commands.Add(command);
 

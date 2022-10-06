@@ -4,6 +4,7 @@ using System.Linq;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.Exceptions;
 using Pyro.Nc.Parsing.GCommands;
+using Pyro.Nc.Parsing.MCommands;
 
 namespace Pyro.Nc.Parsing.Rules
 {
@@ -11,7 +12,7 @@ namespace Pyro.Nc.Parsing.Rules
     {
         private static readonly Type[] _types = new Type[]
         {
-            typeof(G04)
+            typeof(G04), typeof(M00)
         };
         private static readonly Predicate<List<ICommand>> _predicate = list =>
         {

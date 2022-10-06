@@ -26,9 +26,11 @@ namespace Pyro.Nc.Pathing
     {
         public Mesh _MeshPointer;
         public GameObject _Cube;
+        public sbyte MovementType { get; set; }
         public Mesh MeshPointer { get; set; }
         public GameObject Cube { get; set; }
         public Material CubeMaterial { get; set; }
+        public Rigidbody Self { get; set; }
         public Triangulator Triangulator { get; set; }
         public Vector3 Position
         {

@@ -15,12 +15,14 @@ namespace Pyro.Nc.Pathing
 {
     public interface ITool
     {
+        public sbyte MovementType { get; set; }
         /// <summary>
         /// A reference to a mesh that is to be copied and used for cutting.
         /// </summary>
         public Mesh MeshPointer { get; set; }
         public GameObject Cube { get; set; }
         public Material CubeMaterial { get; set; }
+        public Rigidbody Self { get; set; }
         public Triangulator Triangulator { get; set; }
         public Vector3 Position { get; set; }
         public ToolValues Values { get; set; }
