@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Pyro.IO;
 
@@ -27,7 +28,7 @@ namespace Pyro.Math.Geometry
         /// <summary>
         /// Used with force based movement.
         /// </summary>
-        public Arc3D(float radius, Vector3D start, int degrees, float depth, CircleSmoothness smoothness = CircleSmoothness.Standard)
+        public Arc3D(float radius, Vector3D start, int degrees, float depth, CircleSmoothness smoothness = CircleSmoothness.Rough)
         {
             Radius = radius;
             Depth = depth;
@@ -38,7 +39,7 @@ namespace Pyro.Math.Geometry
             Points = PlotArc(degrees);
         }
         
-        public Arc3D(float radius, Vector3D start, Vector3D endPoint, Vector3D center, Vector3D rotateTowards, float depth, CircleSmoothness smoothness = CircleSmoothness.Standard)
+        public Arc3D(float radius, Vector3D start, Vector3D endPoint, Vector3D center, Vector3D rotateTowards, float depth, CircleSmoothness smoothness = CircleSmoothness.Rough)
         {
             Radius = radius;
             Depth = depth;
@@ -73,9 +74,9 @@ namespace Pyro.Math.Geometry
         public Vector3D[] PlotArc(Vector3D shift, Vector3D rotateTowards)
         {
             var arr = new List<Vector3D>((int) Smoothness);
-            var p1 = new Vector3D(-(0.Cos() * Radius) + shift.x, Depth, (0.Sin() * Radius) + shift.z);
+            var p1 = new Vector3D(-Radius + shift.x, Depth, shift.z);
+            
             var rotateDegrees = (float) (System.Math.Atan2(rotateTowards.z - p1.z, rotateTowards.x - p1.x) * (180f/System.Math.PI)) * 2;
-
             for (int i = 0; i < 360;  i++)
             {
                 var v3 = new Vector3D(-((i + rotateDegrees).Cos() * Radius) + shift.x, Depth, ((i + rotateDegrees).Sin() * Radius) + shift.z);

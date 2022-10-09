@@ -249,12 +249,31 @@ namespace Pyro.Nc.Simulation
         /// </summary>
         /// <param name="tool">The tool.</param>
         /// <param name="destination">The tool's current destination.</param>
-        /// <param name="smoothness">The total amount of points the tool is to traverse through.</param>
+        /// <param name="smoothness">The total amount of points the tool is to traverse through.[overriden]</param>
         /// <param name="draw">Whether to draw the path or not.</param>
         /// <param name="logStats">Whether to log the (averageTimeForCut) and (totalCut).</param>
         public static async Task Traverse(this ITool tool, Vector3 destination, LineTranslationSmoothness smoothness, bool draw, bool logStats = true)
         {
-            var line = new Line3D(tool.Position.ToVector3D(), destination.ToVector3D(), (int) smoothness);
+            var p1 = tool.Position.ToVector3D();
+            var p2 = destination.ToVector3D();
+            var dist = Space3D.Distance(p1, p2);
+            var line = new Line3D(tool.Position.ToVector3D(), destination.ToVector3D(), dist.Mutate(d =>
+            {
+                if (d == 0f)
+                {
+                    return 0;
+                }
+                else if (d < 5)
+                {
+                    return 3;
+                }
+                else if (d < 10)
+                {
+                    return (int) d;
+                }
+
+                return (int) d;
+            }));
             await tool.Traverse(line, draw, logStats);
         }
         internal static async Task FinishCurrentMove(ToolValues toolValues)

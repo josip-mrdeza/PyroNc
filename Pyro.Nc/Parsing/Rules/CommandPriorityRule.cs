@@ -10,11 +10,17 @@ namespace Pyro.Nc.Parsing.Rules
 {
     public class CommandPriorityRule : Rule<List<ICommand>>
     {
-        private static readonly Type[] _types = new Type[]
+        private static readonly Type[] Types = new Type[]
         {
             typeof(G04), typeof(M00)
         };
-        private static readonly Predicate<List<ICommand>> _predicate = list =>
+        
+        public CommandPriorityRule(string name)
+            : base(name)
+        {
+        }
+
+        public override bool CheckValidity(List<ICommand> list)
         {
             var sc = list.FirstOrDefault(c => c.IsMatch(typeof(SpindleSpeedSetter)));
             if (sc is null)
@@ -25,7 +31,7 @@ namespace Pyro.Nc.Parsing.Rules
             {
                 var command = list[i];
                 var type = command.GetType();
-                if (_types.Contains(type))
+                if (Types.Contains(type))
                 {
                     command.Parameters.Values["S"] = sc.Parameters.GetValue("S");
                     list.Remove(sc);
@@ -33,11 +39,6 @@ namespace Pyro.Nc.Parsing.Rules
             }
 
             return true;
-        };
-        public CommandPriorityRule(string name)
-            : base(name, _predicate, () => new RuleParseException("Undefined exception."))
-        {
-            
         }
     }
 }

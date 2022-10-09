@@ -126,7 +126,14 @@ namespace Pyro.Math
             }
             if (!equation.Contains("="))
             {
-                builder.Insert(0, 'x').Insert(1, '=');
+                if (!equation.ToLower().Contains("x"))
+                {
+                    builder.Insert(0, 'x').Insert(1, '=');
+                }
+                else
+                {
+                    builder.Append("=0");
+                }
             }
 
             var str = builder.ToString();

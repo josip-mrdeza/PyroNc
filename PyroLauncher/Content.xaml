@@ -9,18 +9,31 @@
       Title="Content" Height="1080" Width="1620">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="300"/>
-            <RowDefinition Height="50"/>
+            <RowDefinition Height="500"/>
+            <RowDefinition Height="100"/>
+            <RowDefinition Height="100"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <Image Grid.Row="0" x:Name="Picture" Height="300" Stretch="Fill"/>
+        <Image Grid.Row="0" x:Name="Picture" Height="500" Stretch="Fill"/>
         <MediaElement Grid.Row="0" Width="50" Height="50" 
-                      Source="C:\Users\Jzf\Pictures\cock_and_ball_torute.mp4"
+                      Source="C:\Users\Jzf\Pictures\cock_and_ball_torute3.mp4"
                       x:Name="CockAndBallTorture" Margin="0, 250,  1570, 0"/>
-        <Button Grid.Row="0" Height="50" Width="300" Foreground="White"
-                Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Center"
-                Content="Start" FontSize="40" HorizontalAlignment="Right" VerticalContentAlignment="Center"
-                Margin="0, 200, 0, 0" x:Name="Start"/>
-        <Label Grid.Row="2" x:Name="Description" FontSize="30" Foreground="White" Margin="50, 0, 0, 0"/>
+        <Button Grid.Row="1" Height="75" Width="300" Foreground="White"
+                Background="Transparent"
+                Content="Start" FontSize="40" HorizontalAlignment="Center" VerticalContentAlignment="Center"
+                x:Name="Start"
+                Margin="0, 0, 300, 0"/>
+        <Button Grid.Row="1" Height="75" Width="300" Foreground="White"
+                Background="Transparent"
+                Content="Update" FontSize="40" HorizontalAlignment="Center" VerticalContentAlignment="Center"
+                x:Name="Update"
+                Margin="0, 0, -300, 0"
+                Click="Update_OnClick"/>
+        <TextBlock Grid.Row="3" x:Name="StartDescriptor" Width="300" Height="75" Foreground="White" 
+                   TextAlignment="Center" FontSize="40"/>
+        
+        <TextBlock Grid.Row="2" x:Name="UpdateBlock" HorizontalAlignment="Center"
+                   Width="600" Height="75" Foreground="White" TextAlignment="Center"/>
+        <Label Grid.Row="3" x:Name="Description" FontSize="30" Foreground="White" Margin="50, 0, 0, 0"/>
     </Grid>
 </Page>

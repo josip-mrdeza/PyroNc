@@ -14,7 +14,9 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
 
         public override async Task Execute(bool draw)
         {
-            
+            var toolValues = Tool.Values;
+            toolValues.SpindleSpeed.UpperLimit = Parameters.GetValue("value");
+            Tool.Self.maxAngularVelocity = toolValues.SpindleSpeed.UpperLimit;
         }
     }
 }

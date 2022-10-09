@@ -12,24 +12,9 @@ namespace Pyro.Injector
     {
         public FolderInfo[] Folders { get; set; }
         public string Path { get; set; }
-        public bool IsUnity { get; set; }
-        internal void Init()
+        internal void Init(string path = null)
         {
-            Path = Directory.GetCurrentDirectory();
-            IsUnity = Path.Contains("_Data\\Managed");
-            if (IsUnity)
-            {
-                var _dataIndex = Path.IndexOf("_Data", StringComparison.InvariantCulture);
-                Path = Path.Remove(_dataIndex);
-                var _mainIndex = Path.LastIndexOf("\\", StringComparison.InvariantCulture);
-                Path = Path.Remove(_mainIndex - 1);
-            }
-            // Folders = Directory.EnumerateDirectories(Path)
-            //                    .Prepend(Path)
-            //                    .Select(d => new DirectoryInfo(d))                                                                               
-            //                    .Select(di => new FolderInfo(di.FullName.Replace(Path + "\\", string.Empty),-1))
-            //                    .ToArray();
-
+            Path = path ?? Directory.GetCurrentDirectory();
             Folders = new FolderInfo[]{new FolderInfo(Path)};
         }
         
@@ -52,9 +37,9 @@ namespace Pyro.Injector
             return softwareInfo;
         }
         
-        public static SoftwareInfo GetFromCache(string app)
+        public static SoftwareInfo GetFromCache(string appId)
         {
-            var assemblyId = app;
+            var assemblyId = appId;
             LocalRoaming roaming = LocalRoaming.OpenOrCreate($"PyroNc/{assemblyId}");
             SoftwareInfo softwareInfo;
             var jsonId = "SoftwareInfo_Cache.json";
@@ -67,6 +52,23 @@ namespace Pyro.Injector
 
             softwareInfo = new SoftwareInfo();
             softwareInfo.Init();
+            roaming.AddFile(jsonId, softwareInfo);
+            return softwareInfo;
+        }
+        
+        public static SoftwareInfo GetFromCache_Init(string app, string path)
+        {
+            var assemblyId = app;
+            LocalRoaming roaming = LocalRoaming.OpenOrCreate($"PyroNc/{assemblyId}");
+            SoftwareInfo softwareInfo;
+            var jsonId = "SoftwareInfo_Cache.json";
+            if (roaming.Exists(jsonId))
+            {
+                softwareInfo = roaming.ReadFileAs<SoftwareInfo>(jsonId);
+                return softwareInfo;
+            }
+            softwareInfo = new SoftwareInfo();
+            softwareInfo.Init(path);
             roaming.AddFile(jsonId, softwareInfo);
             return softwareInfo;
         }
@@ -142,32 +144,40 @@ namespace Pyro.Injector
                 }
             }
             public byte[] Data { get; set; }
-            public void RefreshData()
+            public void RefreshData(string path = null)
             {
-                Data = File.ReadAllBytes(Path);
+                Data = File.ReadAllBytes(path is null ? Path : path + '\\' + Path);
             }
-            
+
             public void RefreshDataAlt()
             {
                 Data = File.ReadAllBytes($"{BasePath}/{Path}");
             }
 
 
-            public void Update()
+            public void Update(string path = null)
             {
-                var fi = new FileInfo(Path);
+                if (path is not null)
+                {
+                    path = path + '\\' + Path;
+                }
+                else
+                {
+                    path = Path;
+                }
+                var fi = new FileInfo(path);
                 if (fi.Exists)
                 {
-                    File.WriteAllBytes(Path, Data);
+                    File.WriteAllBytes(path, Data);
                 }
                 else
                 {
                     Directory.CreateDirectory(fi.DirectoryName);
-                    File.WriteAllBytes(Path, Data);
+                    File.WriteAllBytes(path, Data);
                 }
             }
 
-            public bool IsSameAs(DocumentInfo other)
+            public bool IsSameAs(DocumentInfo other, string path = null)
             {
                 if (Size != other.Size)
                 {
@@ -175,7 +185,7 @@ namespace Pyro.Injector
                 }
                 if (Data is null)
                 {
-                    RefreshData();
+                    RefreshData(path);
                 }
 
                 if (other.Data is null)

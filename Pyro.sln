@@ -44,6 +44,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroLauncher", "PyroLaunche
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroLauncher.Api", "PyroLauncher.Api\PyroLauncher.Api.csproj", "{D7BB2A08-9236-4C30-8261-CFB70DA85095}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathTests", "MathTests\MathTests.csproj", "{57373173-88E4-4D85-973C-92946051B038}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -138,5 +140,9 @@ Global
 		{D7BB2A08-9236-4C30-8261-CFB70DA85095}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D7BB2A08-9236-4C30-8261-CFB70DA85095}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D7BB2A08-9236-4C30-8261-CFB70DA85095}.Release|Any CPU.Build.0 = Release|Any CPU
+		{57373173-88E4-4D85-973C-92946051B038}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57373173-88E4-4D85-973C-92946051B038}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57373173-88E4-4D85-973C-92946051B038}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57373173-88E4-4D85-973C-92946051B038}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

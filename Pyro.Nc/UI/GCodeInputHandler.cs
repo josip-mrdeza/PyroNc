@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Nc.Configuration;
 using Pyro.Nc.Parsing;
+using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Simulation;
 using TMPro;
 using UnityEngine;
@@ -50,6 +51,16 @@ namespace Pyro.Nc.UI
                                .SelectMany(y => y);
 
                 var arr = commands.ToArray();
+                if (arr.FirstOrDefault() is M03 or M04)
+                {
+                    for (int i = arr.Length - 1; i >= 0; i--)
+                    {
+                        await Globals.Tool.UseCommand(arr[i], true);
+                    }
+
+                    return;
+                }
+                
                 foreach (var command in arr)
                 {
                     await Globals.Tool.UseCommand(command, true);

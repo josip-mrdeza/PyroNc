@@ -6,6 +6,7 @@ using Pyro.IO;
 using Pyro.Math;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
 using UnityEngine;
 
@@ -65,6 +66,7 @@ namespace Pyro.Nc.Parsing
             for (int i = 0; i < splitCode.Length; i++)
             {
                 var section = splitCode[i].Trim(); 
+                Globals.Rules.Try(section);
                 if (Storage.FetchArbitraryCommand(section) != null || Storage.FetchGCommand(section) != null || Storage.FetchMCommand(section) != null)
                 {
                     indices.Add(i);
@@ -194,6 +196,7 @@ namespace Pyro.Nc.Parsing
                 }
             }
 
+            Globals.Rules.Try(commands);
             return commands;
         }
 

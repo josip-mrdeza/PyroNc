@@ -14,6 +14,7 @@ namespace Pyro.Nc.Configuration.Sim3D_Legacy
 {
     public static class Sim3DLegacyMethods
     {
+        public static bool IsInPosition { get; set; }
         public static async Task TraverseForceBased(this ITool tool, Vector3[] points, bool draw, bool logStats)
         {
             var toolValues = tool.Values;
@@ -25,16 +26,23 @@ namespace Pyro.Nc.Configuration.Sim3D_Legacy
             var last = points.Last();
             var force = Physics.ForceRequiredToPush(currentPosition.ToVector3D(), last.ToVector3D(), rigidBody.mass,
                                                     tool.Values.FeedRate);
-            rigidBody.AddForce((last - currentPosition).normalized * force, ForceMode.Force);
-            var magn = (currentPosition - last).magnitude;
-            for (;magn > 0.1f;)
+            var magn = (currentPosition - last).RemoveNan().magnitude;
+            var totalForce = (last - currentPosition).normalized.RemoveNan() * force;
+            rigidBody.AddForce(totalForce, ForceMode.Force);
+            Debug.Log(totalForce);
+            
+            for (;magn > 0.7f || !IsInPosition;) //empirical value
             {
+                if (totalForce == Vector3.zero)
+                {
+                    break;
+                }
                 await Task.Delay(TimeSpan.FromSeconds(Time.fixedDeltaTime));
                 var altPos = tool.Position;
-                Debug.DrawLine(currentPosition, altPos, Color.red, 4);
+                //Debug.DrawLine(currentPosition, altPos, Color.red, 4);
                 currentPosition = altPos;
-                magn = (currentPosition - last).magnitude;
-                Debug.Log(magn);
+                magn = (currentPosition - last).RemoveNan().magnitude;
+                //Debug.Log(magn);
                 await Task.Yield();
             }
             Debug.Log($"Exited loop - {toolValues.Current.Id}!");

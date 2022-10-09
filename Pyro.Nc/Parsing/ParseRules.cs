@@ -42,8 +42,9 @@ namespace Pyro.Nc.Parsing
         {
             foreach (var textRule in TextRules)
             {
-                var b = textRule.Predicate(text);
+                var b = textRule.CheckValidity(text);
                 ThrowIfInvalid(textRule, b);
+                textRule.FixValidity(text);
             }
         }
 
@@ -51,8 +52,9 @@ namespace Pyro.Nc.Parsing
         {
             foreach (var commandRule in CommandRules)
             {
-                var b = commandRule.Predicate(commands);
+                var b = commandRule.CheckValidity(commands);
                 ThrowIfInvalid(commandRule, b);
+                commandRule.FixValidity(commands);
             }
         }
 

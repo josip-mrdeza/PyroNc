@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Pyro.Injector;
 using Pyro.IO;
 using Pyro.Nc.Configuration;
+using Pyro.Nc.Parsing;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.UI;
 using UnityEngine;
@@ -23,6 +24,7 @@ namespace Pyro.Nc.Simulation
         public static SoftwareInfo Info;
         public static MethodStateManager MethodManager;
         public static DefaultsManager DefaultsManager;
+        public static ParseRules Rules = new ParseRules();
 
         public static bool IsNetworkPresent = Pyro.Threading.PyroDispatcher.ExecuteOnMain(_isNetworkPresent, null);
     }

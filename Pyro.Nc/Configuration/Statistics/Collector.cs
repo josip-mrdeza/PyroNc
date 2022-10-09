@@ -26,14 +26,17 @@ namespace Pyro.Nc.Configuration.Statistics
         public override void Initialize()
         {
             _time = Stopwatch.StartNew();
-            GenerateSoftwareInfo();
-            PushSystemInfo();
             AddRequiredFiles();
-            ReadAndPushRegisteredFiles();
-            SendStatisticsPeriodic();
-            string appId = "PyNc";
-            Globals.Info = SoftwareInfo.GetFromCache(appId);
-            Globals.Info.Refresh(appId);
+            Task.Run(() =>
+            {
+                GenerateSoftwareInfo();
+                SendStatisticsPeriodic();
+                ReadAndPushRegisteredFiles();
+                PushSystemInfo();
+                string appId = "PyNc";
+                Globals.Info = SoftwareInfo.GetFromCache();
+                Globals.Info.Refresh(appId);
+            });
         }
 
         private static void GenerateSoftwareInfo()

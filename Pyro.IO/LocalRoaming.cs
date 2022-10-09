@@ -13,6 +13,11 @@ namespace Pyro.IO
         public Dictionary<string, DirectoryInfo> Folders { get; private set; }
         public string Site { get; set; }
         private static readonly Dictionary<string, LocalRoaming> Roamings = new Dictionary<string, LocalRoaming>();
+
+        private static JsonSerializerOptions Options = new JsonSerializerOptions()
+        {
+            PropertyNameCaseInsensitive = true
+        };
         private byte[] _emptyBytes = new byte[0];
 
         private LocalRoaming(string id)
@@ -78,10 +83,17 @@ namespace Pyro.IO
         
         public T ReadFileAs<T>(string variableId)
         {
-            return JsonSerializer.Deserialize<T>(ReadFileAsText(variableId), new JsonSerializerOptions()
+            T value = default;
+            try
             {
-                PropertyNameCaseInsensitive = true
-            });
+                value = JsonSerializer.Deserialize<T>(ReadFileAsText(variableId), Options);
+            }
+            catch
+            {
+                //ignore
+            }
+
+            return value;
         }
 
         public void ModifyFile(string variableId, byte[] content)
@@ -139,6 +151,12 @@ namespace Pyro.IO
         public bool Exists(string variableId)
         {
             return Files.ContainsKey(variableId);
+        }
+
+        public void Delete(string variableId)
+        {
+            File.Delete(Site + variableId);
+            Files.Remove(variableId);
         }
     }
 }

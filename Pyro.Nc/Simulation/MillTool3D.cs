@@ -53,6 +53,7 @@ namespace Pyro.Nc.Simulation
                 Position = Values.CurrentPath.Points.Last();
             };
             Self = GetComponent<Rigidbody>();
+            Self.maxAngularVelocity = Values.SpindleSpeed.UpperLimit;
         }
 
         private void FixedUpdate()
@@ -77,7 +78,7 @@ namespace Pyro.Nc.Simulation
                     Self.velocity = Vector3.zero;
                     _contained = false;
                     //Debug.Log($"Afterwards: {Self.velocity}");
-                }
+                }   
             }
         }
 
