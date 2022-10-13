@@ -1,6 +1,6 @@
 using System;
 
-namespace Pyro.Nc.Parsing.GCommands.Exceptions
+namespace Pyro.Nc.Parsing.Exceptions
 {
     public class DrillParameterMismatchException : LinearInterpolationParameterMismatchException
     {

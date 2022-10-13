@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Math.Geometry;
-using Pyro.Nc.Parsing.GCommands.Exceptions;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
 using UnityEngine;

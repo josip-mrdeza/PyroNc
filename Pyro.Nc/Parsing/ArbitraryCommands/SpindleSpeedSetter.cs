@@ -15,7 +15,7 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
 
         public override string Description => Locals.SpindleSpeedSetter;
 
-        public override async Task Execute(bool draw)
+        public override Task Execute(bool draw)
         {
             var value = Parameters.GetValue("value");
             var spindleSpeed = Tool.Values.SpindleSpeed;
@@ -30,6 +30,8 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
                 var current = rigidBody.angularVelocity;
                 rigidBody.angularVelocity = new Vector3(0, 1, 0) * ((current.y < 0 ? -1 : 1) * spindleSpeed.Get());
             }
+
+            return Task.CompletedTask;
         }
     }
 }

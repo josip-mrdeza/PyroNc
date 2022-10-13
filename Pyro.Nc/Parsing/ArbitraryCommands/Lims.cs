@@ -12,11 +12,13 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
         }
         public override string Description => Locals.Lims;
 
-        public override async Task Execute(bool draw)
+        public override Task Execute(bool draw)
         {
             var toolValues = Tool.Values;
             toolValues.SpindleSpeed.UpperLimit = Parameters.GetValue("value");
             Tool.Self.maxAngularVelocity = toolValues.SpindleSpeed.UpperLimit;
+
+            return Task.CompletedTask;
         }
     }
 }

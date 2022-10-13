@@ -13,9 +13,11 @@ namespace Pyro.Nc.Parsing.MCommands
         }
         public override string Description => Locals.M05;
 
-        public override async Task Execute(bool draw)
+        public override Task Execute(bool draw)
         {
             Tool.Self.angularVelocity = Vector3.zero;
+
+            return Task.CompletedTask;
         }
     }
 }

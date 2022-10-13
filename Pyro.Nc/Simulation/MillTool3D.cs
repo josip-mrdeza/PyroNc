@@ -48,9 +48,10 @@ namespace Pyro.Nc.Simulation
             MinZ = min.z;
             CubeMaterial = _CubeMaterial;
             MovementType = Globals.MethodManager.Get("Traverse").Index;
-            OnConsumeStopCheck += async () =>
+            OnConsumeStopCheck += () =>
             {
                 Position = Values.CurrentPath.Points.Last();
+                return Task.CompletedTask;
             };
             Self = GetComponent<Rigidbody>();
             Self.maxAngularVelocity = Values.SpindleSpeed.UpperLimit;

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Math;
 using Pyro.Math.Geometry;
-using Pyro.Nc.Parsing.GCommands.Exceptions;
+using Pyro.Nc.Parsing.Exceptions;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
 using TrCore;

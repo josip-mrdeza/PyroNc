@@ -13,10 +13,7 @@ namespace Pyro.Nc.Parsing.MCommands
 
         public override async Task Execute(bool draw)
         {
-            //if (optionalButtonPressed) //TODO This requies Pyro.Nc to interop into the machine, which I do not know how to do from .NET yet.
-            //{
-                await base.Execute(draw);
-            //}
+            await base.Execute(draw);
         }
     }
 }

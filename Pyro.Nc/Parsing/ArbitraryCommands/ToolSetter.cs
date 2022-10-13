@@ -11,10 +11,12 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
         }
 
         public override string Description => Locals.ToolSetter;
-        public override async Task Execute(bool draw)
+        public override Task Execute(bool draw)
         {
             var value = (int) Parameters.GetValue("value");
             Tool.ToolConfig = Globals.ToolManager.Tools[value];
+
+            return Task.CompletedTask;
         }
     }
 }

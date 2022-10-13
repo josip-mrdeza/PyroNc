@@ -16,7 +16,7 @@ namespace Pyro.Nc.Parsing.MCommands
         }
         public override string Description => Locals.M00;
 
-        public override async Task Execute(bool draw)
+        public override Task Execute(bool draw)
         {
             var flag0 = Parameters.Values.TryGetValue("S", out var ms);
             ms *= 1000f;
@@ -27,8 +27,11 @@ namespace Pyro.Nc.Parsing.MCommands
 
             Tool.Values.IsAllowed = false;
             var timeSpan = TimeSpan.FromMilliseconds(ms);
-            await Task.Delay(timeSpan);
-            Tool.Values.IsAllowed = true;
+            return Task.Delay(timeSpan).ContinueWith(x =>
+            {
+                Tool.Values.IsAllowed = true;
+                return x;
+            });
         }
     }
 }

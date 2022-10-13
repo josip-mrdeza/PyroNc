@@ -14,9 +14,11 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
         public string Text { get; set; }
         public override string Description => Text;
 
-        public override async Task Execute(bool draw)
+        public override Task Execute(bool draw)
         {
             Globals.Console.PushText(Description);
+
+            return Task.CompletedTask;
         }
     }
 }
