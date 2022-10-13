@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Pyro.Math;
-using Pyro.Nc.Parsing.Exceptions;
+using Pyro.Nc.Exceptions;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
 

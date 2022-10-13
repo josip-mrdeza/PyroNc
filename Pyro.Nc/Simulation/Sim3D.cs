@@ -6,15 +6,13 @@ using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Math;
 using Pyro.Math.Geometry;
-using Pyro.Nc.Configuration;
 using Pyro.Nc.Configuration.Sim3D_Legacy;
+using Pyro.Nc.Exceptions;
 using Pyro.Nc.Parsing.GCommands;
-using Pyro.Nc.Parsing.GCommands.Exceptions;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.UI;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
-using Physics = Pyro.Math.Physics;
 
 namespace Pyro.Nc.Simulation
 {

@@ -1,6 +1,7 @@
 using System;
+using Pyro.Nc.Parsing;
 
-namespace Pyro.Nc.Parsing.Exceptions
+namespace Pyro.Nc.Exceptions
 {
     public class DrillParameterMismatchException : LinearInterpolationParameterMismatchException
     {

@@ -1,11 +1,13 @@
 using System;
+using Pyro.Nc.Parsing;
 
-namespace Pyro.Nc.Parsing.Exceptions
+namespace Pyro.Nc.Exceptions
 {
     public class LinearInterpolationParameterMismatchException : ArgumentException
     {
         public LinearInterpolationParameterMismatchException(ICommand command)
-            : base($"GCommand '{command.GetType().Name}' was invoked with all parameters set to 0, this is not valid in incremental mode.")
+            : base("Command '{0}' was invoked with all parameters set to 0, this is not valid in incremental mode."
+                       .Format(command.GetType().Name))
         {
             
         }

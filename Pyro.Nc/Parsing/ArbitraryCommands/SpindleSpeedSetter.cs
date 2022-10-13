@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Pyro.Nc.Parsing.Exceptions;
+using Pyro.Nc.Exceptions;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Pathing;

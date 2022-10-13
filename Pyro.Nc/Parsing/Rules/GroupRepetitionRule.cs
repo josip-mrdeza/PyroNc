@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Pyro.Nc.Parsing.Exceptions;
+using Pyro.Nc.Exceptions;
 
 namespace Pyro.Nc.Parsing.Rules
 {

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Pyro.Nc.Parsing.ArbitraryCommands;
-using Pyro.Nc.Parsing.Exceptions;
+using Pyro.Nc.Exceptions;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Parsing.MCommands;
 
@@ -20,12 +20,12 @@ namespace Pyro.Nc.Parsing.Rules
         {
         }
 
-        public override bool CheckValidity(List<ICommand> list)
+        public override void FixValidity(List<ICommand> list)
         {
             var sc = list.FirstOrDefault(c => c.IsMatch(typeof(SpindleSpeedSetter)));
             if (sc is null)
             {
-                return true;
+                return;
             }
             for (var i = 0; i < list.Count; i++)
             {
@@ -37,8 +37,6 @@ namespace Pyro.Nc.Parsing.Rules
                     list.Remove(sc);
                 }
             }
-
-            return true;
         }
     }
 }

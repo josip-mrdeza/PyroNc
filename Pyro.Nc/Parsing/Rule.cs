@@ -1,5 +1,5 @@
 using System;
-using Pyro.Nc.Parsing.Exceptions;
+using Pyro.Nc.Exceptions;
 
 namespace Pyro.Nc.Parsing
 {
@@ -18,7 +18,7 @@ namespace Pyro.Nc.Parsing
 
         public virtual bool CheckValidity(object value) => true;
 
-        public virtual void FixValidity(object value) {}
+        public virtual void FixValidity(object value){}
     }
     
     public abstract class Rule<T> : Rule
@@ -27,8 +27,8 @@ namespace Pyro.Nc.Parsing
         {
         }
 
-        public abstract bool CheckValidity(T value);
+        public virtual bool CheckValidity(T value) => true;
 
-        public virtual void FixValidity(T value) {}
+        public virtual void FixValidity(T value){}
     }
 }

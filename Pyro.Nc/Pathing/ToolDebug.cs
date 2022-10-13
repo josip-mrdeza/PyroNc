@@ -1,23 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Pyro.IO;
-using Pyro.Math;
-using Pyro.Math.Geometry;
 using Pyro.Nc.Configuration;
 using Pyro.Nc.Parsing;
-using Pyro.Nc.Parsing.GCommands;
-using Pyro.Nc.Parsing.GCommands.Exceptions;
 using Pyro.Nc.Simulation;
-using Pyro.Nc.UI;
-using Pyro.Threading;
 using UnityEngine;
-using UnityEngine.Serialization;
-using Debug = UnityEngine.Debug;
-using Random = System.Random;
 using Vector3 = UnityEngine.Vector3;
 
 namespace Pyro.Nc.Pathing

@@ -4,13 +4,9 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using Pyro.IO;
-using Pyro.Nc.Configuration;
 using Pyro.Nc.Configuration.Statistics;
-using Pyro.Nc.Parsing.ArbitraryCommands;
-using Pyro.Nc.Parsing.GCommands.Exceptions;
 using Pyro.Nc.Simulation;
 using TMPro;
-using TrCore;
 using UnityEngine;
 
 namespace Pyro.Nc.UI
@@ -33,7 +29,10 @@ namespace Pyro.Nc.UI
         private FileInfo CreateFileStream()
         {
             var fileInfo = Globals.Roaming.AddFile("pyroLog.txt");
-            Stream = fileInfo.CreateText();
+            lock (_lock)
+            {
+                Stream = fileInfo.CreateText();
+            }
             PushTextStatic($"Created Log Stream in: {fileInfo.FullName}.");
             return fileInfo;
         }
