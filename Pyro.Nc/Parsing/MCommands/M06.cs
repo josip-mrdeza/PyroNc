@@ -1,11 +1,12 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Pyro.Nc.Configuration;
+using Pyro.Nc.Exceptions;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using UnityEngine;
 
 namespace Pyro.Nc.Parsing.MCommands
 {
@@ -15,17 +16,16 @@ namespace Pyro.Nc.Parsing.MCommands
         {
         }
         public override string Description => Locals.M06;
-
         public override async Task Execute(bool draw)
         {
             //??
             //TODO Change tool mesh and radius
             var tools = Globals.ToolManager.Tools;
             ToolConfiguration first = null;
-            var requiredRadius = Parameters.GetValue("T");
+            var requiredTool = (int) Parameters.GetValue("value");
             foreach (var x in tools)
             {
-                if (x.Radius == requiredRadius)
+                if (x.Index == requiredTool)
                 {
                     first = x;
 
@@ -35,15 +35,20 @@ namespace Pyro.Nc.Parsing.MCommands
 
             if (first == null)
             {
-                //throw new ToolMissingException(index);
+                throw new ToolMissingException(requiredTool);
             }
-            var toolIndex = first.Index;
+            
+            var rpp = ReferencePointParser.ToolMountReferencePoint;
+            var g0ToToolSetPosition = Tool.Values.Storage.FetchGCommand("G00") as G00;
+            g0ToToolSetPosition.Parameters = new GCommandParameters(rpp.x, rpp.y, rpp.z);
+            Globals.Rules.Try(g0ToToolSetPosition);
+            await g0ToToolSetPosition.Execute(draw);
             var toolSetter = new ToolSetter(Tool, new ArbitraryCommandParameters()
             {
                 Values = new Dictionary<string, float>()
                 {
                     {
-                        "values", toolIndex
+                        "value", requiredTool
                     }
                 }
             });

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using Pyro.IO;
-using Pyro.Nc.Configuration.Exceptions;
+using Pyro.Nc.Exceptions;
 using Pyro.Nc.Simulation;
 
-namespace Pyro.Nc.Configuration
+namespace Pyro.Nc.Configuration.Managers
 {
     public class MethodStateManager : IManager
     {

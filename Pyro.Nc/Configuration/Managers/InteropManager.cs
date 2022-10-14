@@ -4,7 +4,7 @@ using Pyro.IO;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
 
-namespace Pyro.Nc.Configuration
+namespace Pyro.Nc.Configuration.Managers
 {
     public class InteropManager : IManager
     {

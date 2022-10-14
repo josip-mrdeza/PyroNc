@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Pyro.IO;
-using Pyro.Nc.Configuration;
+using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Simulation;
 using TMPro;
 using UnityEngine;

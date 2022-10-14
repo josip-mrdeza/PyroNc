@@ -2,7 +2,7 @@ using System;
 using System.Management;
 using Pyro.Math;
 
-namespace Pyro.Nc.Configuration
+namespace Pyro.Nc.Configuration.Managers
 {
     public class SystemInformation
     {

@@ -98,7 +98,7 @@ namespace Pyro.Nc.Simulation
             long verticesCut = 0;
             var pos = tool.Position;
             var tr = tool.Cube.transform;
-            var v = new Vector3(direction.X, toolRadius, direction.Z);
+            var v = new Vector3(direction.X, tool.Values.Radius, direction.Y);
             var vertices = tool.Vertices;
             for (int i = 0; i < vertices.Count; i++)
             {
@@ -111,10 +111,15 @@ namespace Pyro.Nc.Simulation
                     {
                         throw new RapidFeedCollisionException(tool.Values.Current);
                     }
+                    //Debug.Log(distance);
 
                     tool.Colors[i] = tool.ToolConfig.ToolColor;
                     vertices[i] -= v;
                     verticesCut++;
+                }
+                else
+                {
+                    //Debug.Log(distance);
                 }
             }
 
@@ -259,15 +264,15 @@ namespace Pyro.Nc.Simulation
             {
                 if (d == 0f)
                 {
-                    return 0;
+                    return 1;
                 }
                 else if (d < 5)
                 {
-                    return 3;
+                    return 10;
                 }
-                else if (d < 10)
+                else if (d < 50)
                 {
-                    return (int) d;
+                    return 50;
                 }
 
                 return (int) d;

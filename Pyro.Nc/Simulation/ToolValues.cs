@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 using System.Threading;
-using Pyro.Nc.Configuration;
+using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;

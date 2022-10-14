@@ -5,6 +5,7 @@ using Pyro.Math;
 using Pyro.Math.Geometry;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Simulation;
+using UnityEngine;
 
 namespace Pyro.Nc.Parsing
 {
@@ -65,6 +66,20 @@ namespace Pyro.Nc.Parsing
             LineSmoothness = smoothness;
         }
         
+        public GCommandParameters(Vector3 pos)
+        {
+            Values = new Dictionary<string, float>()
+            {
+                {"X", pos.x},
+                {"Y", pos.y},
+                {"Z", pos.z},
+                {"I", 0},
+                {"J", 0},
+                {"K", 0},
+                {"R", 0}
+            };
+        }
+        
         public GCommandParameters(float x, float y, float z, float radius, CircleSmoothness smoothness)
         {
             Values = new Dictionary<string, float>()
@@ -74,7 +89,6 @@ namespace Pyro.Nc.Parsing
                 {"Z", z},
                 {"I", 0},
                 {"J", 0},
-                {"K", 0},
                 {"K", 0},
                 {"R", radius}
             };

@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Pyro.IO;
-using Pyro.Nc.Configuration;
+using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Simulation;
@@ -83,10 +83,21 @@ namespace Pyro.Nc.UI
 
         public IEnumerable<string> GetSuggestions(string line)
         {
-            var variables = line.Trim().FindVariables();
-            var commands = variables.CollectCommands();
+            List<string[]> variables = null;
+            List<ICommand> commands = null;
+            try
+            {
+                variables = line.Trim().FindVariables();
+                commands = variables.CollectCommands();
+                return commands.Select(x => $"{x.GetType().Name}, {x.Description}");
 
-            return commands.Select(x => $"{x.GetType().Name}, {x.Description}");
+            }
+            catch
+            {
+                 Push($"Error in GetSuggestions: line -> \"{line}\"");
+            }
+
+            return new string[1]{"Error in parsing!"};
         }
 
         public string Snip(int caretPos)

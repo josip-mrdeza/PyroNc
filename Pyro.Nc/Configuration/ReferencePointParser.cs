@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using Pyro.IO;
@@ -14,7 +15,7 @@ namespace Pyro.Nc.Configuration
             var fullPath = $"{CommandHelper.Storage.StorageDirectory.FullName}\\Configuration\\referencePoints.txt";
             PyroConsoleView.PushTextStatic("Starting ReferencePointParser in path:", fullPath);
             referencePointsTxt = File.ReadAllLines(fullPath);
-            PyroConsoleView.PushTextStatic("ReferencePointParser:", $"{referencePointsTxt.Length} lines");
+            PyroConsoleView.PushTextStatic("ReferencePointParser:", "{0} lines".Format(referencePointsTxt.Length));
             Init();
             PyroConsoleView.PushTextStatic(string.Join("\n", _cachedValues
                                                              .Select(x => x.ToString())
@@ -31,7 +32,7 @@ namespace Pyro.Nc.Configuration
                                  .Select(vc =>
             {
                 var noFirst = vc.Remove(0, 1);
-                var noSecond = noFirst.Remove(5, 1);
+                var noSecond = noFirst.Remove(noFirst.LastIndexOf(")", StringComparison.InvariantCulture), 1);
                 var values = noSecond.Split(',')
                                      .Select(float.Parse)
                                      .ToArray();
@@ -46,7 +47,7 @@ namespace Pyro.Nc.Configuration
             _cachedValues[index] = valid.SkipWhile(x => x.StartsWith("//"))
                                         .Skip(index)
                                         .First()
-                                        .Mutate(z => z.Substring(3, z.Length - 1))
+                                        .Mutate(z => z.Substring(3).Replace(")", ""))
                                         .Split(',')
                                         .Select(float.Parse)
                                         .ToArray()

@@ -6,7 +6,7 @@ using Pyro.Nc.UI;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
-namespace Pyro.Nc.Configuration
+namespace Pyro.Nc.Configuration.Startup
 {
     public class MonoInitializer : MonoBehaviour
     {

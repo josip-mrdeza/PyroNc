@@ -1,7 +1,8 @@
 using System;
 using System.Linq;
 using System.Reflection;
-using Pyro.Nc.Configuration;
+using Pyro.Nc.Configuration.Managers;
+using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
 using TMPro;

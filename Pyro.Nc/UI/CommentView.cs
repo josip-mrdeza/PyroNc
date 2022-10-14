@@ -9,7 +9,7 @@ namespace Pyro.Nc.UI
         {
             base.Initialize();
             Globals.Comment = this;
-            PyroConsoleView.PushTextStatic("CommentView Initialized.");
+            Push("CommentView Initialized.");
         }
     }
 }

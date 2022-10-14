@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Pyro.Injector;
 using Pyro.IO;
-using Pyro.Nc.Configuration;
+using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.UI;

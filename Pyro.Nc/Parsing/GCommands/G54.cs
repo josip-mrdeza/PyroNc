@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using Pyro.Nc.Configuration;
+using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Pathing;
 
 namespace Pyro.Nc.Parsing.GCommands

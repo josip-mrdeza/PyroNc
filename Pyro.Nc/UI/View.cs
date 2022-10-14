@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Pyro.Nc.Configuration;
+using Pyro.Nc.Configuration.Managers;
+using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Simulation;
 using UnityEngine;
 using UnityEngine.UI;
@@ -41,7 +42,7 @@ namespace Pyro.Nc.UI
             {
                 Hide(); 
             }
-            PyroConsoleView.PushTextStatic($"Initialized View: {gameObject.name}", $"View has {Objects.Count} children.");
+            Push($"Initialized View: {gameObject.name}", $"View has {Objects.Count} children.");
         }
 
         public void ShowAtIndex(int index)

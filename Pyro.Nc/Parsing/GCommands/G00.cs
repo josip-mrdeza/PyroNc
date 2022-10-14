@@ -15,7 +15,7 @@ namespace Pyro.Nc.Parsing.GCommands
 {
     public class G00 : BaseCommand
     {
-        public G00(ITool tool, GCommandParameters parameters) : base(tool, parameters)
+        public G00(ITool tool, GCommandParameters parameters) : base(tool, parameters, false, Group.GCommand)
         {
         }       
         /// <inheritdoc />

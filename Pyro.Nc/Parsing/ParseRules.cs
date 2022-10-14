@@ -57,6 +57,20 @@ namespace Pyro.Nc.Parsing
                 commandRule.FixValidity(commands);
             }
         }
+        
+        public void Try(ICommand command)
+        {
+            var list = new List<ICommand>(1)
+            {
+                command
+            };
+            foreach (var commandRule in CommandRules)
+            {
+                var b = commandRule.CheckValidity(list);
+                ThrowIfInvalid(commandRule, b);
+                commandRule.FixValidity(list);
+            }
+        }
 
         public void ThrowIfInvalid(Rule rule, bool result)
         {

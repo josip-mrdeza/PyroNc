@@ -1,4 +1,4 @@
-namespace Pyro.Nc.Configuration
+namespace Pyro.Nc.Configuration.Managers
 {
     public class KeyBindingsManager
     {

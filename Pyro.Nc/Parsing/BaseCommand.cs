@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Pyro.Math;
 using Pyro.Math.Geometry;
-using Pyro.Nc.Configuration;
+using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Parsing.MCommands;
@@ -14,6 +14,7 @@ using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
 using TrCore;
+using Debug = UnityEngine.Debug;
 
 namespace Pyro.Nc.Parsing
 {
@@ -111,7 +112,15 @@ namespace Pyro.Nc.Parsing
                 msgs.AddRange(Parameters.Values.Select(x => x.ToString()));
                 msgs.Add("Executing in Mill mode...");
                 PyroConsoleView.PushTextStatic(msgs.ToArray());
-                await Execute(draw);
+                try
+                {
+                    await Execute(draw);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"{type}: An error has occured in Execute -> {e.Message}!");
+                    //PyroConsoleView.PushTextStatic($"{type}: An error has occured in Execute -> {e.Message}!");
+                }
                 PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw}) - {Id}",
                                                "Finished execution!");
             }
@@ -133,7 +142,15 @@ namespace Pyro.Nc.Parsing
                                                    "Throwing!!");
                     throw new NotSupportedException("Y axis is not supported in TURN Mode");
                 }
-                await ExecuteTurning(draw);
+                try
+                {
+                    await ExecuteTurning(draw);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"{type}: An error has occured in ExecuteTurning -> {e.Message}!");
+                    //PyroConsoleView.PushTextStatic($"{type}: An error has occured in ExecuteTurning -> {e.Message}!");
+                }
                 PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw}) - {Id}",
                                                "Finished execution!");
             }

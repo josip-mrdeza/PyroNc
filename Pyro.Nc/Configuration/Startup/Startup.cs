@@ -1,36 +1,30 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-using Pyro.Injector;
 using Pyro.IO;
 using Pyro.Math;
-using Pyro.Nc.Configuration.Statistics;
 using Pyro.Nc.Parsing.Rules;
-using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
-using UnityEngine;
 
-namespace Pyro.Nc.Configuration
+namespace Pyro.Nc.Configuration.Startup
 {
     public class Startup : InitializerRoot
     {
         public static List<IManager> Managers;
         public override void Initialize()
         {
-            PyroConsoleView.PushTextStatic("Application Startup initializing...");
+            Push("Application Startup initializing...");
             Stopwatch stopwatch = Stopwatch.StartNew();
             InitializeManagers();
             var rules = Globals.Rules;
             rules.AddRule(new MCommandPriorityRule("SCPR"));
             rules.AddRule(new CommandPriorityRule("CPR"));
+            rules.AddRule(new ToolCommandPriorityRule("TCPR"));
             rules.AddRule(new GroupRepetitionRule("GRR"));
+            rules.AddRule(new YZAxisSwitchRule("YZASS")); //lmao
             stopwatch.Stop();
-            PyroConsoleView.PushTextStatic($"Startup complete in {stopwatch.Elapsed.TotalMilliseconds.Round()} ms!");
+            Push($"Startup complete in {stopwatch.Elapsed.TotalMilliseconds.Round()} ms!");
         }
 
         public void InitializeManagers()
@@ -46,7 +40,7 @@ namespace Pyro.Nc.Configuration
             }
         }
 
-        private static void CreateManagersFromDisk(LocalRoaming roaming)
+        private void CreateManagersFromDisk(LocalRoaming roaming)
         {
             Stopwatch stopwatch = new Stopwatch();
             var fullNames = roaming.ReadFileAs<string[]>("Managers.json");
@@ -56,13 +50,13 @@ namespace Pyro.Nc.Configuration
                 var manager = (IManager) Activator.CreateInstance(Type.GetType(fullName)!);
                 stopwatch.Restart();
                 manager.Init();  
-                PyroConsoleView.PushTextStatic($"Manager '{fullName}' completed in {stopwatch.Elapsed.TotalMilliseconds.Round()} ms!");
+                Push($"Manager '{fullName}' completed in {stopwatch.Elapsed.TotalMilliseconds.Round()} ms!");
                 stopwatch.Stop();
                 Managers.Add(manager);
             }
         }
 
-        private static void CreateManagersFromMemory(LocalRoaming roaming)
+        private void CreateManagersFromMemory(LocalRoaming roaming)
         {
             Stopwatch stopwatch = new Stopwatch();
             Managers = new List<IManager>(10);
@@ -74,7 +68,7 @@ namespace Pyro.Nc.Configuration
                     var manager = (IManager) Activator.CreateInstance(type);
                     stopwatch.Restart();
                     manager.Init();  
-                    PyroConsoleView.PushTextStatic($"Manager '{type.FullName}' completed in {stopwatch.Elapsed.TotalMilliseconds.Round()} ms!");
+                    Push($"Manager '{type.FullName}' completed in {stopwatch.Elapsed.TotalMilliseconds.Round()} ms!");
                     stopwatch.Stop();
                     Managers.Add(manager);
                     managersTypes.Add(type.FullName);

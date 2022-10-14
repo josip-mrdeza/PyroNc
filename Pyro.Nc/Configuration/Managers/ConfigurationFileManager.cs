@@ -4,14 +4,13 @@ using Pyro.IO;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.UI;
 
-namespace Pyro.Nc.Configuration
+namespace Pyro.Nc.Configuration.Managers
 {
     public class ConfigurationFileManager : IManager
     {
         private Dictionary<string, string> Required = new()
         {
             {"baseAddress.txt", BaseAddress},
-            {"ToolConfig.json", "[\n    {\n        \"Radius\": 3,\n        \"Index\": 0,\n        \"ToolColor\":\n        {\n            \"r\": 255,\n            \"g\": 0,\n            \"b\": 0,\n            \"a\": 255\n        }\n    },\n    {\n        \"Radius\": 6,\n        \"Index\": 0,\n        \"ToolColor\":\n        {\n            \"r\": 0,\n            \"g\": 255,\n            \"b\": 0,\n            \"a\": 255\n        }\n    },\n    {\n        \"Radius\": 12,\n        \"Index\": 0,\n        \"ToolColor\":\n        {\n            \"r\": 0,\n            \"g\": 0,\n            \"b\": 255,\n            \"a\": 255\n        }\n    }\n]"}
         };
 
         private Dictionary<string, string> ConfigurationRequired = new()

@@ -12,11 +12,10 @@ namespace Pyro.Nc.Parsing.MCommands
         {
         }
         public override string Description => Locals.M03;
-        public bool IsNegative { get; protected init; }
+        public bool IsNegative { get; protected set; }
         public override Task Execute(bool draw)
         {
-            Tool.Self.angularVelocity = new Vector3(0, 1, 0) * ((IsNegative ? -1 : 1) * Tool.Values.SpindleSpeed);
-
+            Tool.Self.angularVelocity = new Vector3(0, 1, 0) * ((IsNegative ? -1 : 1) * Tool.Values.SpindleSpeed * 0.10472f);
             return Task.CompletedTask;
         }
     }

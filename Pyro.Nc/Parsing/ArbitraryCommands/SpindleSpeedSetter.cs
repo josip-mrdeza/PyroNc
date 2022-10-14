@@ -28,7 +28,7 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
             if (rigidBody.angularVelocity.y != 0)
             {
                 var current = rigidBody.angularVelocity;
-                rigidBody.angularVelocity = new Vector3(0, 1, 0) * ((current.y < 0 ? -1 : 1) * spindleSpeed.Get());
+                rigidBody.angularVelocity = new Vector3(0, 1, 0) * ((current.y < 0 ? -1 : 1) * spindleSpeed.Get() * 0.10472f);
             }
 
             return Task.CompletedTask;

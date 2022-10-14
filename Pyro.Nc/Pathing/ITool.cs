@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Pyro.Math.Geometry;
 using Pyro.Nc.Configuration;
+using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Simulation;

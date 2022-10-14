@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using Pyro.Injector;
 using Pyro.IO;
 using Pyro.Math;
+using Pyro.Nc.Configuration.Managers;
+using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
 using UnityEngine.Device;
@@ -39,7 +41,7 @@ namespace Pyro.Nc.Configuration.Statistics
             });
         }
 
-        private static void GenerateSoftwareInfo()
+        private void GenerateSoftwareInfo()
         {
             var roaming = LocalRoaming.OpenOrCreate("PyroNc\\PyroSoftwareUpdater");
             var fn = "SystemInformation.json";
@@ -60,26 +62,26 @@ namespace Pyro.Nc.Configuration.Statistics
             Info = roaming.ReadFileAs<SystemInformation>(fn);
         }
 
-        private static void ReadAndPushRegisteredFiles()
+        private void ReadAndPushRegisteredFiles()
         {
-            PyroConsoleView.PushTextStatic("Registered:\n" +
+            Push("Registered:\n" +
                                            "    --baseAddress.txt\n" +
                                            "    --machineId.txt");
             BaseAddress = Globals.Roaming.ReadFileAsText("baseAddress.txt");
-            PyroConsoleView.PushTextStatic("Read Registered Data:\n" +
+            Push("Read Registered Data:\n" +
                                            $"    --baseAddress.txt -> {BaseAddress},\n" +
                                            $"    --machineId.txt -> {Info.Name}");
         }
 
-        private static void AddRequiredFiles()
+        private void AddRequiredFiles()
         {
             Globals.Roaming.AddFile("baseAddress.txt");
             Globals.Roaming.AddFile("machineId.txt", Environment.MachineName);
         }
 
-        private static void PushSystemInfo()
+        private void PushSystemInfo()
         {
-            PyroConsoleView.PushTextStatic("Read system information:",
+            Push("Read system information:",
                                            $"Name: {Info.Name}",
                                            $"Manufacturer: {Info.Manufacturer}",
                                            $"Cpu Name:{Info.ProcessorName}",
@@ -89,26 +91,26 @@ namespace Pyro.Nc.Configuration.Statistics
                                            $"Memory (MB): {Info.Memory}");
         }
 
-        public static async Task PushToLog(Task<HttpResponseMessage> message)
+        public async Task PushToLog(Task<HttpResponseMessage> message)
         {
             var msg = await message;
-            PyroConsoleView.PushTextStatic($"HttpResult from {BaseAddress}: {await msg.Content.ReadAsStringAsync()} - {msg.StatusCode.ToString()}!");
+            Push($"HttpResult from {BaseAddress}: {await msg.Content.ReadAsStringAsync()} - {msg.StatusCode.ToString()}!");
         }
 
-        public static async Task SendTimeStatisticAsync()
+        public async Task SendTimeStatisticAsync()
         { 
             await PushToLog(HttpClient.PostAsync(BaseAddress + $"/time/{Info.Name}", 
                                                  new StringContent(_time.Elapsed.TotalMinutes.Round() + "min", Encoding.Default, "text/plain")));
         }
 
-        public static async Task SendMachineInfo()
+        public async Task SendMachineInfo()
         {
             var msg = HttpClient.PostAsync(BaseAddress + $"/info/{Info.Name}", 
                                                  new StringContent(JsonSerializer.Serialize(Info), Encoding.Default, "text/json"));
             await PushToLog(msg);
         }
 
-        public static async Task SendVersionStatisticAsync()
+        public async Task SendVersionStatisticAsync()
         {
             // await HttpClient.PostAsync(BaseAddress + $"/version/{ID}", 
             //                            new StringContent(JsonSerializer.Serialize(), Encoding.Default, "text/json"));
@@ -120,7 +122,7 @@ namespace Pyro.Nc.Configuration.Statistics
                                        new StringContent(Globals.Roaming.ReadFileAsText("pyroLog.txt"), Encoding.Default, "text/plain"));
             await msg;
         }
-        public static void SendStatisticsPeriodic(int ms = 30_000)
+        public void SendStatisticsPeriodic(int ms = 30_000)
         {
             Task.Run(async () =>
             {
@@ -143,7 +145,7 @@ namespace Pyro.Nc.Configuration.Statistics
                     }
                     catch (Exception e)
                     {
-                        PyroConsoleView.PushTextStatic("An error has occured in Collector.SendStatisticsPeriodic:", e.Message);
+                        Push("An error has occured in Collector.SendStatisticsPeriodic:", e.Message);
                     }
                     finally
                     {

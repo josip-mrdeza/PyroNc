@@ -1,6 +1,6 @@
 using System;
 
-namespace Pyro.Nc.Configuration.Exceptions
+namespace Pyro.Nc.Exceptions
 {
     public class MethodStateMissingException : Exception
     {

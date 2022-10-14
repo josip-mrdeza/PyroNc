@@ -1,8 +1,10 @@
 using System;
 using System.Diagnostics;
+using Pyro.Nc.Simulation;
+using Pyro.Nc.UI;
 using UnityEngine;
 
-namespace Pyro.Nc.Configuration
+namespace Pyro.Nc.Configuration.Startup
 {
     public abstract class InitializerRoot : MonoBehaviour
     {
@@ -27,6 +29,14 @@ namespace Pyro.Nc.Configuration
             }
 
             IsInitialized = true;
+        }
+
+        protected void Push(params string[] arr)
+        {
+            if (Globals.Console is not null)
+            {
+                PyroConsoleView.PushTextStatic(arr);
+            }
         }
     }
 }

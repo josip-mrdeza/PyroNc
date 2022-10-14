@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Pyro.IO;
 using PyroLauncher.Api;
 
-namespace Pyro.Nc.Configuration
+namespace Pyro.Nc.Configuration.Managers
 {
     public class LauncherDataManager : IManager
     {

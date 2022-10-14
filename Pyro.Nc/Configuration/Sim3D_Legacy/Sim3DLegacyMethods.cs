@@ -29,7 +29,7 @@ namespace Pyro.Nc.Configuration.Sim3D_Legacy
             var magn = (currentPosition - last).RemoveNan().magnitude;
             var totalForce = (last - currentPosition).normalized.RemoveNan() * force;
             rigidBody.AddForce(totalForce, ForceMode.Force);
-            Debug.Log(totalForce);
+            //Debug.Log(totalForce);
             
             for (;magn > 0.7f || !IsInPosition;) //empirical value
             {

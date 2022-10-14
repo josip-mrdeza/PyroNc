@@ -5,11 +5,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Pyro.Math;
 using Pyro.Nc.Configuration;
+using Pyro.Nc.Configuration.Managers;
+using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.UI;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Pyro.Nc.Simulation
 {
@@ -67,9 +70,11 @@ namespace Pyro.Nc.Simulation
                 _contained = true;
                 var pos = Position;
                 var cutResult = this.CheckPositionForCut(Direction.FromVectors(pos, pos + Vector3.down), Values.Current.GetType() == typeof(G00));
-                PyroConsoleView.PushTextStatic("Traverse finished!",
-                                               $"Total vertices cut: {cutResult.TotalVerticesCut.ToString()} ({((double) cutResult.TotalVerticesCut / Vertices.Count).Round().ToString(CultureInfo.InvariantCulture)}%)",
-                                               $"Average time spent cutting: {cutResult.TotalTime.ToString(CultureInfo.InvariantCulture)}ms");
+                Push("Traverse finished!",
+                                               "Total vertices cut: {0} ({1}%)".Format(cutResult.TotalVerticesCut, 
+                                                   ((double) cutResult.TotalVerticesCut / Vertices.Count).Round()),
+                                               "Average time spent cutting: {0}ms"
+                                                   .Format(cutResult.TotalTime));
             }
             else
             {
@@ -102,11 +107,16 @@ namespace Pyro.Nc.Simulation
             set
             {
                 _toolConfig = value;
-                transform.localScale = Vector3.one * (_toolConfig.Radius * 2);
+                //Resources.UnloadAsset(meshFilter.mesh);
+                var str = "Tools/{0}".Format(_toolConfig.Name);
+                toolfilter.mesh = Resources.Load<Mesh>(str);
+                //transform.localScale = Vector3.one * (_toolConfig.Radius * 2);
             }
-        }
+        }                                                               
         [SerializeField] 
         private ToolConfiguration _toolConfig;
+
+        public MeshFilter toolfilter;
         public float MinX { get; set; }
         public float MinY { get; set; } 
         public float MinZ { get; set; }

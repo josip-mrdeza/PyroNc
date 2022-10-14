@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Pyro.IO;
 using Pyro.Nc.Simulation;
 
-namespace Pyro.Nc.Configuration
+namespace Pyro.Nc.Configuration.Managers
 {
     public class DefaultsManager : IManager
     {
