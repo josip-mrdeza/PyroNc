@@ -58,6 +58,16 @@ namespace Pyro.IO
         {
             return Files.Values.Select(x => JsonSerializer.Deserialize<T>(File.ReadAllText(x.FullName)));
         }
+
+        public IEnumerable<string> ListAll()
+        {
+            return Files.Values.Select(x => x.Name);
+        }
+
+        public IEnumerable<string> ListContents()
+        {
+            return Files.Values.Select(x => File.ReadAllText(x.FullName));
+        }
         
         public byte[] ReadFile(string variableId)
         {

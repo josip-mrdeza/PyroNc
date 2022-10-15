@@ -36,7 +36,7 @@ namespace Pyro.Nc.Parsing.GCommands
             var endPos = new Vector3(float.IsNaN(parameters.X) ? pos.x : parameters.X, 
                                       pos.y, 
                                       float.IsNaN(parameters.Z) ? pos.z : parameters.Z) + trans;
-            var arc = new Arc3D(diff, pos.ToVector3D(), endPos.ToVector3D(), altPos.ToVector3D(), pos.ToVector3D(), pos.y);
+            var arc = new Circle3D(diff, pos.ToVector3D(), endPos.ToVector3D());
             await Tool.Traverse(arc, reverse, draw);
             //Expire();
         }

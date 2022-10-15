@@ -3,10 +3,10 @@ using Pyro.Nc.Parsing;
 
 namespace Pyro.Nc.Exceptions
 {
-    public class RapidFeedCollisionException : Exception
+    public class RapidFeedCollisionException : NotifyException
     {
         public RapidFeedCollisionException(ICommand command) : base("Command '{0}': Collision with object!"
-                                                                        .Format(command.GetType()))
+                                                                        .Format(command.GetType().Name))
         {
             
         }
