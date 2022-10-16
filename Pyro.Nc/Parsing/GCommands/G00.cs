@@ -17,7 +17,9 @@ namespace Pyro.Nc.Parsing.GCommands
     {
         public G00(ITool tool, GCommandParameters parameters) : base(tool, parameters, false, Group.GCommand)
         {
-        }       
+        }
+
+        public override bool IsModal => true;
         /// <inheritdoc />
         public override string Description => Locals.G00;
         /// <inheritdoc />

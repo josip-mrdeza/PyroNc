@@ -15,9 +15,7 @@ namespace Pyro.Nc.Parsing
     public static class CommandHelper
     {
         internal static ValueStorage Storage;
-        internal static readonly List<int> CachedIndices = new List<int>(14);
-        internal static readonly List<string[]> CachedArrOfCommands = new List<string[]>(7);
-        internal static readonly List<ICommand> CachedCommands = new List<ICommand>(7);
+        internal static ICommand PreviousModal;
         public static bool IsTrue<T>(this T obj, Predicate<T> predicate)
         {
             return predicate(obj);
@@ -63,13 +61,19 @@ namespace Pyro.Nc.Parsing
         public static List<string[]> FindVariables(this string[] splitCode)
         {
             List<int> indices = new List<int>();
+            bool activated = false;
             for (int i = 0; i < splitCode.Length; i++)
             {
                 var section = splitCode[i].Trim(); 
                 Globals.Rules.Try(section);
-                if (Storage.FetchArbitraryCommand(section) != null || Storage.FetchGCommand(section) != null || Storage.FetchMCommand(section) != null)
+                if (Storage.FetchGCommand(section) != null 
+                    || Storage.FetchMCommand(section) != null
+                    || Storage.FetchArbitraryCommand(section) != null)
                 {
+                    activated = true;
                     indices.Add(i);
+
+                    continue;
                 }
                 else
                 {
@@ -77,9 +81,16 @@ namespace Pyro.Nc.Parsing
                     {
                         if (section.Contains(Storage.ArbitraryCommands.Keys.ElementAt(j)))
                         {
+                            activated = true;
                             indices.Add(i);
                         }
                     }
+                }   
+                if (Storage.FetchUnresolved(section) != null && !activated)
+                {
+                    //splitCode[i] = "G1 " + section;
+                    indices.Add(i);
+                    activated = true;
                 }
             }
 
@@ -146,10 +157,41 @@ namespace Pyro.Nc.Parsing
                             var nums = reqStr.LookForNumbers();
                             var results = nums.Solve();
                             f = (float) results[1].Value;
-                            Debug.Log($"Solver result: {f.ToString(CultureInfo.InvariantCulture)}");
+                            //Debug.Log($"Solver result: {f.ToString(CultureInfo.InvariantCulture)}");
                         }
 
                         command.Parameters.Values[par[0].ToString()] = f;
+                    }
+                    
+                    if (command is UnresolvedCommand unresolvedCommand)
+                    {
+                        for (int i = 0; i < commandString.Length; i++)
+                        {
+                            var par = commandString[i];
+                            var reqStr = new string(par.Skip(1).ToArray());
+                            var success = float.TryParse(reqStr, out var f);
+                            if (!success)
+                            {
+                                reqStr = reqStr.Replace("(", "").Replace(")", "");
+                                var nums = reqStr.LookForNumbers();
+                                var results = nums.Solve();
+                                f = (float) results[1].Value;
+                                //Debug.Log($"Solver result: {f.ToString(CultureInfo.InvariantCulture)}");
+                            }
+
+                            command.Parameters.Values[par[0].ToString()] = f;
+                        }
+
+                        var lastModal = PreviousModal;
+                        command = lastModal.Copy();
+                        command.Parameters = unresolvedCommand.Parameters;
+                    }
+                    else
+                    {
+                        if (command.IsModal)
+                        {
+                            PreviousModal = command;
+                        }
                     }
 
                     commands.Add(command);

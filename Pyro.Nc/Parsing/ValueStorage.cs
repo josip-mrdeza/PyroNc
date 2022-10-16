@@ -10,6 +10,7 @@ using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
 using TrCore;
 using TrCore.Logging;
@@ -23,10 +24,22 @@ namespace Pyro.Nc.Parsing
         public Dictionary<int, ICommand> GCommands { get; set; }
         public Dictionary<int, ICommand> MCommands { get; set; }
         public Dictionary<string, ICommand> ArbitraryCommands { get; set; }
+        public List<string> Parameters { get; set; }
         public List<ICommand> Past { get; set; }
         private ValueStorage()
         {
             CommandHelper.Storage = this;
+            Parameters = new List<string>()
+            {
+                "X",
+                "Y",
+                "Z",
+                "I",
+                "J",
+                "K",
+                "R",
+                "CR"
+            };
         }
 
         public ICommand FetchGCommand(string code)
@@ -72,6 +85,30 @@ namespace Pyro.Nc.Parsing
             // }
             return ic is null ? null : ic.Copy();
         }
+
+        public UnresolvedCommand FetchUnresolved(string code)
+        {
+            var uc = new UnresolvedCommand(Globals.Tool, new GCommandParameters(0, 0, 0));
+            var p = uc.Parameters;
+
+            var s = code.Split(' ');
+            bool flag = false;
+            foreach (var s1 in s)
+            {
+                var key = s1[0].ToString();
+                if (p.Values.ContainsKey(key) && float.TryParse(s1.Substring(1), out var val))
+                {
+                    p.Values[key] = val;
+                    flag = true;
+                }
+            }
+
+            if (flag)
+            {
+                return uc;
+            }
+            return null;
+        }
         
         public ICommand QueryModalCommand()
         {
@@ -86,7 +123,7 @@ namespace Pyro.Nc.Parsing
             ICommand command = FetchGCommand(upper);
             command ??= FetchMCommand(upper);
             command ??= FetchArbitraryCommand(upper);
-
+            command ??= FetchUnresolved(upper);
             return command;
         }
 

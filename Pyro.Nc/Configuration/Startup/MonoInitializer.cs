@@ -13,9 +13,10 @@ namespace Pyro.Nc.Configuration.Startup
         public PyroConsoleView Logger;
         public List<InitializerRoot> Scripts;
 
-        private void Start()
+        private async void Start()
         {
-            Logger.InitializeComplete();
+            await Logger.InitializeComplete();
+            
             Stopwatch stopwatch = Stopwatch.StartNew();
             Stopwatch individual = Stopwatch.StartNew();
             for (var i = 0; i < Scripts.Count; i++)
@@ -24,7 +25,7 @@ namespace Pyro.Nc.Configuration.Startup
                 try
                 {
                     individual.Restart();
-                    root.InitializeComplete();
+                    await root.InitializeComplete();
                     individual.Stop();
                     PyroConsoleView.PushTextStatic($"Initialized '{root.name}' in {individual.Elapsed.TotalMilliseconds.Round()} ms!");
                 }
@@ -34,6 +35,7 @@ namespace Pyro.Nc.Configuration.Startup
                 }
             }
             stopwatch.Stop();
+            ViewHandler.Active = false;
             PyroConsoleView.PushTextStatic($"Completed 'MonoInitializer' Startup in {stopwatch.Elapsed.TotalMilliseconds.Round()} ms!");
         }
     }

@@ -1,6 +1,7 @@
 using System;
 using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Configuration.Startup;
+using Pyro.Nc.UI;
 using UnityEngine;
 
 namespace Pyro.Nc.Simulation
@@ -74,6 +75,10 @@ namespace Pyro.Nc.Simulation
 
         private void LateUpdate()
         {
+            if (ViewHandler.Active)
+            {
+                return;
+            }
             Vector3 move = Vector3.zero;
 
             //Move and rotate the camera

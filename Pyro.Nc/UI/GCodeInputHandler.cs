@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Pyro.IO;
@@ -8,6 +9,7 @@ using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.UI.UI_Screen;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -17,16 +19,27 @@ namespace Pyro.Nc.UI
 {
     public class GCodeInputHandler : View
     {
-        public TMP_InputField Text;
+        [SerializeField] 
+        private TMP_InputField Text;
         public TextMeshProUGUI LineNumber;
         public TextMeshProUGUI SuggestionDisplay;
         public Button Button;
+        public PopupHandler Handler;
         private PointerEventData _data;
+        private bool HasSaved;
+        private string fileName;
 
         public override void Show()
         {
             base.Show();
+            ViewHandler.Active = true;
             Focus();
+        }
+
+        public override void Hide()
+        {
+            base.Hide();
+            ViewHandler.Active = false;
         }
 
         public void Focus()
@@ -68,10 +81,23 @@ namespace Pyro.Nc.UI
             });
             _data = new PointerEventData(EventSystem.current);
             base.Initialize();
+            Handler = GetComponent<PopupHandler>();
+            Handler.Initialize();
+            Handler.PrefabButtons[0].onClick.AddListener(() =>
+            {
+                if (HasSaved)
+                {
+                    return;
+                }
+                var local = LocalRoaming.OpenOrCreate("PyroNc\\GCode");
+                local.ModifyFile(Handler.Text, Text.text);
+                HasSaved = true;
+            });
         }
 
         public void ApplySuggestions()
         {
+            HasSaved = false;
             var snip = Snip(Text.caretPosition);
             if (string.IsNullOrEmpty(snip))
             {
@@ -92,12 +118,12 @@ namespace Pyro.Nc.UI
                 return commands.Select(x => $"{x.GetType().Name}, {x.Description}");
 
             }
-            catch
+            catch (Exception e)
             {
                  Push($"Error in GetSuggestions: line -> \"{line}\"");
             }
 
-            return new string[1]{"Error in parsing!"};
+            return new string[1]{"Faulty variable / Undeclared command!"};
         }
 
         public string Snip(int caretPos)
@@ -114,6 +140,20 @@ namespace Pyro.Nc.UI
         {
             var lineNum = GetLineNumber();
             LineNumber.text = $"Line: {lineNum.ToString()} | {Text.caretPosition.ToString()}";
+            if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.S))
+            {
+                //TODO prompt text for file name.
+                if (string.IsNullOrEmpty(Handler.Text))
+                {
+                    Handler.Pop("What would you like to name this program?");
+                }
+                else
+                {
+                    var local = LocalRoaming.OpenOrCreate("PyroNc\\GCode");
+                    local.ModifyFile(Handler.Text, Text.text);
+                    HasSaved = true;
+                }
+            }
         }
 
         public int GetLineNumber()
@@ -152,6 +192,12 @@ namespace Pyro.Nc.UI
             }
 
             return null;
+        }
+
+        public void LoadText(string text, string id)
+        {
+            Text.text = text;
+            Handler.Text = id;
         }
     }
 }

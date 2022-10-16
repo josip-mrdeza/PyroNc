@@ -7,7 +7,7 @@ namespace Pyro.Nc.UI
     public static class ViewHandler
     {
         public static List<View> Views = new List<View>();
-
+        public static bool Active = false;
         public static void Add(View view)
         {
             Views.Add(view);

@@ -8,6 +8,8 @@ namespace Pyro.Nc.Parsing
         public List<Rule<string>> TextRules { get; set; }
         public List<Rule<List<ICommand>>> CommandRules { get; set; }
 
+        public BaseCommand PreviousModal { get; set; }
+
         public ParseRules()
         {
             TextRules = new List<Rule<string>>();
@@ -50,6 +52,7 @@ namespace Pyro.Nc.Parsing
 
         public void Try(List<ICommand> commands)
         {
+            PreviousModal = (BaseCommand) commands.FindLast(x => x.IsModal);
             foreach (var commandRule in CommandRules)
             {
                 var b = commandRule.CheckValidity(commands);
@@ -60,6 +63,10 @@ namespace Pyro.Nc.Parsing
         
         public void Try(ICommand command)
         {
+            if (command.IsModal)
+            {
+                PreviousModal = (BaseCommand) command;
+            }
             var list = new List<ICommand>(1)
             {
                 command

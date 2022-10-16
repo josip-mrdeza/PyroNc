@@ -5,7 +5,6 @@ namespace Pyro.Nc.Parsing
         None,
         Other,
         GCommand,
-        MCommand,
-        Modular
+        MCommand
     }
 }

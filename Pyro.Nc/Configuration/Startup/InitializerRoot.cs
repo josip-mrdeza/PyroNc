@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
 using TMPro;
@@ -12,9 +13,15 @@ namespace Pyro.Nc.Configuration.Startup
         public bool IsInitialized;
         public abstract void Initialize();
 
-        internal void InitializeComplete()
+        public virtual Task InitializeAsync()
         {
             Initialize();
+            return Task.CompletedTask;
+        }
+
+        internal async Task InitializeComplete()
+        {
+            await InitializeAsync();
             var childrenCount = transform.childCount;
             if (childrenCount != 0)
             {
@@ -24,7 +31,7 @@ namespace Pyro.Nc.Configuration.Startup
                     var root = child.GetComponent<InitializerRoot>();
                     if (root is not null)
                     {
-                        root.InitializeComplete();
+                        await root.InitializeComplete();
                     }
                 }
             }
