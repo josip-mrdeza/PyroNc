@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Pyro.IO;
+using Pyro.Nc.Parser;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.Pathing;
 
@@ -16,7 +18,10 @@ namespace Pyro.Nc.Simulation
         public void Init(IEnumerable<string> lines)
         {
             Lines = lines;
-            var listOfCommands = Lines.Select(x => x.FindVariables().CollectCommands()).ToArray();
+            var listOfCommands = Lines.Select(x => x.FindBlocks().FixUnknown().CreateBuildingBlocks()
+                                                    .Select(y => y.Full.Select(z => z.Text).ToArray())
+                                                    .ToList()
+                                                    .CollectCommands()).ToArray();
             foreach (var commands in listOfCommands)
             {
                 Queue<ICommand> queue = new Queue<ICommand>();

@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Nc.Configuration.Statistics;
 using Pyro.Nc.Simulation;
@@ -45,24 +46,30 @@ namespace Pyro.Nc.UI
 
         private void PushEventCreation(FileInfo fileInfo)
         {
-            Application.logMessageReceived += async (condition, stackTrace, type) =>
-            {
-                PushTextStatic($"LogType.{type}:\n    --{condition ?? "Empty"}\n    --StackTrace:{stackTrace ?? "Empty"}");
-                if (type is LogType.Error or LogType.Exception)
-                {
-                    await Collector.HttpClient.PostAsync(Collector.BaseAddress + $"/error/{Collector.Info.Name}_ERR",
-                                                   new StringContent(condition));
-                }
-            };
+            Application.logMessageReceived += OnApplicationOnLogMessageReceived;
             PushTextStatic("Added handler for Application.logMessageReceived.");
-            Application.quitting += async () =>
+            Application.quitting += ApplicationOnQuit(fileInfo);
+            PushTextStatic("Added handler for Application.quitting.");
+        }
+
+        private Action ApplicationOnQuit(FileInfo fileInfo)
+        {
+            return async () =>
             {
                 PushTextStatic($"Quitting Application...");
                 PushTextStatic($"Disposing log stream in: {fileInfo.FullName}...");
                 DisposeStream();
                 await Collector.SendLogStatisticAsync();
             };
-            PushTextStatic("Added handler for Application.quitting.");
+        }
+
+        private async void OnApplicationOnLogMessageReceived(string condition, string stackTrace, LogType type)
+        {
+            PushTextStatic($"LogType.{type}:\n    --{condition ?? "Empty"}\n    --StackTrace:{stackTrace ?? "Empty"}");
+            if (type is LogType.Error or LogType.Exception)
+            {
+                await Collector.HttpClient.PostAsync(Collector.BaseAddress + $"/error/{Collector.Info.Name}_ERR", new StringContent(condition));
+            }
         }
 
         private void PushCreation()

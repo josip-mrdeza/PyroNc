@@ -23,7 +23,7 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override async Task Execute(bool draw)
         {
-            if(!float.IsNaN(Parameters.GetValue("X")) || !float.IsNaN(Parameters.GetValue("Y")))
+            if(!float.IsNaN(Parameters.GetValue("X")) || !float.IsNaN(Parameters.GetValue("Z")))
             {
                 throw new DrillParameterMismatchException(this);
             }

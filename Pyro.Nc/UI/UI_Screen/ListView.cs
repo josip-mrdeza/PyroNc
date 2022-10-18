@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using JetBrains.Annotations;
 using Pyro.IO;
 using Pyro.Nc.Configuration.Startup;
@@ -50,7 +51,7 @@ namespace Pyro.Nc.UI.UI_Screen
                     o.Content = objs[i].ToString();
                     var fileInfo = LocalRoaming.OpenOrCreate("PyroNc\\GCode").Files[o.Content];
                     o.TypeName.text = fileInfo.Extension.ToUpper();
-                    o.LengthName.text = fileInfo.Length.ToString();
+                    o.LengthName.text = File.ReadLines(fileInfo.FullName).Count().ToString();
                     o.DateName.text = fileInfo.LastWriteTime.ToString(CultureInfo.InvariantCulture);
                     o.Button.onClick.AddListener(() => Handler(o));
                     o.Enabled.onValueChanged.AddListener(b =>

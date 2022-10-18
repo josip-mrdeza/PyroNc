@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 namespace Pyro.IO
 {
@@ -113,54 +114,61 @@ namespace Pyro.IO
 
             return -1;
         }
+
+        public static IEnumerable<string> SplitNoAlloc(this string text, char separator)
+        {
+            lock (StringBuilderSplitter)
+            {
+                for (int i = 0; i < text.Length; i++)
+                {
+                    char current = text[i];
+                    if (current != separator)
+                    {
+                        StringBuilderSplitter.Append(char.ToUpperInvariant(current));
+                    }
+                    else
+                    {
+                        yield return StringBuilderSplitter.ToString();
+                        StringBuilderSplitter.Clear();
+                    }
+                }
+
+                yield return StringBuilderSplitter.ToString();
+                StringBuilderSplitter.Clear();
+            }
+        }
+
+        public static IEnumerable<string> SplitNoAlloc(this string text, string separator)
+        {
+            lock (StringBuilderStringSplitter)
+            {
+                for (int i = 0; i < text.Length; i++)
+                {
+                    bool toContinue = true;
+                    foreach (var c in separator)
+                    {
+                        if (text[i] != c)
+                        {
+                            StringBuilderStringSplitter.Append(text[i]);
+                            toContinue = false;
+                        }
+                        if (!toContinue)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (!toContinue)
+                    {
+                        yield return StringBuilderStringSplitter.ToString();
+                        StringBuilderStringSplitter.Clear();
+                    }
+                }
+            }
+        }
         
-        public static int ContainsFast(this string s, char key)
-        {
-            if (s.Length <= 1)
-            {
-                return -1;
-            }
-
-            var length = s.Length;
-            for (int i = 0; i < length; i++)
-            {
-                bool match = false;
-                match = s[i] == key;
-
-                if (match)
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
-        public static IEnumerable<string> SplitFast(this string s, string separator)
-        {
-            if (s.Length < separator.Length)
-            {
-                yield break;
-            }
-
-            var length = separator.Length * s.Length;
-            var lastIndex = 0;
-            for (int i = 0; i < length; i++)
-            {
-                bool match = false;
-                foreach (var c in separator)
-                {
-                    match = s[i] == c;
-                }
-
-                if (match)
-                {                                                               
-                    yield return s.Substring(lastIndex, i - lastIndex);
-                    lastIndex = i + 1;
-                }
-            }
-
-            yield return s.Substring(lastIndex + 1, s.Length - lastIndex - 1);
-        }
+        private static readonly StringBuilder StringBuilderSplitter = new StringBuilder();
+        private static readonly StringBuilder StringBuilderStringSplitter = new StringBuilder();
     }
+    
 }
