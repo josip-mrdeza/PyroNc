@@ -16,7 +16,8 @@ namespace Pyro.IO
 
         private static JsonSerializerOptions Options = new JsonSerializerOptions()
         {
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
+            WriteIndented = true
         };
         private byte[] _emptyBytes = new byte[0];
 
@@ -56,7 +57,7 @@ namespace Pyro.IO
 
         public IEnumerable<T> ListAll<T>()
         {
-            return Files.Values.Select(x => JsonSerializer.Deserialize<T>(File.ReadAllText(x.FullName)));
+            return Files.Values.Select(x => JsonSerializer.Deserialize<T>(File.ReadAllText(x.FullName), Options));
         }
 
         public IEnumerable<string> ListAll()
@@ -124,7 +125,7 @@ namespace Pyro.IO
         
         public void ModifyFile<T>(string variableId, T content)
         {
-            ModifyFile(variableId, JsonSerializer.Serialize(content));
+            ModifyFile(variableId, JsonSerializer.Serialize(content, Options));
         }
         
         public FileInfo AddFile(string variableId)
@@ -154,7 +155,7 @@ namespace Pyro.IO
         
         public FileInfo AddFile<T>(string variableId, T content)
         {
-            var fn = AddFile(variableId, JsonSerializer.Serialize(content));
+            var fn = AddFile(variableId, JsonSerializer.Serialize(content, Options));
             return fn;
         }
 
