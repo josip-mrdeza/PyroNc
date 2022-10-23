@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Pyro.IO;
@@ -27,7 +28,7 @@ namespace Pyro.Nc.Simulation
             Setter.Parameters.AddValue("value", index);
             await Setter.ExecuteFinal(true);
 
-            return Globals.ToolManager.Tools[index];
+            return Globals.ToolManager.Tools.First(t => t.Index == index);
         }
     }
 }
