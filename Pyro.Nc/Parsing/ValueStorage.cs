@@ -44,6 +44,10 @@ namespace Pyro.Nc.Parsing
 
         public ICommand FetchGCommand(string code)
         {
+            if (string.IsNullOrEmpty(code))
+            {
+                return null;
+            }
             var flag0 = code[0] is 'G' or 'g';
             var flag1 = int.TryParse(new string(code.Skip(1).ToArray()), out var num);
             if (flag0 && flag1 && GCommands.TryGetValue(num, out var ic))
@@ -56,6 +60,10 @@ namespace Pyro.Nc.Parsing
         
         public ICommand FetchMCommand(string code)
         {
+            if (string.IsNullOrEmpty(code))
+            {
+                return null;
+            }
             var flag0 = code[0] is 'M' or 'm';
             var flag1 = int.TryParse(new string(code.Skip(1).ToArray()), out var num);
             if (flag0 && flag1 && MCommands.TryGetValue(num, out var ic))
@@ -68,6 +76,10 @@ namespace Pyro.Nc.Parsing
         
         public ICommand FetchArbitraryCommand(string code)
         {
+            if (string.IsNullOrEmpty(code))
+            {
+                return null;
+            }
             if (!ArbitraryCommands.TryGetValue(code.ToUpper(), out var ic))
             {
                 ref var kvp = ref CommandHelper._cachedKvp;
@@ -88,6 +100,10 @@ namespace Pyro.Nc.Parsing
 
         public UnresolvedCommand FetchUnresolved(string code)
         {
+            if (string.IsNullOrEmpty(code))
+            {
+                return null;
+            }
             var uc = new UnresolvedCommand(Globals.Tool, new GCommandParameters(0, 0, 0));
             var p = uc.Parameters;
 
