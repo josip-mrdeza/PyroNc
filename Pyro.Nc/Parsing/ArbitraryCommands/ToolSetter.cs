@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Pyro.Nc.Exceptions;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
 
@@ -14,8 +15,11 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
         public override Task Execute(bool draw)
         {
             var value = (int) Parameters.GetValue("value");
+            if (!Globals.ToolManager.Tools.Exists(t => t.Index == value))
+            {
+                throw new ToolMissingException(value);
+            }
             Tool.ToolConfig = Globals.ToolManager.Tools[value - 1];
-
             return Task.CompletedTask;
         }
     }

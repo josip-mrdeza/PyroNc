@@ -115,6 +115,7 @@ namespace Pyro.Nc.Parsing
         }
         public static List<ICommand> CollectCommands(this List<string[]> arrOfCommands)
         {
+            arrOfCommands = arrOfCommands.Select(x => x.Where(y => !string.IsNullOrEmpty(y)).ToArray()).ToList();
             List<ICommand> commands = new List<ICommand>();
             string[] commandString = null;
             string id = null;

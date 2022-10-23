@@ -4,7 +4,7 @@ namespace Pyro.Nc.Parser
 {
     public static class Database
     {
-        public static List<string> ArbitraryCommands = new()
+        public static readonly List<string> ArbitraryCommands = new()
         {
             "TRANS",
             "LIMS",
@@ -16,7 +16,22 @@ namespace Pyro.Nc.Parser
             "N"
         };
 
-        public static List<string> ModularCommands = new List<string>()
+        public static readonly List<string> Cycles = new()
+        {
+            "Cycle81",
+            "Cycle82",
+            "Cycle83E",
+            "Cycle84",
+            "Cycle84E",
+            "Cycle86",
+            "Cycle87",
+            "Cycle86",
+            "Cycle87",
+            "Cycle88",
+            "Cycle89"
+        };
+
+        public static readonly List<string> ModularCommands = new List<string>()
         {
             "G00", "G0",
             "G01", "G1",

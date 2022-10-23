@@ -30,7 +30,9 @@ namespace Pyro.Nc.Parsing.Rules
                 }
                 if (ctr > 1)
                 {
-                    throw new RuleParseException($"A command of type {t.Family} (Last: {t.Description}) has been repeated multiple times in this line. This is forbidden.");
+                    throw new RuleParseListException(
+                        "A command of type {0} (Last: {1}) has been repeated multiple times in this line. This is forbidden."
+                            .Format(t.Family, t.Description), list.Select(x => x.ToString()));
                 }
             }
 

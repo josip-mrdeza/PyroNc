@@ -25,8 +25,11 @@ namespace Pyro.Nc.Parsing.GCommands
         /// <inheritdoc />
         public override async Task Execute(bool draw)
         {
+            if (Tool.Values.FeedRate == 0)
+            {
+                throw new FeedRateNotDefinedException();
+            }
             await Tool.Traverse(ResolvePosition(), Parameters.LineSmoothness, draw);
-            //Expire();
         }
         /// <summary>
         /// Resolves the position in which ever mode is set at the time. (Incremental / Absolute [Default])
@@ -34,7 +37,7 @@ namespace Pyro.Nc.Parsing.GCommands
         /// <returns></returns>
         /// <exception cref="LinearInterpolationParameterMismatchException">This exception is thrown when the <see cref="ICommandParameters"/>
         /// passed to this <see cref="ICommand"/> are zeroed out.</exception>
-        public virtual Vector3 ResolvePosition()
+        public Vector3 ResolvePosition()
         {
             var parameters = (Parameters as GCommandParameters);
             Vector3 point;

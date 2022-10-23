@@ -10,56 +10,40 @@ namespace Pyro.Nc.Parser
     public static class Parser
     {
         private static Block LastModular;
+        private static int Line;
         private static readonly StringBuilder FixUnknownStringBuilder = new();
         public static IEnumerable<Block> FindBlocks(this string line)
         {
             using IEnumerator<string> enumerator = line.SplitNoAlloc(' ').GetEnumerator();
-
             for (int i = 0; enumerator.MoveNext(); i++)
             {
                 Block current;
                 var str = enumerator.Current;
                 char first = str[0];
-                if ((first is 'G' or 'M') || Database.ArbitraryCommands.Contains(str))
+                if ((first is 'G' or 'M') || Database.ArbitraryCommands.Contains(str) || Database.Cycles.Contains(str))
                 {
                     if (str.Length < 1)
                     {
                         continue;
                     }
                     current = new Block(str, true);
-                    switch (current.Text[0])
+                    if (current.Text.StartsWith("Cycle"))
                     {
-                        case ';':
-                        {
-                            current.AdditionalInfo = -69;
-                            break;
-                        }
-                        case 'N':
-                        {
-                            current.AdditionalInfo = -420;
-                            break;
-                        }
-                        case 'T':
-                        {
-                            current.AdditionalInfo = 1;
-                            break;
-                        }
-                        case 'D':
-                        {
-                            current.AdditionalInfo = -1;
-                            break;
-                        }
-                        case 'S':
-                        {
-                            current.AdditionalInfo = -42069;
-                            break;
-                        }
-                        case 'F':
-                        {
-                            current.AdditionalInfo = 42069;
-                            break;
-                        }
+                        current.AdditionalInfo = Information.Cycle;
+                        yield return current;
+                        continue;
                     }
+
+                    current.AdditionalInfo = current.Text[0] switch
+                    {
+                        ';' => Information.Comment,
+                        'N' => Information.Notation,
+                        'T' => Information.ToolSelection,
+                        'D' => Information.DiameterCorrection,
+                        'S' => Information.SpindleSpeed,
+                        'F' => Information.FeedRate,
+                        _   => Information.None
+                    };
                     yield return current;
                 }
                 else
@@ -76,9 +60,10 @@ namespace Pyro.Nc.Parser
 
             Block lastCommand = null;
             
-            for (int i = 0; enumerator.MoveNext(); i++)
+            for (int i = 0; enumerator.MoveNext(); i++, Line++)
             {
                 var current = enumerator.Current;
+                current.Line = Line;
                 if (current.IsCommand && Database.ModularCommands.Contains(current.Text))
                 {
                     LastModular = current;
@@ -92,6 +77,9 @@ namespace Pyro.Nc.Parser
                         if (LastModular == null)
                         {
                             enumerator.Dispose();
+                            Line = 0;
+                            lastCommand = null;
+                            LastModular = null;
                             throw new MissingModularCommandException(current);
                         }
 
@@ -117,7 +105,8 @@ namespace Pyro.Nc.Parser
         
         public static IEnumerable<BuildingBlock> CreateBuildingBlocks(this IEnumerable<Block> basisBlocks)
         {
-            using IEnumerator<Block> enumerator = basisBlocks.GetEnumerator();
+            Line = 0;
+            using IEnumerator<Block> enumerator = basisBlocks.GetEnumerator(); 
             while (enumerator.MoveNext())
             {
                 start:

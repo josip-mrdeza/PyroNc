@@ -119,6 +119,7 @@ namespace Pyro.IO
         {
             lock (StringBuilderSplitter)
             {
+                StringBuilderSplitter.Clear();
                 for (int i = 0; i < text.Length; i++)
                 {
                     char current = text[i];
@@ -138,10 +139,35 @@ namespace Pyro.IO
             }
         }
 
+        public static IEnumerable<string> SplitNoAlloc(this string text, char sep1, char sep2)
+        {
+            lock (StringBuilderSplitter)
+            {
+                StringBuilderSplitter.Clear();
+                for (int i = 0; i < text.Length; i++)
+                {
+                    char current = text[i];
+                    if (current != sep1 && current != sep2)
+                    {
+                        StringBuilderSplitter.Append(char.ToUpperInvariant(current));
+                    }
+                    else
+                    {
+                        yield return StringBuilderSplitter.ToString();
+                        StringBuilderSplitter.Clear();
+                    }
+                }
+
+                yield return StringBuilderSplitter.ToString();
+                StringBuilderSplitter.Clear();
+            }
+        }
+
         public static IEnumerable<string> SplitNoAlloc(this string text, string separator)
         {
             lock (StringBuilderStringSplitter)
             {
+                StringBuilderSplitter.Clear();
                 for (int i = 0; i < text.Length; i++)
                 {
                     bool toContinue = true;

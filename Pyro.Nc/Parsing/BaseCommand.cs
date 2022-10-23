@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Pyro.Math;
@@ -249,5 +250,23 @@ namespace Pyro.Nc.Parsing
 
             return instance;
         }
+
+        public override string ToString()
+        {
+            lock (Builder)
+            {
+                Builder.Clear();
+                Builder.Append(GetType().Name);
+                Builder.Append(' ');
+                foreach (var value in Parameters.Values)
+                {
+                    Builder.Append(value.Key).Append(value.Value);
+                }
+                
+                return Builder.ToString();
+            }
+        }
+
+        private static readonly StringBuilder Builder = new StringBuilder();
     }
 }

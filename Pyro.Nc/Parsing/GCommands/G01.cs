@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Pyro.Nc.Exceptions;
 using Pyro.Nc.Pathing;
 using UnityEngine;
 
@@ -9,7 +10,16 @@ namespace Pyro.Nc.Parsing.GCommands
         public G01(ITool tool, GCommandParameters parameters) : base(tool, parameters)
         {
         }
-        
+
+        public override async Task Execute(bool draw)
+        {
+            if (Tool.Values.SpindleSpeed == 0)
+            {
+                throw new SpindleSpeedNotDefinedException();
+            }
+            await base.Execute(draw);
+        }
+
         public override string Description => Locals.G01;
     }
 }

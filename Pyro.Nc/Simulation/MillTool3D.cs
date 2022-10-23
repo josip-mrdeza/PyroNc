@@ -24,6 +24,11 @@ namespace Pyro.Nc.Simulation
         private Transform _transform;
         public override void Initialize()
         {
+            throw new NotImplementedException("The async version of this method is implemented and used.");
+        }
+
+        public override async Task InitializeAsync()
+        {
             _transform = transform;
             Values = this.GetDefaultsOrCreate();
             Globals.Tool = this;
@@ -38,7 +43,7 @@ namespace Pyro.Nc.Simulation
             Vertices = Triangulator.CurrentMesh.vertices.ToList();
             Triangles = Triangulator.CurrentMesh.triangles.ToList();
             Colors = Vertices.Select(x => new Color(255, 255, 255, 255)).ToList();
-            ToolConfig = Globals.ToolManager.Tools.FirstOrDefault();
+            ToolConfig = await this.ChangeTool(1);
             var bounds = Collider.bounds;
             var tr = Cube.transform;
             var max = tr.TransformVector(bounds.max);
