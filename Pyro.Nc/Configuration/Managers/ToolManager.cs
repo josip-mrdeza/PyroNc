@@ -30,7 +30,7 @@ namespace Pyro.Nc.Configuration.Managers
                 {
                     Tools = new List<ToolConfiguration>()
                     {
-                        new("emptyTool", float.NegativeInfinity, -1, 0, 0, 0, 0),
+                        new("emptyTool", 0, -1, 0, 0, 0, 0),
                         new("end_mill_3mm", 1.5f, 1, Color.red),
                         new("end_mill_6mm", 3f, 2, Color.green),
                         new("end_mill_12mm", 6f, 3, Color.blue),
