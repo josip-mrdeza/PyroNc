@@ -43,7 +43,7 @@ namespace Pyro.Nc.Simulation
             Vertices = Triangulator.CurrentMesh.vertices.ToList();
             Triangles = Triangulator.CurrentMesh.triangles.ToList();
             Colors = Vertices.Select(x => new Color(255, 255, 255, 255)).ToList();
-            ToolConfig = await this.ChangeTool(1);
+            ToolConfig = await this.ChangeTool(-1);
             var bounds = Collider.bounds;
             var tr = Cube.transform;
             var max = tr.TransformVector(bounds.max);

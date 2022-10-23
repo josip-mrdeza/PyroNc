@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using Pyro.Nc.Exceptions;
 using Pyro.Nc.Pathing;
@@ -19,7 +20,8 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
             {
                 throw new ToolMissingException(value);
             }
-            Tool.ToolConfig = Globals.ToolManager.Tools[value - 1];
+
+            Tool.ToolConfig = Globals.ToolManager.Tools.First(t => t.Index == value);
             return Task.CompletedTask;
         }
     }

@@ -25,6 +25,10 @@ namespace Pyro.Nc.Parsing.GCommands
         /// <inheritdoc />
         public override async Task Execute(bool draw)
         {
+            if (Tool.ToolConfig.Index == -1)
+            {
+                throw new ToolNotDefinedException();
+            }
             if (Tool.Values.FeedRate == 0)
             {
                 throw new FeedRateNotDefinedException();
