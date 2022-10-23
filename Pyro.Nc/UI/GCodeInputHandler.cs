@@ -51,34 +51,7 @@ namespace Pyro.Nc.UI
         public override void Initialize()
         {
             Text.onValueChanged.AddListener(_ => ApplySuggestions());
-            Button.onClick.AddListener(async () =>
-            {
-                Focus();
-                //var currentCommand = Globals.Tool.Values.Current;
-                var variables = Text.text.ToUpper(CultureInfo.InvariantCulture)
-                                    .Split('\n')
-                                    .Select(x => x.Trim()
-                                                  .FindVariables());
-                var commands = variables
-                               .Select(x => x.CollectCommands())
-                               .SelectMany(y => y);
-
-                var arr = commands.ToArray();
-                if (arr.FirstOrDefault() is M03 or M04)
-                {
-                    for (int i = arr.Length - 1; i >= 0; i--)
-                    {
-                        await Globals.Tool.UseCommand(arr[i], true);
-                    }
-
-                    return;
-                }
-                
-                foreach (var command in arr)
-                {
-                    await Globals.Tool.UseCommand(command, true);
-                }
-            });
+            Button.onClick.AddListener(Call);
             _data = new PointerEventData(EventSystem.current);
             base.Initialize();
             Handler = GetComponent<PopupHandler>();
@@ -93,6 +66,36 @@ namespace Pyro.Nc.UI
                 local.ModifyFile(Handler.Text, Text.text);
                 HasSaved = true;
             });
+        }
+
+        private async void Call()
+        {
+            Globals.Comment.PushComment();
+            ViewHandler.ShowOne("3DView");
+
+            //var currentCommand = Globals.Tool.Values.Current;
+            var variables = Text.text.ToUpper(CultureInfo.InvariantCulture)
+                                .Split('\n')
+                                .Select(x => x.Trim().ToUpper()
+                                              .FindVariables());
+            var commands = variables.Select(x => x.CollectCommands())
+                                    .SelectMany(y => y);
+
+            var arr = commands.ToArray();
+            if (arr.FirstOrDefault() is M03 or M04)
+            {
+                for (int i = arr.Length - 1; i >= 0; i--)
+                {
+                    await Globals.Tool.UseCommand(arr[i], true);
+                }
+
+                return;
+            }
+
+            foreach (var command in arr)
+            {
+                await Globals.Tool.UseCommand(command, true);
+            }
         }
 
         public void ApplySuggestions()
@@ -113,7 +116,7 @@ namespace Pyro.Nc.UI
             List<ICommand> commands = null;
             try
             {
-                variables = line.Trim().FindVariables();
+                variables = line.Trim().ToUpper().FindVariables();
                 commands = variables.CollectCommands();
                 return commands.Select(x => $"{x.GetType().Name}, {x.Description}");
 

@@ -60,7 +60,6 @@ namespace Pyro.Nc.Parsing.GCommands
                 point = new Vector3(ResolveNan(parameters.X, pos.x),
                                     ResolveNan(parameters.Y, pos.y),
                                     ResolveNan(parameters.Z, pos.z))  + trans;
-                
             }
 
             return point;

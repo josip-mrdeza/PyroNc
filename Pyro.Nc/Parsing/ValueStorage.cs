@@ -109,16 +109,13 @@ namespace Pyro.Nc.Parsing
             }
             return null;
         }
-        
-        public ICommand QueryModalCommand()
-        {
-            ICommand command = Past.LastOrDefault(x => x.IsModal);
-            
-            return command;
-        }
 
         public ICommand TryGetCommand(string code)
         {
+            if (string.IsNullOrEmpty(code))
+            {
+                return null;
+            }
             var upper = code.ToUpper();
             ICommand command = FetchGCommand(upper);
             command ??= FetchMCommand(upper);
