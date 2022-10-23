@@ -8,12 +8,11 @@ namespace Pyro.Nc.Configuration.Managers
 {
     public class ConfigurationFileManager : IManager
     {
-        private Dictionary<string, string> Required = new()
+        private readonly Dictionary<string, string> Required = new()
         {
-            {"baseAddress.txt", BaseAddress},
+            {"baseAddress.txt", BaseAddress}
         };
-
-        private Dictionary<string, string> ConfigurationRequired = new()
+        private readonly Dictionary<string, string> ConfigurationRequired = new()
         {
             {"commandId.txt", CommandId},
             {"referencePoints.txt", ReferencePoints}
@@ -47,17 +46,6 @@ namespace Pyro.Nc.Configuration.Managers
                 {
                     PyroConsoleView.PushTextStatic($"File '{kvp.Key}' does not exist in path '{roaming.Site}', adding from consts...");
                     roaming.AddFile(kvp.Key, kvp.Value);
-                }
-            }
-
-            roaming = LocalRoaming.OpenOrCreate("PyroNc\\JGeneral");
-            foreach (var value in JGeneralRecommended)
-            {
-                if (!roaming.Exists(value))
-                {
-                    PyroConsoleView.PushTextStatic($"File '{value}' does not exist in path '{roaming.Site}', trying to fetch from *Interop...");
-                    DirectoryInfo info = new DirectoryInfo("Interop");
-                    PyroConsoleView.PushTextStatic($"Folder 'Interop'; Exists: {info.Exists}");
                 }
             }
         }

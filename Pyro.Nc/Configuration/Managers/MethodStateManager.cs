@@ -20,6 +20,8 @@ namespace Pyro.Nc.Configuration.Managers
             else
             {
                 MethodStates = new Dictionary<string, MethodState>();
+                MethodStates.Add("TraverseForceBased", new MethodState("TraverseForceBased", -1));
+                MethodStates.Add("Traverse", new MethodState("Traverse", 0));
                 roaming.AddFile(MethodStatesJson, MethodStates);
             }
         }
