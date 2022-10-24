@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Pyro.IO.Events;
 using Pyro.Math;
 using Pyro.Nc.Configuration;
 using Pyro.Nc.Configuration.Managers;
@@ -63,6 +64,7 @@ namespace Pyro.Nc.Simulation
             };
             Self = GetComponent<Rigidbody>();
             Self.maxAngularVelocity = Values.SpindleSpeed.UpperLimit;
+            EventSystem = new PyroEventSystem();
         }
 
         private void FixedUpdate()
@@ -102,6 +104,7 @@ namespace Pyro.Nc.Simulation
         public Triangulator Triangulator { get; set; }
         public Vector3 Position {get => _transform.position; set => _transform.position = value; }
         public ToolValues Values { get; set; }
+        public PyroEventSystem EventSystem { get; set; }
         public List<Vector3> Vertices { get; set; }
         public List<int> Triangles { get; set; }
         public List<Color> Colors { get; set; }

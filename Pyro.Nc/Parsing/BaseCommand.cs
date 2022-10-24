@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Pyro.IO.Events;
 using Pyro.Math;
 using Pyro.Math.Geometry;
 using Pyro.Nc.Configuration.Managers;
@@ -49,6 +50,7 @@ namespace Pyro.Nc.Parsing
         /// The command's unique description.
         /// </summary>
         public virtual string Description { get; }
+        
         /// <summary>
         /// Defines whether the command can be stored as modular, meaning is it reusable.
         /// </summary>
@@ -266,6 +268,10 @@ namespace Pyro.Nc.Parsing
                 return Builder.ToString();
             }
         }
+        /// <summary>
+        /// Up for changes in the future, most likely a conversion from ExecuteFinal to Execute.
+        /// </summary>
+        public async Task OnEventInvoked() => await ExecuteFinal(false);
 
         private static readonly StringBuilder Builder = new StringBuilder();
     }

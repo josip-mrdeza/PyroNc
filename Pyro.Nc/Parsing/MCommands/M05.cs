@@ -10,6 +10,7 @@ namespace Pyro.Nc.Parsing.MCommands
     {
         public M05(ITool tool, ICommandParameters parameters) : base(tool, parameters)
         {
+            Tool.EventSystem.AddAsyncSubscriber("ProgramEnd", this);
         }
         public override string Description => Locals.M05;
 

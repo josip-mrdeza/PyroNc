@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Nc.Pathing;
@@ -14,17 +15,17 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override async Task Execute(bool draw)
         {
-            await Tool.Values.Storage.FetchMCommand("M00").Mutate(m =>
+            var flag0 = Parameters.Values.TryGetValue("S", out var ms);
+            ms *= 1000f;
+            if (!flag0)
             {
-                var flag0 = Parameters.Values.TryGetValue("S", out var ms);
-                ms *= 1000f;
-                if (!flag0)
-                {
-                    Parameters.Values.TryGetValue("P", out ms);
-                }
-                m.Parameters.AddValue("P", ms);
-                return m;
-            }).Execute(draw);
+                Parameters.Values.TryGetValue("P", out ms);
+            }
+
+            Tool.Values.IsAllowed = false;
+            var timeSpan = TimeSpan.FromMilliseconds(ms);
+            await Task.Delay(timeSpan);
+            Tool.Values.IsAllowed = true;
         }
     }
 }

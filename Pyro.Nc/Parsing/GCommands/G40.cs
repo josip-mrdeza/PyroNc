@@ -6,6 +6,7 @@ namespace Pyro.Nc.Parsing.GCommands
     {
         public G40(ITool tool, ICommandParameters parameters) : base(tool, parameters)
         {
+            Tool.EventSystem.AddAsyncSubscriber("ProgramEnd", this);
         }
     }
 }

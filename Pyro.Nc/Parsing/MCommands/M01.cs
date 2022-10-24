@@ -13,7 +13,7 @@ namespace Pyro.Nc.Parsing.MCommands
 
         public override async Task Execute(bool draw)
         {
-            await base.Execute(draw);
+            await Tool.EventSystem.FireAsync("ProgramPauseConditional");
         }
     }
 }

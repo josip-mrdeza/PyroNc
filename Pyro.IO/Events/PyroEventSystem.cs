@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,7 +11,8 @@ namespace Pyro.IO.Events
         public Dictionary<string, List<IPAsyncEventSubscriber>> AsyncSubscribers = new Dictionary<string, List<IPAsyncEventSubscriber>>();
 
         public void AddSubscriber(string eventName, IPEventSubscriber subscriber)
-        {     
+        {  
+            Lazy<string> subType = new Lazy<string>(() => subscriber.GetType().Name);
             if (subscriber == null)
             {
                 return;
@@ -18,6 +20,10 @@ namespace Pyro.IO.Events
             if (Subscribers.ContainsKey(eventName))
             {
                 Subscribers[eventName].Add(subscriber);
+            }
+            else if (Subscribers.Values.FirstOrDefault(t => t.Exists(p => p.GetType().Name == subType.Value)) != null)
+            {
+                return;
             }
             else
             {
@@ -27,6 +33,7 @@ namespace Pyro.IO.Events
         
         public void AddAsyncSubscriber(string eventName, IPAsyncEventSubscriber subscriber)
         {
+            Lazy<string> subType = new Lazy<string>(() => subscriber.GetType().Name);
             if (subscriber == null)
             {
                 return;
@@ -34,6 +41,10 @@ namespace Pyro.IO.Events
             if (AsyncSubscribers.ContainsKey(eventName))
             {
                 AsyncSubscribers[eventName].Add(subscriber);
+            }
+            else if (AsyncSubscribers.Values.FirstOrDefault(t => t.Exists(p => p.GetType().Name == subType.Value)) != null)
+            {
+                return;
             }
             else
             {
@@ -48,7 +59,7 @@ namespace Pyro.IO.Events
             {
                 foreach (var subscriber in Subscribers[eventName])
                 {
-                    subscriber.Execute();                                     
+                    subscriber.OnEventInvoked();                                     
                 }
             }
         }
@@ -60,7 +71,7 @@ namespace Pyro.IO.Events
             {
                 foreach (var subscriber in Subscribers[eventName].Where(x => x is IPEventSubscriber<T>).Cast<IPEventSubscriber<T>>().ToArray())
                 {
-                    subscriber.Execute(obj);
+                    subscriber.OnEventInvoked(obj);
                 }
             }
         }
@@ -72,7 +83,7 @@ namespace Pyro.IO.Events
             {
                 foreach (var subscriber in Subscribers[eventName].Where(x => x is IPEventSubscriber<T, T2>).Cast<IPEventSubscriber<T, T2>>().ToArray())
                 {
-                    subscriber.Execute(obj, obj2);
+                    subscriber.OnEventInvoked(obj, obj2);
                 }
             }
         }
@@ -84,7 +95,7 @@ namespace Pyro.IO.Events
             {
                 foreach (var subscriber in Subscribers[eventName].Where(x => x is IPEventSubscriber<T, T2, T3>).Cast<IPEventSubscriber<T, T2, T3>>().ToArray())
                 {
-                    subscriber.Execute(obj, obj2, obj3);
+                    subscriber.OnEventInvoked(obj, obj2, obj3);
                 }
             }
         }
@@ -96,7 +107,7 @@ namespace Pyro.IO.Events
             {
                 foreach (var subscriber in AsyncSubscribers[eventName])
                 {
-                    await subscriber.Execute();
+                    await subscriber.OnEventInvoked();
                 }
             }
         }
@@ -108,7 +119,7 @@ namespace Pyro.IO.Events
             {
                 foreach (var subscriber in AsyncSubscribers[eventName].Where(x => x is IPAsyncEventSubscriber<T>).Cast<IPAsyncEventSubscriber<T>>().ToArray())
                 {
-                    await subscriber.Execute(obj);
+                    await subscriber.OnEventInvoked(obj);
                 }
             }
         }
@@ -120,7 +131,7 @@ namespace Pyro.IO.Events
             {
                 foreach (var subscriber in AsyncSubscribers[eventName].Where(x => x is IPAsyncEventSubscriber<T, T2>).Cast<IPAsyncEventSubscriber<T, T2>>().ToArray())
                 {
-                    await subscriber.Execute(obj, obj2);
+                    await subscriber.OnEventInvoked(obj, obj2);
                 }
             }
         }
@@ -133,7 +144,7 @@ namespace Pyro.IO.Events
                 var arr = AsyncSubscribers[eventName].Where(x => x is IPAsyncEventSubscriber<T, T2, T3>);
                 foreach (var subscriber in arr.Cast<IPAsyncEventSubscriber<T, T2, T3>>().ToArray())
                 {
-                    await subscriber.Execute(obj, obj2, obj3);
+                    await subscriber.OnEventInvoked(obj, obj2, obj3);
                 }
             }
         }

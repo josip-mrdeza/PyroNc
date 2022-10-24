@@ -1,13 +1,14 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Pyro.IO.Events;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
 using UnityEngine;
 
 namespace Pyro.Nc.Parsing
 {
-    public interface ICommand : IShallowCommand
+    public interface ICommand : IPAsyncEventSubscriber, IShallowCommand
     {
         public bool IsModal { get; }
         public bool IsArc { get; }

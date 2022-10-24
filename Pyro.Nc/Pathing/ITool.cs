@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Pyro.IO.Events;
 using Pyro.Math.Geometry;
 using Pyro.Nc.Configuration;
 using Pyro.Nc.Configuration.Managers;
@@ -27,6 +28,7 @@ namespace Pyro.Nc.Pathing
         public Triangulator Triangulator { get; set; }
         public Vector3 Position { get; set; }
         public ToolValues Values { get; set; }
+        public PyroEventSystem EventSystem { get; set; }
         /// <summary>
         /// Stores the mesh's vertices.
         /// </summary>
