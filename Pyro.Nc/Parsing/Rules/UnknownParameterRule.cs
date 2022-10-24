@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Pyro.Nc.Parsing.Rules
 {
     public class UnknownParameterRule : Rule<string>
@@ -8,6 +10,7 @@ namespace Pyro.Nc.Parsing.Rules
 
         public override void FixValidity(string value)
         {
+
         }
     }
 }

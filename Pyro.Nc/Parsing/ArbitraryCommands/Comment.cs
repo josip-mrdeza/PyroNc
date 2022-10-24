@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using UnityEngine;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
@@ -16,7 +17,7 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
 
         public override Task Execute(bool draw)
         {
-            Globals.Console.PushText(Description);
+            Globals.Console.PushComment(Description, Color.gray);
 
             return Task.CompletedTask;
         }

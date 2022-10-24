@@ -47,7 +47,7 @@ namespace Pyro.Nc.Configuration.Startup
             }
         }
 
-        internal void PushComment(params string[] arr)
+        internal void PushComment(string arr, Color color)
         {
             if (Globals.Console is not null)
             {
@@ -56,7 +56,10 @@ namespace Pyro.Nc.Configuration.Startup
 
             if (Globals.Comment is not null)
             {
-                Globals.Comment.Objects[1].GetComponent<TextMeshProUGUI>().text = string.Join(", ", arr);
+                PyroConsoleView.PushTextStatic(arr);
+                var textMeshProUGUI = Globals.Comment.Objects[1].GetComponent<TextMeshProUGUI>();
+                textMeshProUGUI.text = arr;
+                textMeshProUGUI.color = color;
             }
         }
     }

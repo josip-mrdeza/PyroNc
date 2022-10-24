@@ -23,6 +23,7 @@ namespace Pyro.Nc.Configuration.Startup
             rules.AddRule(new ToolCommandPriorityRule("TCPR"));
             rules.AddRule(new GroupRepetitionRule("GRR"));
             rules.AddRule(new YZAxisSwitchRule("YZASS")); //lmao
+            rules.AddRule(new UnknownParameterRule("UPR"));
             stopwatch.Stop();
             Push($"Startup complete in {stopwatch.Elapsed.TotalMilliseconds.Round()} ms!");
         }

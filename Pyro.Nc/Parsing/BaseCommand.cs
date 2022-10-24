@@ -57,7 +57,7 @@ namespace Pyro.Nc.Parsing
         /// Defines whether the command is of arc movement type.
         /// </summary>
         public virtual bool IsArc { get; }
-
+        public string AdditionalInfo { get; set; }
         public Guid Id { get; }
         /// <summary>
         /// Defines all parameters passed to the command from the parser (GCodeInputHandler->CommandHelper).

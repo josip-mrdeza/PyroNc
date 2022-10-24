@@ -11,6 +11,7 @@ namespace Pyro.Nc.Parsing
     {
         public bool IsModal { get; }
         public bool IsArc { get; }
+        public string AdditionalInfo { get; set; }
         public Guid Id { get; }
         public ICommandParameters Parameters { get; set; }
         public void UpdateCurrent();

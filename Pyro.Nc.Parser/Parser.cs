@@ -20,7 +20,7 @@ namespace Pyro.Nc.Parser
                 Block current;
                 var str = enumerator.Current;
                 char first = str[0];
-                if ((first is 'G' or 'M') || Database.ArbitraryCommands.Contains(str) || Database.Cycles.Contains(str))
+                if ((first is 'G' or 'M') || Database.ArbitraryCommands.Exists(t => str.StartsWith(t)) || Database.Cycles.Contains(str))
                 {
                     if (str.Length < 1)
                     {
@@ -70,7 +70,12 @@ namespace Pyro.Nc.Parser
                     lastCommand = current;
                     yield return current;
                 }
-                else if (!current.IsCommand)
+                else if (current.IsCommand)
+                {
+                    lastCommand = current;
+                    yield return current;
+                }
+                else// (!current.IsCommand)
                 {
                     if (lastCommand == null)
                     {
@@ -89,8 +94,8 @@ namespace Pyro.Nc.Parser
                         continue;
                     }
 
-                    lastCommand = current;
-                    yield return current;
+                    // lastCommand = current;
+                    // yield return current;
                 }
             }
         }
@@ -120,6 +125,25 @@ namespace Pyro.Nc.Parser
                     goto start;
                 } 
             }
+        }
+
+        public static List<List<string[]>> FindBlocksAndCreateAll(this string text)
+        {
+            var lines = text.SplitNoAlloc('\n')
+                            .Select(x => x.FindBlocks().FixUnknown().CreateBuildingBlocks().ToArray()).ToArray();
+            List<List<string[]>> start = new List<List<string[]>>(lines.Length);
+            List<string[]> list = new List<string[]>();
+            foreach (var block in lines)
+            {
+                foreach (var buildingBlock in block)
+                {
+                    list.Add(buildingBlock.Full.Select(x => x.Text).ToArray());
+                }
+                start.Add(list);
+                list.Clear();
+            }
+
+            return start;
         }
     }
 }

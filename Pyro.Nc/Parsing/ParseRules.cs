@@ -63,10 +63,6 @@ namespace Pyro.Nc.Parsing
         
         public void Try(ICommand command)
         {
-            if (command.IsModal)
-            {
-                PreviousModal = (BaseCommand) command;
-            }
             var list = new List<ICommand>(1)
             {
                 command
@@ -78,7 +74,6 @@ namespace Pyro.Nc.Parsing
                 commandRule.FixValidity(list);
             }
         }
-
         public void ThrowIfInvalid(Rule rule, bool result)
         {
             if (!result)

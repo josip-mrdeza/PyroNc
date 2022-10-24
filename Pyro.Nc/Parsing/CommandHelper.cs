@@ -185,6 +185,7 @@ namespace Pyro.Nc.Parsing
 
                         var lastModal = PreviousModal;
                         command = lastModal.Copy();
+                        command.AdditionalInfo = $"(Scoped modal)";
                         command.Parameters = unresolvedCommand.Parameters;
                     }
                     else
@@ -311,7 +312,7 @@ namespace Pyro.Nc.Parsing
                 comment!.Text = string.Join(" ", arrOfCommands.Mutate(c =>
                 {
                     return c.Skip(index).Select(ci => string.Join(" ", ci)).ToArray();
-                }));
+                })).Remove(0, 1);
                 commands.Add(comment);
                 {
                     list = commands;
