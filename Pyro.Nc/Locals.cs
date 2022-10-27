@@ -30,8 +30,6 @@ namespace Pyro.Nc
         public const string G91 = "Incremental programming";
         public const string G96 = "Activate spindle speed limit";
         public const string G97 = "Disable spindle speed limit";
-        public const string G331 = "Drill";
-        public const string G332 = "Retract (Drill)";
         public const string M00 = "Unconditional Stop (Pause)";
         public const string M01 = "Optional Stop (Pause)";
         public const string M03 = "Spindle On (Clockwise)";
