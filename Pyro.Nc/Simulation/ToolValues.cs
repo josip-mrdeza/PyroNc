@@ -26,7 +26,7 @@ namespace Pyro.Nc.Simulation
             IsIncremental = false;
             IsImperial = false;
             Current = null;
-            ExactStopCheck = false;
+            ExactStopCheck = true;
             IsMilling = true;
         }
 
