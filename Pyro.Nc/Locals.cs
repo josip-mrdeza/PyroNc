@@ -2,7 +2,7 @@ namespace Pyro.Nc
 {
     public static class Locals
     {
-        public const string Trans = "Work Offset";
+        public const string Trans = "Programmable Work Offset";
         public const string Lims = "Spindle Speed Limiter";
         public const string Comment = "Comment";
         public const string ToolSetter = "Sets the tool";
@@ -16,7 +16,7 @@ namespace Pyro.Nc
         public const string G04 = "Dwell (Pause)";
         public const string G05 = "High-precision contour control (HPCC)";
         public const string G09 = "Exact stop check (Non-Modal)";
-        public const string G54 = "";
+        public const string G54 = "Work Offset 0";
         public const string G60 = "Save Position";
         public const string G61 = "Exact stop check (Modal)";
         public const string G61_1="Return to saved position";

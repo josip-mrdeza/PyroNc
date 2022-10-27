@@ -57,6 +57,7 @@ namespace Pyro.Nc.Simulation
         public ICommand Current { get; set; }
         public bool ExactStopCheck { get; set; }
         [JsonIgnore] public Vector3 TransPosition { get; set; }
+        [JsonIgnore] public Vector3[] WorkOffsets { get; set; }
         public Limiter SpindleSpeed { get; set; }
         public Limiter FeedRate { get; set; }
         public float Radius { get; set; }

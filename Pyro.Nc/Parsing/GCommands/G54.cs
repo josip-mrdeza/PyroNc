@@ -14,6 +14,8 @@ namespace Pyro.Nc.Parsing.GCommands
         public override async Task Execute(bool draw)
         {
             //??
+            Tool.Values.WorkOffsets[0] = new Vector3(Parameters.GetValue("X"), Parameters.GetValue("Y"), Parameters.GetValue("Z"));
+            await Tool.EventSystem.FireAsync("WorkOffsetChange_0");
         }
     }
 }

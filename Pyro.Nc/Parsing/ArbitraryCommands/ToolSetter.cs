@@ -13,7 +13,7 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
         }
 
         public override string Description => Locals.ToolSetter;
-        public override Task Execute(bool draw)
+        public override async Task Execute(bool draw)
         {
             var value = (int) Parameters.GetValue("value");
             if (!Globals.ToolManager.Tools.Exists(t => t.Index == value))
@@ -22,7 +22,7 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
             }
 
             Tool.ToolConfig = Globals.ToolManager.Tools.First(t => t.Index == value);
-            return Task.CompletedTask;
+            await Tool.EventSystem.FireAsync("ToolChange");
         }
     }
 }

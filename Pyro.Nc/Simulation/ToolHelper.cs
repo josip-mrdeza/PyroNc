@@ -27,7 +27,6 @@ namespace Pyro.Nc.Simulation
             Setter ??= new ToolSetter(tool, new ArbitraryCommandParameters());
             Setter.Parameters.AddValue("value", index);
             await Setter.ExecuteFinal(true);
-
             return Globals.ToolManager.Tools.First(t => t.Index == index);
         }
     }
