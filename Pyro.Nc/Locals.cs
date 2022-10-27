@@ -22,7 +22,7 @@ namespace Pyro.Nc
         public const string G61_1="Return to saved position";
         public const string G64 = "Default cutting mode (cancel exact stop check mode)";
         public const string G70 = "Imperial units ( Inches - {2.54 x mm} )";
-        public const string G71 = "Metric units ( MM )";
+        public const string G71 = "Metric units ( mm )";
         public const string G80 = "Cancel canned cycle - G73, G81, G83 - Return to initial Z (Vector3.Z)";
         public const string G81 = "Drill";
         public const string G82 = "Drill with dwell at bottom";
