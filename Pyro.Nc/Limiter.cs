@@ -1,11 +1,20 @@
+using System;
 using System.Globalization;
+using UnityEngine;
 
 namespace Pyro.Nc
 {
+    [Serializable]
     public class Limiter
     {
-        private float Value;
-        public float UpperLimit { get; set; }
+        [SerializeField] private float Value;
+        [SerializeField] private float _upperLimit;
+
+        public float UpperLimit
+        {
+            get => _upperLimit;
+            set => _upperLimit = value;
+        }
 
         public Limiter(float value, float upperLimit)
         {

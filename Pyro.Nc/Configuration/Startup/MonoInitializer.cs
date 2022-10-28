@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Pyro.Math;
+using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -12,11 +13,10 @@ namespace Pyro.Nc.Configuration.Startup
     {
         public PyroConsoleView Logger;
         public List<InitializerRoot> Scripts;
-
         private async void Start()
         {
             await Logger.InitializeComplete();
-            
+            Globals.Initializer = this;
             Stopwatch stopwatch = Stopwatch.StartNew();
             Stopwatch individual = Stopwatch.StartNew();
             for (var i = 0; i < Scripts.Count; i++)

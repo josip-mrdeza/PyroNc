@@ -32,6 +32,7 @@ namespace Pyro.Nc.Simulation
         {
             _transform = transform;
             Values = this.GetDefaultsOrCreate();
+            EventSystem = new PyroEventSystem();
             Globals.Tool = this;
             Cube = _Cube;
             var meshFilter = Cube.GetComponent<MeshFilter>();
@@ -45,7 +46,6 @@ namespace Pyro.Nc.Simulation
             Triangles = Triangulator.CurrentMesh.triangles.ToList();
             Colors = Vertices.Select(x => new Color(255, 255, 255, 255)).ToList();
             ToolConfig = await this.ChangeTool(-1);
-            WorkOffsets = new Vector3[4];
             var bounds = Collider.bounds;
             var tr = Cube.transform;
             var max = tr.TransformVector(bounds.max);
@@ -64,8 +64,7 @@ namespace Pyro.Nc.Simulation
                 return Task.CompletedTask;
             };
             Self = GetComponent<Rigidbody>();
-            Self.maxAngularVelocity = Values.SpindleSpeed.UpperLimit;
-            EventSystem = new PyroEventSystem();
+            Self.maxAngularVelocity = Values.SpindleSpeed.UpperLimit; 
         }
 
         private void FixedUpdate()

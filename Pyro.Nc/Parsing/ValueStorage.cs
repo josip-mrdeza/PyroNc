@@ -18,6 +18,7 @@ using TrCore.Reflection;
 
 namespace Pyro.Nc.Parsing
 {
+    [Serializable]
     public class ValueStorage                         
     {
         public DirectoryInfo StorageDirectory { get; set; }

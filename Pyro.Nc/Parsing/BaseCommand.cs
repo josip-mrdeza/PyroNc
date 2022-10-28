@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ namespace Pyro.Nc.Parsing
     /// <summary>
     /// The base class for all ICommands
     /// </summary>
+    [Serializable]   
     public class BaseCommand : ICommand
     {
         /// <summary>
@@ -273,6 +275,19 @@ namespace Pyro.Nc.Parsing
         /// </summary>
         public async Task OnEventInvoked() => await ExecuteFinal(false);
 
-        private static readonly StringBuilder Builder = new StringBuilder();
+        public static BaseCommand Create(Type typeOfCommand, ICommandParameters optionalParameters = null)
+        {
+            var command = Activator.CreateInstance(typeOfCommand, optionalParameters);
+
+            return command as BaseCommand;
+        }
+
+        public static T Create<T>(ICommandParameters optionalParameters = null)
+        {
+            var command = Activator.CreateInstance(typeof(T), optionalParameters);
+
+            return (T) command;
+        }
+        private static readonly StringBuilder Builder = new StringBuilder(); 
     }
 }

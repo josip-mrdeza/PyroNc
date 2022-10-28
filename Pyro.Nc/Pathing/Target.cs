@@ -1,7 +1,9 @@
+using System;
 using UnityEngine;
 
 namespace Pyro.Nc.Pathing
 {
+    [Serializable]
     public class Target
     {
         public bool IsValid;

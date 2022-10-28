@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,6 +25,10 @@ namespace Pyro.Nc.Simulation
 
         public static async Task<ToolConfiguration> ChangeTool(this ITool tool, int index)
         {
+            if (tool is null)
+            {
+                throw new NullReferenceException("ChangeTool: Parameter 'tool' is null!");
+            }
             Setter ??= new ToolSetter(tool, new ArbitraryCommandParameters());
             Setter.Parameters.AddValue("value", index);
             await Setter.ExecuteFinal(true);
