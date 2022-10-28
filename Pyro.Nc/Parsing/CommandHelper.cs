@@ -15,7 +15,7 @@ namespace Pyro.Nc.Parsing
     public static class CommandHelper
     {
         internal static ValueStorage Storage;
-        internal static ICommand PreviousModal;
+        internal static BaseCommand PreviousModal;
         public static bool IsTrue<T>(this T obj, Predicate<T> predicate)
         {
             return predicate(obj);
@@ -200,7 +200,7 @@ namespace Pyro.Nc.Parsing
                     {
                         if (command.IsModal)
                         {
-                            PreviousModal = command;
+                            PreviousModal = (BaseCommand) command;
                         }
                     }
 

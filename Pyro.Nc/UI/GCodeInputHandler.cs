@@ -31,6 +31,8 @@ namespace Pyro.Nc.UI
         private PointerEventData _data;
         private bool HasSaved;
         private string fileName;
+        private Vector2 LeftTop;
+        private int len;
 
         public override void Show()
         {
@@ -77,6 +79,7 @@ namespace Pyro.Nc.UI
             ViewHandler.ShowOne("3DView");
 
             //var currentCommand = Globals.Tool.Values.Current;
+            CommandHelper.PreviousModal = null;
             var variables = Text.text.ToUpper(CultureInfo.InvariantCulture)
                                 .Split('\n')
                                 .Select(x => x.Trim().ToUpper()
@@ -140,9 +143,6 @@ namespace Pyro.Nc.UI
             rtr2.sizeDelta = rtr1.sizeDelta;
             LeftTop = new Vector2(-size.x / 2, size.y / 2);
         }
-
-        private Vector2 LeftTop;
-        private int len;
         public IEnumerable<string> GetSuggestions(string text)
         {
             List<string[]> variables = null;
@@ -150,6 +150,7 @@ namespace Pyro.Nc.UI
             try
             {
                 var lines = text.SplitNoAlloc('\n').Take(GetLineNumber() + 1).ToArray();
+                CommandHelper.PreviousModal = null;
                 foreach (var line in lines)
                 {
                     variables = line.Trim().FindVariables();

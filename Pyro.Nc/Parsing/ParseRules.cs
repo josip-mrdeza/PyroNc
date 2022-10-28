@@ -8,7 +8,11 @@ namespace Pyro.Nc.Parsing
         public List<Rule<string>> TextRules { get; set; }
         public List<Rule<List<ICommand>>> CommandRules { get; set; }
 
-        public BaseCommand PreviousModal { get; set; }
+        public BaseCommand PreviousModal
+        {
+            get => CommandHelper.PreviousModal;
+            set => CommandHelper.PreviousModal = value;
+        }
 
         public ParseRules()
         {
