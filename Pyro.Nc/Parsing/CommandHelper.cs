@@ -151,6 +151,10 @@ namespace Pyro.Nc.Parsing
                     {
                         var par = commandString[i];
                         var reqStr = new string(par.Skip(1).ToArray());
+                        if (string.IsNullOrEmpty(reqStr))
+                        {
+                            continue;
+                        }
                         var success = float.TryParse(reqStr, out var f);
                         if (!success)
                         {
@@ -170,6 +174,10 @@ namespace Pyro.Nc.Parsing
                         {
                             var par = commandString[i];
                             var reqStr = new string(par.Skip(1).ToArray());
+                            if (string.IsNullOrEmpty(reqStr))
+                            {
+                                continue;
+                            }
                             var success = float.TryParse(reqStr, out var f);
                             if (!success)
                             {

@@ -155,7 +155,8 @@ namespace Pyro.Nc.UI
                     variables = line.Trim().FindVariables();
                     commands = variables.CollectCommands();
                 }
-                return commands.Select(x => $"{x.GetType().Name}: \"{x.Description}\" {x.AdditionalInfo}");
+                return commands.Select(x => $"{x.GetType().Name}: \"{x.Description}\", " +
+                                           $"({x.Parameters.Values.Values.Count(v => !float.IsNaN(v)).ToString()}) {x.AdditionalInfo}");
             }
             catch (Exception e)
             {
