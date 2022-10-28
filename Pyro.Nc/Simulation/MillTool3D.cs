@@ -31,8 +31,8 @@ namespace Pyro.Nc.Simulation
         public override async Task InitializeAsync()
         {
             _transform = transform;
-            Values = this.GetDefaultsOrCreate();
             EventSystem = new PyroEventSystem();
+            Values = this.GetDefaultsOrCreate();
             Globals.Tool = this;
             Cube = _Cube;
             var meshFilter = Cube.GetComponent<MeshFilter>();

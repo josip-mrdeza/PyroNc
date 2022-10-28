@@ -190,7 +190,7 @@ namespace Pyro.Nc.Parsing
             {
                 PyroConsoleView.PushTextStatic("An exception has occured in ValueStorage::CreateGCommand", e.Message,
                                                $"typeFullName: {typeFullName}",
-                                               $"Type: {type}");
+                                               $"Type: IsNull[{(type == null).ToString()}]");
                 return new UnresolvedCommand(tool, new ArbitraryCommandParameters());
             }
 
