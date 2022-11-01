@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using Pyro.IO;
 using Pyro.Math;
+using Pyro.Nc.Exceptions;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
@@ -119,6 +120,7 @@ namespace Pyro.Nc.Parsing
             List<ICommand> commands = new List<ICommand>();
             string[] commandString = null;
             string id = null;
+            Exception exception = null;
             for (var index = 0; index < arrOfCommands.Count; index++)
             {
                 try
@@ -130,6 +132,7 @@ namespace Pyro.Nc.Parsing
                         return list;
                     }
 
+                    id = id.ToUpperInvariant();
                     if (ScrapNotation(id, commands) || ScrapToolChange(id, commands) ||
                         ScrapSpindleSpeedSetter(id, commands) || ScrapFeedRateSetter(id, commands))
                     {
@@ -155,6 +158,7 @@ namespace Pyro.Nc.Parsing
                         {
                             continue;
                         }
+
                         var success = float.TryParse(reqStr, out var f);
                         if (!success)
                         {
@@ -162,12 +166,13 @@ namespace Pyro.Nc.Parsing
                             var nums = reqStr.LookForNumbers();
                             var results = nums.Solve();
                             f = (float) results[1].Value;
+
                             //Debug.Log($"Solver result: {f.ToString(CultureInfo.InvariantCulture)}");
                         }
 
-                        command.Parameters.Values[par[0].ToString()] = f;
+                        command.Parameters.Values[char.ToUpperInvariant(par[0]).ToString()] = f;
                     }
-                    
+
                     if (command is UnresolvedCommand unresolvedCommand)
                     {
                         for (int i = 0; i < commandString.Length; i++)
@@ -178,6 +183,7 @@ namespace Pyro.Nc.Parsing
                             {
                                 continue;
                             }
+
                             var success = float.TryParse(reqStr, out var f);
                             if (!success)
                             {
@@ -185,13 +191,19 @@ namespace Pyro.Nc.Parsing
                                 var nums = reqStr.LookForNumbers();
                                 var results = nums.Solve();
                                 f = (float) results[1].Value;
+
                                 //Debug.Log($"Solver result: {f.ToString(CultureInfo.InvariantCulture)}");
                             }
 
-                            command.Parameters.Values[par[0].ToString()] = f;
+                            command.Parameters.Values[char.ToUpperInvariant(par[0]).ToString()] = f;
                         }
 
                         var lastModal = PreviousModal;
+                        if (lastModal == null)
+                        {
+                            throw new NoModalCommandFoundException(command.Description);
+                        }
+
                         command = lastModal.Copy();
                         command.AdditionalInfo = $"(Scoped modal)";
                         command.Parameters = unresolvedCommand.Parameters;
@@ -228,13 +240,17 @@ namespace Pyro.Nc.Parsing
                         $"Current id: {id}",
                         e.Message, e.TargetSite.Name);
                 }
-                catch (FormatException e)
+                catch (NoModalCommandFoundException e)
                 {
-                    // PyroConsoleView.PushTextStatic(
-                    //     "A FormatException has occured in CommandHelper.CollectCommands:",
-                    //     $"Current id: {id}",
-                    //     e.Message);
+                    exception = e;
                 }
+                // catch (FormatException e)
+                // {
+                //     // PyroConsoleView.PushTextStatic(
+                //     //     "A FormatException has occured in CommandHelper.CollectCommands:",
+                //     //     $"Current id: {id}",
+                //     //     e.Message);
+                // }
                 catch (Exception e)
                 {
                     PyroConsoleView.PushTextStatic(
@@ -249,6 +265,12 @@ namespace Pyro.Nc.Parsing
             }
 
             Globals.Rules.Try(commands);
+
+            if (exception is not null)
+            {
+                throw exception;
+            }
+            
             return commands;
         }
 
@@ -296,6 +318,7 @@ namespace Pyro.Nc.Parsing
         {
             if (id[0] is 'T' or 't')
             {
+                id = id.ToUpper();
                 var secondPart = id.Split('T')[1];
                 var isSecondPartFloat = float.TryParse(secondPart, out float num);
                 if (!isSecondPartFloat)

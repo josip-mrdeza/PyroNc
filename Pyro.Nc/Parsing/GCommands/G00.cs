@@ -7,8 +7,6 @@ using Pyro.Math.Geometry;
 using Pyro.Nc.Exceptions;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
-using TrCore;
-using TrCore.Logging;
 using UnityEngine;
 
 namespace Pyro.Nc.Parsing.GCommands

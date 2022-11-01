@@ -12,9 +12,6 @@ using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
-using TrCore;
-using TrCore.Logging;
-using TrCore.Reflection;
 
 namespace Pyro.Nc.Parsing
 {
@@ -53,7 +50,7 @@ namespace Pyro.Nc.Parsing
             var flag1 = int.TryParse(new string(code.Skip(1).ToArray()), out var num);
             if (flag0 && flag1 && GCommands.TryGetValue(num, out var ic))
             {
-                return ic.GuardNull($"GCommand '{code}' does not exist in the dictionary!").Copy();
+                return ic;
             }
 
             return null;
@@ -69,7 +66,7 @@ namespace Pyro.Nc.Parsing
             var flag1 = int.TryParse(new string(code.Skip(1).ToArray()), out var num);
             if (flag0 && flag1 && MCommands.TryGetValue(num, out var ic))
             {
-                return ic.GuardNull($"MCommand '{code}' does not exist in the dictionary!").Copy();
+                return ic;
             }
 
             return null;
@@ -112,7 +109,7 @@ namespace Pyro.Nc.Parsing
             bool flag = false;
             foreach (var s1 in s)
             {
-                var key = s1[0].ToString();
+                var key = char.ToUpperInvariant(s1[0]).ToString();
                 if (p.Values.ContainsKey(key) && float.TryParse(s1.Substring(1), out var val))
                 {
                     p.Values[key] = val;

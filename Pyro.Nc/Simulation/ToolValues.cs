@@ -21,6 +21,7 @@ namespace Pyro.Nc.Simulation
             FeedRate = new Limiter(10, 350);
             TokenSource = new CancellationTokenSource();
             FastMoveTick = TimeSpan.FromMilliseconds(10f);
+            WorkOffsets = new Vector3[4];
             //TransPosition = ReferencePointParser.MachineZeroPoint;
             IsAllowed = true;
             IsIncremental = false;
@@ -38,6 +39,7 @@ namespace Pyro.Nc.Simulation
             SpindleSpeed = new Limiter(500, 3500);
             FeedRate = new Limiter(10, 350);
             FastMoveTick = TimeSpan.FromMilliseconds(10f);
+            WorkOffsets = new Vector3[4];
             //TransPosition = ReferencePointParser.MachineZeroPoint;
             IsAllowed = true;
             IsIncremental = false;

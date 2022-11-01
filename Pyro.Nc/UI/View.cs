@@ -56,6 +56,7 @@ namespace Pyro.Nc.UI
                 go.SetActive(true);
             }
             IsActive = true;
+            ViewHandler.Active = true;
         }
 
         public virtual void Hide()
@@ -65,6 +66,7 @@ namespace Pyro.Nc.UI
                 go.SetActive(false);
             }
             IsActive = false;
+            ViewHandler.Active = false;
         }
     }
 }

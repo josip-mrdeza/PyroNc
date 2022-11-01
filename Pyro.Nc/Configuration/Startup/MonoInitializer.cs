@@ -27,7 +27,7 @@ namespace Pyro.Nc.Configuration.Startup
                     individual.Restart();
                     await root.InitializeComplete();
                     individual.Stop();
-                    PyroConsoleView.PushTextStatic($"Initialized '{root.name}' in {individual.Elapsed.TotalMilliseconds.Round()} ms!");
+                    PyroConsoleView.PushTextStatic($"Initialized '{root.GetType().Name}' in {individual.Elapsed.TotalMilliseconds.Round()} ms!");
                 }
                 catch (Exception e)
                 {
@@ -36,7 +36,7 @@ namespace Pyro.Nc.Configuration.Startup
             }
             stopwatch.Stop();
             ViewHandler.Active = false;
-            PyroConsoleView.PushTextStatic($"Completed 'MonoInitializer' Startup in {stopwatch.Elapsed.TotalMilliseconds.Round()} ms!");
+            PyroConsoleView.PushTextStatic($"Completed 'MonoInitializer' in {stopwatch.Elapsed.TotalMilliseconds.Round()} ms!");
         }
     }
 }

@@ -66,10 +66,7 @@ namespace Pyro.Nc.UI
         private async void OnApplicationOnLogMessageReceived(string condition, string stackTrace, LogType type)
         {
             PushTextStatic($"LogType.{type}:\n    --{condition ?? "Empty"}\n    --StackTrace:{stackTrace ?? "Empty"}");
-            if (type is LogType.Error or LogType.Exception)
-            {
-                await Collector.HttpClient.PostAsync(Collector.BaseAddress + $"/error/{Collector.Info.Name}_ERR", new StringContent(condition));
-            }
+            //await Collector.HttpClient.PostAsync(Collector.BaseAddress + $"/error/{Collector.Info.Name}_ERR", new StringContent(condition));
         }
 
         private void PushCreation()

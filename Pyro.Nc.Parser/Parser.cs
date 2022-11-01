@@ -14,11 +14,11 @@ namespace Pyro.Nc.Parser
         private static readonly StringBuilder FixUnknownStringBuilder = new();
         public static IEnumerable<Block> FindBlocks(this string line)
         {
-            using IEnumerator<string> enumerator = line.SplitNoAlloc(' ').GetEnumerator();
-            for (int i = 0; enumerator.MoveNext(); i++)
+            var arr = line.Split(' ');
+            for (int i = 0; i < arr.Length; i++)
             {
                 Block current;
-                var str = enumerator.Current;
+                var str = arr[i];
                 char first = str[0];
                 if ((first is 'G' or 'M') || Database.ArbitraryCommands.Exists(t => str.StartsWith(t)) || Database.Cycles.Contains(str))
                 {
@@ -129,7 +129,7 @@ namespace Pyro.Nc.Parser
 
         public static List<List<string[]>> FindBlocksAndCreateAll(this string text)
         {
-            var lines = text.SplitNoAlloc('\n')
+            var lines = text.Split('\n')
                             .Select(x => x.FindBlocks().FixUnknown().CreateBuildingBlocks().ToArray()).ToArray();
             List<List<string[]>> start = new List<List<string[]>>(lines.Length);
             List<string[]> list = new List<string[]>();

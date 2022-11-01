@@ -20,11 +20,12 @@ namespace Pyro.Nc.UI
 
         public static void ShowOne(string id)
         {
+            View v = null;
             foreach (var view in Views)
             {
                 if (view.Id == id)
                 {
-                    view.Show();
+                    v = view;
                 }
                 else
                 {
@@ -34,6 +35,7 @@ namespace Pyro.Nc.UI
                     }
                 }
             }
+            v.Show();
         }
         
         public static void Hide(string id)

@@ -2,6 +2,7 @@ namespace Pyro.Nc
 {
     public static class Locals
     {
+        public const string UnresolvedCommand = "Unable to parse command";
         public const string Trans = "Programmable Work Offset";
         public const string Lims = "Spindle Speed Limiter";
         public const string Comment = "Comment";

@@ -5,7 +5,6 @@ using Pyro.IO;
 using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.UI.UI_Screen;
 using TMPro;
-using TrCore;
 using UnityEngine;
 using UnityEngine.UI;
 

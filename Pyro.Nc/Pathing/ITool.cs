@@ -25,10 +25,11 @@ namespace Pyro.Nc.Pathing
         public GameObject Cube { get; set; }
         public Material CubeMaterial { get; set; }
         public Rigidbody Self { get; set; }
-        public Triangulator Triangulator { get; set; }
+        public Triangulator Triangulator { get; }
         public Vector3 Position { get; set; }
         public ToolValues Values { get; set; }
-        public PyroEventSystem EventSystem { get; set; }
+        public PyroEventSystem EventSystem { get; }
+        public WorkpieceController Workpiece { get; set; }
         /// <summary>
         /// Stores the mesh's vertices.
         /// </summary>

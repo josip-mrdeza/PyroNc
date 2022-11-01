@@ -11,7 +11,10 @@ namespace Pyro.Nc.Configuration.Startup
     public abstract class InitializerRoot : MonoBehaviour
     {
         public bool IsInitialized;
-        public abstract void Initialize();
+        public virtual void Initialize()
+        {
+            
+        }
 
         public virtual Task InitializeAsync()
         {

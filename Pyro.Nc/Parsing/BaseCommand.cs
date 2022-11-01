@@ -16,7 +16,6 @@ using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
-using TrCore;
 using Debug = UnityEngine.Debug;
 
 namespace Pyro.Nc.Parsing
@@ -36,10 +35,17 @@ namespace Pyro.Nc.Parsing
         /// <param name="family">A family of commands.</param>
         public BaseCommand(ITool tool, ICommandParameters parameters, bool throwOnNull = false, Group family = Group.None)
         {
-            Tool = tool.GuardNullVariable("BaseCommand<ctor>.Tool", throwOnNull);
-            Parameters = parameters.GuardNullVariable("BaseCommand<ctor>.Parameters", throwOnNull);
+            Tool = tool;
+            Parameters = parameters;
             Family = family;
             Id = Guid.NewGuid();
+            var fieldInfo = typeof(Locals).GetField(GetType().Name);
+            if (fieldInfo is null)
+            {
+                return;
+            }
+
+            Description = (string) fieldInfo.GetValue(null);
         }
         /// <summary>
         /// The tool used.

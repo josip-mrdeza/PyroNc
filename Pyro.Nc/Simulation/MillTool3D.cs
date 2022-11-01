@@ -29,9 +29,10 @@ namespace Pyro.Nc.Simulation
         }
 
         public override async Task InitializeAsync()
-        {
+        {                                                          
             _transform = transform;
             EventSystem = new PyroEventSystem();
+            Workpiece = Globals.Workpiece;
             Values = this.GetDefaultsOrCreate();
             Globals.Tool = this;
             Cube = _Cube;
@@ -105,6 +106,7 @@ namespace Pyro.Nc.Simulation
         public Vector3 Position {get => _transform.position; set => _transform.position = value; }
         public ToolValues Values { get; set; }
         public PyroEventSystem EventSystem { get; set; }
+        public WorkpieceController Workpiece { get; set; }
         public List<Vector3> Vertices { get; set; }
         public List<int> Triangles { get; set; }
         public List<Color> Colors { get; set; }

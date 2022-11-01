@@ -8,6 +8,7 @@ using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.UI;
+using Pyro.Nc.UI.UI_Screen;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -18,6 +19,7 @@ namespace Pyro.Nc.Simulation
         private static readonly Func<object, bool> _isNetworkPresent = o =>
             Application.internetReachability != NetworkReachability.NotReachable;
         public static ITool Tool;
+        public static WorkpieceController Workpiece;
         public static ToolManager ToolManager;
         public static PyroConsoleView Console;
         public static CommentView Comment;
@@ -26,6 +28,10 @@ namespace Pyro.Nc.Simulation
         public static MethodStateManager MethodManager;
         public static DefaultsManager DefaultsManager;
         public static MonoInitializer Initializer;
+        public static PopupHandler DoublePopupHandler;
+        public static PopupHandler InputPopupHandlerLarge;
+        public static PopupHandler InputPopupHandlerSmall;
+        public static PopupHandler TextPopupHandler;
         public static ParseRules Rules = new ParseRules();
 
         public static bool IsNetworkPresent = Pyro.Threading.PyroDispatcher.ExecuteOnMain(_isNetworkPresent, null);

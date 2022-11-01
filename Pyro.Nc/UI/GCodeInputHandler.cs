@@ -27,7 +27,6 @@ namespace Pyro.Nc.UI
         public TextMeshProUGUI LineNumber;
         public TextMeshProUGUI SuggestionDisplay;
         public Button Button;
-        public PopupHandler Handler;
         private PointerEventData _data;
         private bool HasSaved;
         private string fileName;
@@ -59,18 +58,20 @@ namespace Pyro.Nc.UI
             Button.onClick.AddListener(Call);
             _data = new PointerEventData(EventSystem.current);
             base.Initialize();
-            Handler = GetComponent<PopupHandler>();
-            Handler.Initialize();
-            Handler.PrefabButtons[0].onClick.AddListener(() =>
+            //PopupHandler.PopInputOption("Name your program:", "Ok", Option);
+        }
+
+        private void Option(PopupHandler ph)
+        {
+            if (HasSaved)
             {
-                if (HasSaved)
-                {
-                    return;
-                }
-                var local = LocalRoaming.OpenOrCreate("PyroNc\\GCode");
-                local.ModifyFile(Handler.Text, Text.text);
-                HasSaved = true;
-            });
+                return;
+            }
+
+            var local = LocalRoaming.OpenOrCreate("PyroNc\\GCode");
+            local.ModifyFile(ph.Text, Text.text);
+            fileName = ph.Text;
+            HasSaved = true;
         }
 
         private async void Call()
@@ -149,7 +150,7 @@ namespace Pyro.Nc.UI
             List<ICommand> commands = new List<ICommand>();
             try
             {
-                var lines = text.SplitNoAlloc('\n').Take(GetLineNumber() + 1).ToArray();
+                var lines = text.Split('\n').Take(GetLineNumber() + 1).ToArray();
                 CommandHelper.PreviousModal = null;
                 foreach (var line in lines)
                 {
@@ -184,15 +185,14 @@ namespace Pyro.Nc.UI
             LineNumber.text = $"Line: {lineNum.ToString()} | {Text.caretPosition.ToString()}";
             if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.S))
             {
-                //TODO prompt text for file name.
-                if (string.IsNullOrEmpty(Handler.Text))
+                if (string.IsNullOrEmpty(fileName))
                 {
-                    Handler.Pop("What would you like to name this program?");
+                    PopupHandler.PopInputOption("Name your program:", "Ok", Option);
                 }
                 else
                 {
                     var local = LocalRoaming.OpenOrCreate("PyroNc\\GCode");
-                    local.ModifyFile(Handler.Text, Text.text);
+                    local.ModifyFile(fileName, Text.text);
                     HasSaved = true;
                 }
             }
@@ -206,7 +206,7 @@ namespace Pyro.Nc.UI
 
         public int GetLineNumber()
         {
-            var lines = Text.text.SplitNoAlloc('\n').ToArray();
+            var lines = Text.text.Split('\n');
             var cNum = Text.caretPosition;
             var sum = 0;
             int i;
@@ -238,7 +238,7 @@ namespace Pyro.Nc.UI
         public void LoadText(string text, string id)
         {
             Text.text = text;
-            Handler.Text = id;
+            fileName = id;
         }
         
         public Vector3? GetLocalCaretPosition()
