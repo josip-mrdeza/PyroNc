@@ -9,7 +9,7 @@ namespace Pyro.Nc.Parsing.GCommands
     {
         public G54(ITool tool, ICommandParameters parameters) : base(tool, parameters)
         {
-            Tool.EventSystem.AddAsyncSubscriber("ProgramEnd", this);
+            
         }
 
         public override async Task Execute(bool draw)

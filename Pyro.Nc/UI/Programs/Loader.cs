@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using Pyro.IO;
 using Pyro.Nc.Configuration.Startup;
+using Pyro.Nc.Simulation;
 using Pyro.Nc.UI.UI_Screen;
 using TMPro;
 using UnityEngine;
@@ -18,6 +19,7 @@ namespace Pyro.Nc.UI.Programs
         public override void Initialize()
         {
             base.Initialize();
+            Globals.Loader = this;
             Load();
             ShowOnScreen();
         }

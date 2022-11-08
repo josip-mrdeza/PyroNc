@@ -49,7 +49,7 @@ namespace Pyro.Nc.Parsing
         }
         public static List<string[]> FindVariables(this string code)
         {
-            var index = code.ContainsFast(_cachedKvp!.Value.Key);
+            var index = code.IndexOf(_cachedKvp!.Value.Key, StringComparison.Ordinal);
             if (index != -1)
             {
                 if (index >= 1 && code[index - 1] != ' ')
@@ -139,7 +139,7 @@ namespace Pyro.Nc.Parsing
                         continue;
                     }
 
-                    var command = Storage.TryGetCommand(id);
+                    var command = Storage.TryGetCommand(id).Copy();
                     if (command is null)
                     {
                         continue;

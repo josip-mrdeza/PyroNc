@@ -62,7 +62,7 @@ namespace Pyro.Nc.Simulation
         [JsonIgnore] public Vector3[] WorkOffsets { get; set; }
         public Limiter SpindleSpeed { get; set; }
         public Limiter FeedRate { get; set; }
-        public float Radius { get; set; }
+        public float Radius => Globals.Tool.ToolConfig.Radius;
         public float SpindleSpeedLimit { set => SpindleSpeed.UpperLimit = value; } 
         public float FeedRateLimit { set => FeedRate.UpperLimit = value; }
         public TimeSpan FastMoveTick { get; set; }

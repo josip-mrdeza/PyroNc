@@ -83,7 +83,7 @@ namespace Pyro.Nc.Parsing
                 ref var kvp = ref CommandHelper._cachedKvp;
                 if (code.Contains(kvp!.Value.Key))
                 {
-                    return kvp!.Value.Value.Copy();
+                    return kvp!.Value.Value;
                 }
             }
 
@@ -93,7 +93,7 @@ namespace Pyro.Nc.Parsing
             //
             //     return null;
             // }
-            return ic is null ? null : ic.Copy();
+            return ic;
         }
 
         public UnresolvedCommand FetchUnresolved(string code)

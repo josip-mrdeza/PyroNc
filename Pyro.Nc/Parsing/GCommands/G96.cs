@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Pyro.Nc.Pathing;
 
 namespace Pyro.Nc.Parsing.GCommands
@@ -6,6 +7,11 @@ namespace Pyro.Nc.Parsing.GCommands
     {
         public G96(ITool tool, ICommandParameters parameters) : base(tool, parameters)
         {
+        }
+        
+        public override Task Execute(bool draw)
+        {
+            return Task.CompletedTask;
         }
     }
 }

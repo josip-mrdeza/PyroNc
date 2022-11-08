@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Pyro.IO;
 using Pyro.IO.Events;
 using Pyro.Math;
 using Pyro.Math.Geometry;
@@ -105,6 +106,7 @@ namespace Pyro.Nc.Parsing
                 var method = clientType.GetMethod("UpdateDetails");
                 method.Invoke(client, new object[]{$"{type}: '{Description}'"});
             }
+            //TODO pipe data into a console to show logs in the form of console text.
             if (Tool.Values.IsImperial)
             {
                 Parameters.SwitchToImperial();
@@ -181,6 +183,7 @@ namespace Pyro.Nc.Parsing
         {
             Tool.Values.TokenSource = new CancellationTokenSource();
         }
+        
 
         /// <summary>
         /// A method defining what a <see cref="ICommand"/> inheriting <see cref="BaseCommand"/> should do when executed in MILL Mode.
@@ -242,6 +245,11 @@ namespace Pyro.Nc.Parsing
         /// </summary>
         public ICommand Copy()
         {
+            var asyncSubs = Tool.EventSystem.AsyncSubscribers;
+            foreach (var subs in asyncSubs)
+            {
+                subs.Value.Remove(this);
+            }
             var parameters = Parameters.GetType().Name switch
             {
                 "GCommandParameters"         => new GCommandParameters(0, 0, 0, Parameters.LineSmoothness),
@@ -257,7 +265,6 @@ namespace Pyro.Nc.Parsing
                 parameters
             }) as ICommand;
             instance.Family = Family;
-
             return instance;
         }
 
@@ -270,7 +277,7 @@ namespace Pyro.Nc.Parsing
                 Builder.Append(' ');
                 foreach (var value in Parameters.Values)
                 {
-                    Builder.Append(value.Key).Append(value.Value);
+                    Builder.Append(value.Key).Append(value.Value).Append(' ');
                 }
                 
                 return Builder.ToString();

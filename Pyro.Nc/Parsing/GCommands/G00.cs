@@ -23,7 +23,7 @@ namespace Pyro.Nc.Parsing.GCommands
         /// <inheritdoc />
         public override async Task Execute(bool draw)
         {
-            if (Tool.ToolConfig.Index == -1)
+            if (Tool.ToolConfig.Index == 0)
             {
                 throw new ToolNotDefinedException();
             }
@@ -39,7 +39,7 @@ namespace Pyro.Nc.Parsing.GCommands
         /// <returns></returns>
         /// <exception cref="LinearInterpolationParameterMismatchException">This exception is thrown when the <see cref="ICommandParameters"/>
         /// passed to this <see cref="ICommand"/> are zeroed out.</exception>
-        public Vector3 ResolvePosition()
+        public virtual Vector3 ResolvePosition()
         {
             var parameters = (Parameters as GCommandParameters);
             Vector3 point;
@@ -61,7 +61,7 @@ namespace Pyro.Nc.Parsing.GCommands
                 var pos = Tool.Position;
                 point = new Vector3(ResolveNan(parameters.X, pos.x),
                                     ResolveNan(parameters.Y, pos.y),
-                                    ResolveNan(parameters.Z, pos.z))  + trans;
+                                    ResolveNan(parameters.Z, pos.z)) + trans;
             }
 
             return point;

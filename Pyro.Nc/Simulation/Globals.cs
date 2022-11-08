@@ -3,11 +3,13 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Pyro.Injector;
 using Pyro.IO;
+using Pyro.Nc.Configuration;
 using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.UI;
+using Pyro.Nc.UI.Programs;
 using Pyro.Nc.UI.UI_Screen;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -32,7 +34,10 @@ namespace Pyro.Nc.Simulation
         public static PopupHandler InputPopupHandlerLarge;
         public static PopupHandler InputPopupHandlerSmall;
         public static PopupHandler TextPopupHandler;
+        public static ReferencePointHandler ReferencePointHandler;
+        public static ReferencePointParser ReferencePointParser;
         public static ParseRules Rules = new ParseRules();
+        public static Loader Loader;
 
         public static bool IsNetworkPresent = Pyro.Threading.PyroDispatcher.ExecuteOnMain(_isNetworkPresent, null);
     }

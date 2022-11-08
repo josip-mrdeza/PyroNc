@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,34 +13,36 @@ namespace Pyro.Nc.Simulation
 {
     public class WorkpieceController : InitializerRoot
     {
-        public Mesh StartingMesh;
+        public SerializableMesh StartingMesh;
+        public Mesh Current;
         public MeshFilter Filter;
-        public MeshCollider Collider;
+
+        private void Awake()
+        {
+            Globals.Workpiece = this;
+            Current = new Mesh();
+        }
+
         public override async Task InitializeAsync()
         {
-            PopupHandler.PopText("balls are nice.");
+            Mesh mesh;
             if (Globals.Roaming.Exists("Mesh.obj"))
             {
                 var sMesh = ParseObj(Globals.Roaming.ReadFileAsText("Mesh.obj"));
-                Filter.mesh = sMesh.ToMesh();
+                mesh = Filter.mesh = sMesh.ToMesh();
+                mesh.name = "customObj";
+                Current = mesh;
+                StartingMesh = sMesh;
+                PopupHandler.PopText("Loaded mesh from 'Mesh.obj' with {0} vertices and {1} triangles!".Format(Filter.mesh.vertexCount, Filter.mesh.triangles.Length));
                 return;
             }
-
-            Filter.mesh = StartingMesh;
-            /*if (Globals.Roaming.Exists("Mesh.json"))
-            {
-                Filter.mesh = Globals.Roaming.ReadFileAs<SerializableMesh>("Mesh.json").ToMesh();
-            }
-            else
-            {
-                var jsonMesh = new SerializableMesh(StartingMesh);
-                var json = JsonUtility.ToJson(jsonMesh);
-                Push("Saved starting mesh to json format: ",
-                     "Length: {0}".Format(json.Length),
-                     "Vertices: {0}".Format(StartingMesh.vertexCount),
-                     "Triangles: {0}".Format(StartingMesh.triangles.Length));
-                Globals.Roaming.AddFile("Mesh.json", json);
-            }*/
+            
+            mesh = Filter.mesh;
+            mesh.name = "defaultMesh";
+            mesh.Optimize();
+            mesh.MarkDynamic();
+            Current = mesh;
+            StartingMesh = new SerializableMesh(Current);
         }
 
         public static SerializableMesh ParseObj(string objText)

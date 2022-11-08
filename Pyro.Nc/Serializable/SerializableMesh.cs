@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 
 namespace Pyro.Nc.Serializable
@@ -13,7 +14,7 @@ namespace Pyro.Nc.Serializable
         public SerializableMesh(Mesh mesh)
         {
             Triangles = mesh.triangles;
-            Vertices = mesh.vertices;
+            Vertices = mesh.vertices.ToArray();
             UVs = mesh.uv;
         }
 
@@ -25,7 +26,7 @@ namespace Pyro.Nc.Serializable
         public Mesh ToMesh()
         {
             Mesh mesh = new Mesh();
-            mesh.SetVertices(Vertices);
+            mesh.SetVertices(Vertices.ToArray());
             mesh.SetTriangles(Triangles, 0);
             mesh.SetUVs(0, UVs);
             return mesh;

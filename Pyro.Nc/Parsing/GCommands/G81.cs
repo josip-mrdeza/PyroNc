@@ -27,7 +27,10 @@ namespace Pyro.Nc.Parsing.GCommands
             {
                 throw new DrillParameterMismatchException(this);
             }
-            await Tool.Traverse(ResolvePosition(), LineTranslationSmoothness.Rough, draw);
+
+            var pos = Tool.Position;
+            pos.y = ((GCommandParameters)Parameters).Y;
+            await Tool.Traverse(pos, LineTranslationSmoothness.Rough, draw);
         }
     }     
 }

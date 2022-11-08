@@ -80,7 +80,8 @@ namespace Pyro.Nc.Simulation
                 d.Z = vertex.z.Abs();
             }
 
-            return d.X == 0 && d.Y == 0 && d.Z == 0;
+            var isOk = d.X == 0 && d.Y == 0 && d.Z == 0;
+            return isOk;
         }
         /// <summary>
         /// Checks if the tool has come in (radius) distance of some vertex in the <see cref="ITool.Cube"/>'s mesh, if it has then it attempts to 'cut' it.
@@ -93,37 +94,54 @@ namespace Pyro.Nc.Simulation
         /// causing a rapid feed collision (High speed hit into the workpiece).</exception>
         public static CutResult CheckPositionForCut(this ITool tool, Direction direction, bool throwIfCut)
         {
+            //we could parse the cube once, and map all points that are close to the central point and then use those for all calculations?
             Stopwatch stopwatch = Stopwatch.StartNew();
             var toolRadius = tool.ToolConfig.Radius;
             long verticesCut = 0;
             var pos = tool.Position;
             var tr = tool.Cube.transform;
-            var v = new Vector3(direction.X, tool.Values.Radius, direction.Y);
+            
+            var v = new Vector3(0, 0.25f, 0);
             var vertices = tool.Vertices;
+            var trVT = tool.Temp.transform;
+            var trV = trVT.position;
             for (int i = 0; i < vertices.Count; i++)
             {
                 var vert = vertices[i];
                 var realVert = tr.TransformPoint(vert);
-                var distance = Vector3.Distance(pos, realVert);
-                if (distance < toolRadius && tool.IsOkayToCutVertex(realVert))
+                var dist = Space3D.Distance(trV.y, realVert.y);
+                if ((Vector2.Distance(new Vector2(realVert.x, realVert.z), new Vector2(pos.x, pos.z)) < tool.ToolConfig.Radius
+                        && dist+0.5f <= tool.ToolConfig.VerticalMargin))
                 {
+                    /*if (!tool.IsOkayToCutVertex(realVert))
+                    {
+                        if (throwIfCut)
+                        {
+                            tool.EventSystem.FireAsync("RapidFeedError").Wait();
+                            throw new RapidFeedCollisionException(tool.Values.Current);
+                        }
+                        //Debug.Log("+");
+                        Debug.DrawLine(trV, realVert, Color.red, 10f);
+                        tool.Colors[i] = tool.ToolConfig.ToolColor;
+                        vertices[i] -= new Vector3(0, dist);
+                        verticesCut++;
+                    }*/
                     if (throwIfCut)
                     {
+                        tool.EventSystem.FireAsync("RapidFeedError").Wait();
                         throw new RapidFeedCollisionException(tool.Values.Current);
                     }
-                    //Debug.Log(distance);
-
+                    //Debug.Log("+");
+                    Debug.DrawLine(trV, realVert, Color.red, 10f);
                     tool.Colors[i] = tool.ToolConfig.ToolColor;
-                    vertices[i] -= v;
+                    vertices[i] -= new Vector3(0, tool.ToolConfig.VerticalMargin - dist);
                     verticesCut++;
-                }
-                else
-                {
-                    //Debug.Log(distance);
+                    realVert = tr.TransformPoint(vertices[i]);
+                    Debug.DrawLine(trV, realVert, Color.green, 10f);
                 }
             }
 
-            var mesh = tool.Triangulator.CurrentMesh;
+            var mesh = tool.Workpiece.Current;
             mesh.vertices = vertices.GetInternalArray();
             mesh.triangles = tool.Triangles.GetInternalArray();
             mesh.colors = tool.Colors.GetInternalArray();

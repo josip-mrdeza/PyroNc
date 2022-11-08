@@ -38,11 +38,12 @@ namespace Pyro.Nc.Parsing.MCommands
                 throw new ToolMissingException(requiredTool);
             }
             
-            var rpp = ReferencePointParser.ToolMountReferencePoint;
+            var rpp = Globals.ReferencePointParser.ToolMountReferencePoint;
             var g0ToToolSetPosition = Tool.Values.Storage.FetchGCommand("G00") as G00;
             g0ToToolSetPosition.Parameters = new GCommandParameters(rpp.x, rpp.y, rpp.z);
             Globals.Rules.Try(g0ToToolSetPosition);
-            await g0ToToolSetPosition.Execute(draw);
+            Expire();
+            await g0ToToolSetPosition.ExecuteFinal(draw);
             var toolSetter = new ToolSetter(Tool, new ArbitraryCommandParameters()
             {
                 Values = new Dictionary<string, float>()
@@ -52,7 +53,7 @@ namespace Pyro.Nc.Parsing.MCommands
                     }
                 }
             });
-            await toolSetter.Execute(draw);
+            await toolSetter.ExecuteFinal(draw);
         }
     }
 }

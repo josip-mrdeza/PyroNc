@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation;
 using UnityEngine;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands
@@ -22,6 +23,9 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
                 new Vector3(ResolveNan(Parameters.GetValue("X"), 0),
                             ResolveNan(Parameters.GetValue("Y"), 0),
                             ResolveNan(Parameters.GetValue("Z"), 0));
+            var viewer = Globals.ReferencePointHandler.Trans;
+            viewer.Position = Tool.Values.TransPosition;
+            viewer.IsDirty = true;
             return Task.CompletedTask;
         }
     }

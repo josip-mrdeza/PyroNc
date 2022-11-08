@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,7 +10,9 @@ using Pyro.Nc.Configuration;
 using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Parsing;
+using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands;
+using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.UI;
 using UnityEngine;
@@ -19,9 +22,6 @@ namespace Pyro.Nc.Simulation
 {
     public class MillTool3D : InitializerRoot, ITool
     {
-        public Mesh _MeshPointer;
-        public GameObject _Cube;
-        public Material _CubeMaterial;
         private Transform _transform;
         public override void Initialize()
         {
@@ -29,24 +29,23 @@ namespace Pyro.Nc.Simulation
         }
 
         public override async Task InitializeAsync()
-        {                                                          
+        {  
+            const float c = 0.18823529411764705882352941176471f;
+            Temp = GameObject.FindWithTag("temp");
             _transform = transform;
             EventSystem = new PyroEventSystem();
             Workpiece = Globals.Workpiece;
+            Cube = Workpiece.gameObject;
             Values = this.GetDefaultsOrCreate();
             Globals.Tool = this;
-            Cube = _Cube;
-            var meshFilter = Cube.GetComponent<MeshFilter>();
-            MeshPointer ??= meshFilter.mesh;
-            _MeshPointer = MeshPointer;
-            Triangulator = new Triangulator(MeshPointer, false);
-            meshFilter.mesh = Triangulator.CurrentMesh;
-            Collider = Cube.GetComponent<MeshCollider>();
-            Collider.sharedMesh = Triangulator.CurrentMesh;
-            Vertices = Triangulator.CurrentMesh.vertices.ToList();
-            Triangles = Triangulator.CurrentMesh.triangles.ToList();
-            Colors = Vertices.Select(x => new Color(255, 255, 255, 255)).ToList();
-            ToolConfig = await this.ChangeTool(-1);
+            Collider = Workpiece.GetComponent<MeshCollider>();
+            await Workpiece.InitializeAsync();
+            Collider.sharedMesh = Workpiece.Current;
+            var color = new Color(1, 1, 1, 1f);
+            Vertices = new List<Vector3>(Workpiece.Current.vertices);
+            Triangles = new List<int>(Workpiece.Current.triangles);
+            Colors = Enumerable.Repeat(color, Vertices.Count).ToList();
+            ToolConfig = await this.ChangeTool(0);
             var bounds = Collider.bounds;
             var tr = Cube.transform;
             var max = tr.TransformVector(bounds.max);
@@ -57,15 +56,57 @@ namespace Pyro.Nc.Simulation
             MinX = min.x;
             MinY = min.y;
             MinZ = min.z;
-            CubeMaterial = _CubeMaterial;
             MovementType = Globals.MethodManager.Get("Traverse").Index;
+            Self = GetComponent<Rigidbody>();
+            Self.maxAngularVelocity = Values.SpindleSpeed.UpperLimit;
             OnConsumeStopCheck += () =>
             {
                 Position = Values.CurrentPath.Points.Last();
                 return Task.CompletedTask;
             };
-            Self = GetComponent<Rigidbody>();
-            Self.maxAngularVelocity = Values.SpindleSpeed.UpperLimit; 
+            var copy = Values.Storage.TryGetCommand("TRANS").Copy() as Trans;
+            var copy2 = Values.Storage.TryGetCommand("M05").Copy() as M05;
+            var copy3 = Values.Storage.TryGetCommand("G40").Copy() as G40;
+            var copy4 = Values.Storage.TryGetCommand("G54").Copy() as G54;
+            var copy5 = Values.Storage.TryGetCommand("G90").Copy() as G90;
+            EventSystem.AddAsyncSubscriber("ProgramEnd", async () =>
+            {
+                Push("ProgramEnd->RESET TRANS");
+                await copy.Execute(false);
+            });
+            EventSystem.AddAsyncSubscriber("ProgramEnd", async () =>
+            {
+                Push("ProgramEnd->STOP SPINDLE");
+                await copy2.Execute(false);
+            });
+            EventSystem.AddAsyncSubscriber("ProgramEnd", async () =>
+            {
+                Push("ProgramEnd->DISABLE (R) COMPENSATION");
+                await copy3.Execute(false);
+            });
+            EventSystem.AddAsyncSubscriber("ProgramEnd", async () =>
+            {
+                Push("ProgramEnd->RESET TEMPORARY REFERENCE POINT");
+                await copy4.Execute(false);
+            });
+            EventSystem.AddAsyncSubscriber("ProgramEnd", async () =>
+            {
+                Push("ProgramEnd->SET TO ABSOLUTE MODE");
+                await copy5.Execute(false);
+            });
+            EventSystem.AddAsyncSubscriber("ProgramEnd", async () =>
+            {
+                Push("ProgramEnd->CHANGE TOOL TO DEFAULT(0)");
+                this.Values.Current.Expire();
+                await this.ChangeTool(0);
+            });
+            EventSystem.AddAsyncSubscriber("ProgramEnd", () =>
+            {
+                Push("ProgramEnd->RESET SETTINGS");
+                Values.FeedRate.Set(0f);
+                Values.SpindleSpeed.Set(0f);
+                return Task.CompletedTask;
+            });
         }
 
         private void FixedUpdate()
@@ -97,12 +138,10 @@ namespace Pyro.Nc.Simulation
         }
 
         private bool _contained;
-        public sbyte MovementType { get; set; }
-        public Mesh MeshPointer { get; set; }
         public GameObject Cube { get; set; }
-        public Material CubeMaterial { get; set; }
+        public GameObject Temp { get; set; }
+        public sbyte MovementType { get; set; }
         public Rigidbody Self { get; set; }
-        public Triangulator Triangulator { get; set; }
         public Vector3 Position {get => _transform.position; set => _transform.position = value; }
         public ToolValues Values { get; set; }
         public PyroEventSystem EventSystem { get; set; }
@@ -123,7 +162,6 @@ namespace Pyro.Nc.Simulation
                 //transform.localScale = Vector3.one * (_toolConfig.Radius * 2);
             }
         }                                                               
-        [SerializeField] 
         private ToolConfiguration _toolConfig;
 
         public MeshFilter toolfilter;

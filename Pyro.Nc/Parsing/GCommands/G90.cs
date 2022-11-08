@@ -7,7 +7,6 @@ namespace Pyro.Nc.Parsing.GCommands
     {
         public G90(ITool tool, ICommandParameters parameters) : base(tool, parameters)
         {
-            Tool.EventSystem.AddAsyncSubscriber("ProgramEnd", this);
         }
 
         public override string Description => Locals.G90;

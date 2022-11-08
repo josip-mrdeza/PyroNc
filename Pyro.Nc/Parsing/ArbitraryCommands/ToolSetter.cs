@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Pyro.Nc.Exceptions;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using UnityEngine;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
@@ -11,6 +12,7 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
     {
         public ToolSetter(ITool tool, ArbitraryCommandParameters parameters) : base(tool, parameters)
         {
+            
         }
 
         public override string Description => Locals.ToolSetter;
@@ -21,12 +23,14 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
                 throw new NullReferenceException("ToolSetter::Execute: Global parameter 'ToolManager' is null!");
             }
             var value = (int) Parameters.GetValue("value");
-            if (!Globals.ToolManager.Tools.Exists(t => t.Index == value))
+            var tool = Globals.ToolManager.Tools.FirstOrDefault(t => t.Index == value);
+            if (tool == null)
             {
                 throw new ToolMissingException(value);
             }
 
-            Tool.ToolConfig = Globals.ToolManager.Tools.First(t => t.Index == value);
+            Tool.ToolConfig = tool;
+            Tool.Temp.transform.localPosition = new Vector3(0, Tool.ToolConfig.VerticalMargin);
             await Tool.EventSystem.FireAsync("ToolChange");
         }
     }

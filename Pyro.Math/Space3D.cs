@@ -16,6 +16,22 @@ namespace Pyro.Math
                 .SquareRoot();
         }
 
+        public static float Distance(float f1, float f2)
+        {
+            var x = (f1 > f2) ? f1 - f2 : (f2 - f1);
+
+            return x;
+        }
+
+        public static Vector3D DistanceByAxisAccurate(Vector3D point1, Vector3D point2)
+        {
+            var x = (point1.x > point2.x) ? point2.x - point1.x : (point1.x - point2.x);
+            var y = (point1.y > point2.y) ? point2.y - point1.y : (point1.y - point2.y);
+            var z = (point1.z > point2.z) ? point2.z - point1.z : (point1.z - point2.z);
+
+            return new Vector3D(x, y, z);
+        }
+        
         public static Vector3D DistanceByAxis(Vector3D point1, Vector3D point2)
         {
             return new Vector3D(point2.x - point1.x, point2.y - point1.y, point2.z - point1.z);

@@ -10,6 +10,7 @@ using Pyro.Nc.Parser;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.UI.Programs;
 using Pyro.Nc.UI.UI_Screen;
 using TMPro;
 using UnityEngine;
@@ -72,6 +73,8 @@ namespace Pyro.Nc.UI
             local.ModifyFile(ph.Text, Text.text);
             fileName = ph.Text;
             HasSaved = true;
+            Globals.Loader.Load();
+            Globals.Loader.ShowOnScreen();
         }
 
         private async void Call()
@@ -89,15 +92,6 @@ namespace Pyro.Nc.UI
                                     .SelectMany(y => y);
 
             var arr = commands.ToArray();
-            if (arr.FirstOrDefault() is M03 or M04)
-            {
-                for (int i = arr.Length - 1; i >= 0; i--)
-                {
-                    await Globals.Tool.UseCommand(arr[i], true);
-                }
-
-                return;
-            }
 
             foreach (var command in arr)
             {

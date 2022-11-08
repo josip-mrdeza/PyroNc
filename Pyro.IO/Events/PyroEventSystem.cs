@@ -52,6 +52,22 @@ namespace Pyro.IO.Events
             }
         }
         
+        public void AddAsyncSubscriber(string eventName, Func<Task> func)
+        {
+            if (func == null)
+            {
+                return;
+            }
+            if (AsyncSubscribers.ContainsKey(eventName))
+            {
+                AsyncSubscribers[eventName].Add(new DelegateSubscriber(func));
+            }
+            else
+            {
+                AsyncSubscribers.Add(eventName, new List<IPAsyncEventSubscriber>(){new DelegateSubscriber(func)});
+            }
+        }
+        
         public void Fire(string eventName)
         {
             var exists = Subscribers.ContainsKey(eventName);

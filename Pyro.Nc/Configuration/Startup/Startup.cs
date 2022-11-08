@@ -6,6 +6,8 @@ using Pyro.Math;
 using Pyro.Nc.Parsing.Rules;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
+using UnityEngine;
+using UnityEngine.Device;
 
 namespace Pyro.Nc.Configuration.Startup
 {
@@ -14,6 +16,10 @@ namespace Pyro.Nc.Configuration.Startup
         public static List<IManager> Managers;
         public override void Initialize()
         {
+            QualitySettings.shadows = ShadowQuality.All;
+            QualitySettings.shadowProjection = ShadowProjection.CloseFit;
+            QualitySettings.SetQualityLevel(5);
+            Push($"QualityLevel: {QualitySettings.GetQualityLevel().ToString()}");
             Push("Application Startup initializing...");
             Stopwatch stopwatch = Stopwatch.StartNew();
             InitializeManagers();

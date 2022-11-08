@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Pyro.Nc.Pathing;
 
 namespace Pyro.Nc.Parsing.GCommands
@@ -6,7 +7,11 @@ namespace Pyro.Nc.Parsing.GCommands
     {
         public G40(ITool tool, ICommandParameters parameters) : base(tool, parameters)
         {
-            Tool.EventSystem.AddAsyncSubscriber("ProgramEnd", this);
+        }
+
+        public override Task Execute(bool draw)
+        {
+            return Task.CompletedTask;
         }
     }
 }

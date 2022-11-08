@@ -59,13 +59,13 @@ namespace Pyro.Nc.UI
                 PushTextStatic($"Quitting Application...");
                 PushTextStatic($"Disposing log stream in: {fileInfo.FullName}...");
                 DisposeStream();
-                await Collector.SendLogStatisticAsync();
+                //await Collector.SendLogStatisticAsync();
             };
         }
 
-        private async void OnApplicationOnLogMessageReceived(string condition, string stackTrace, LogType type)
+        private void OnApplicationOnLogMessageReceived(string condition, string stackTrace, LogType type)
         {
-            PushTextStatic($"LogType.{type}:\n    --{condition ?? "Empty"}\n    --StackTrace:{stackTrace ?? "Empty"}");
+            Push(condition, stackTrace.Substring(0, 100).Insert(100, "..."));
             //await Collector.HttpClient.PostAsync(Collector.BaseAddress + $"/error/{Collector.Info.Name}_ERR", new StringContent(condition));
         }
 

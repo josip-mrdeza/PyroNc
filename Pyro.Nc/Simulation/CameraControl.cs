@@ -83,10 +83,12 @@ namespace Pyro.Nc.Simulation
 
             //Move and rotate the camera
 
-            if (Input.GetKey(forwardKey)) move += Vector3.forward * moveSpeed;
-            if (Input.GetKey(backKey)) move += Vector3.back * moveSpeed;
-            if (Input.GetKey(leftKey)) move += Vector3.left * moveSpeed;
-            if (Input.GetKey(rightKey)) move += Vector3.right * moveSpeed;
+            var dt = Time.deltaTime;
+            var ms = (moveSpeed * dt);
+            if (Input.GetKey(forwardKey)) move += Vector3.forward * ms;
+            if (Input.GetKey(backKey)) move += Vector3.back * ms;
+            if (Input.GetKey(leftKey)) move += Vector3.left * ms;
+            if (Input.GetKey(rightKey)) move += Vector3.right * ms;
 
             //By far the simplest solution I could come up with for moving only on the Horizontal plane - no rotation, just cache y
             if (Input.GetKey(flatMoveKey))
