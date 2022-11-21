@@ -29,6 +29,7 @@ namespace Pyro.Nc.Configuration.Managers
         private const string ReferencePoints = "//PointID:Vector3\n//Vector3 is a structure which can be interpreted as a json object as follows - (x,y,z) / (69,420,69)\n//M - Machine Zero Point\n//W - Workpiece zero point\n//A - Temporary workpiece point\n//N - Tool mount reference point\n//R - Reference point\n//B - Begin point\nM:(0,0,0)\nW:(0,0,0)\nA:(0,0,0)\nN:(0,0,0)\nR:(0,0,0)\nB:(0,0,0)";
 
         public bool IsAsync { get; }
+        public bool DisableAutoInit { get; }
 
         public void Init()
         {

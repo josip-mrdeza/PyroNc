@@ -23,7 +23,7 @@ namespace Pyro.Nc.Configuration.Startup
             return Task.CompletedTask;
         }
 
-        internal async Task InitializeComplete()
+        public async Task InitializeComplete()
         {
             await InitializeAsync();
             var childrenCount = transform.childCount;
@@ -43,7 +43,7 @@ namespace Pyro.Nc.Configuration.Startup
             IsInitialized = true;
         }
 
-        internal void Push(params string[] arr)
+        public void Push(params string[] arr)
         {
             if (Globals.Console is not null)
             {
@@ -51,7 +51,7 @@ namespace Pyro.Nc.Configuration.Startup
             }
         }
 
-        internal void PushComment(string arr, Color color)
+        public void PushComment(string arr, Color color)
         {
             if (Globals.Console is not null)
             {

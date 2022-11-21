@@ -58,6 +58,10 @@ namespace Pyro.Nc.Configuration.Startup
             foreach (var fullName in fullNames)
             {
                 var manager = (IManager) Activator.CreateInstance(Type.GetType(fullName)!);
+                if (manager.DisableAutoInit)
+                {
+                    continue;
+                }
                 stopwatch.Restart();
                 manager.Init();  
                 Push($"Manager '{fullName}' completed in {stopwatch.Elapsed.TotalMilliseconds.Round()} ms!");
@@ -76,6 +80,10 @@ namespace Pyro.Nc.Configuration.Startup
                 if (type.GetInterface("IManager") is not null)
                 {
                     var manager = (IManager) Activator.CreateInstance(type);
+                    if (manager.DisableAutoInit)
+                    {
+                        continue;
+                    }
                     stopwatch.Restart();
                     if (manager.IsAsync)
                     {

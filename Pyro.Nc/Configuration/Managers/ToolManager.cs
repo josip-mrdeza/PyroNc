@@ -13,6 +13,7 @@ namespace Pyro.Nc.Configuration.Managers
         public List<ToolConfiguration> Tools;
         public string FileName = "ToolConfig.json";
         public bool IsAsync { get; }
+        public bool DisableAutoInit { get; }
 
         public void Init()
         {

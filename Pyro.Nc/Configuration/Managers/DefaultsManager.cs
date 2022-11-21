@@ -10,6 +10,7 @@ namespace Pyro.Nc.Configuration.Managers
         public ToolValues Values;
         private const string DefaultsJson = "Defaults.json";
         public bool IsAsync { get; }
+        public bool DisableAutoInit { get; }
 
         public void Init()
         {

@@ -11,6 +11,7 @@ namespace Pyro.Nc.Configuration.Managers
         private Dictionary<string, MethodState> MethodStates;
         private const string MethodStatesJson = "MethodStates.json";
         public bool IsAsync { get; }
+        public bool DisableAutoInit { get; }
 
         public void Init()
         {

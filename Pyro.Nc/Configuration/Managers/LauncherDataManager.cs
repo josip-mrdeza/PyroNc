@@ -12,6 +12,7 @@ namespace Pyro.Nc.Configuration.Managers
         private string AppsFileID = "Apps.json";
 
         public bool IsAsync { get; }
+        public bool DisableAutoInit { get; }
 
         public void Init()
         {

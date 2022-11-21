@@ -30,17 +30,20 @@ namespace Pyro.Nc.Simulation
 
         public override async Task InitializeAsync()
         {  
-            const float c = 0.18823529411764705882352941176471f;
+            //const float c = 0.18823529411764705882352941176471f;
             Temp = GameObject.FindWithTag("temp");
             _transform = transform;
             EventSystem = new PyroEventSystem();
             Workpiece = Globals.Workpiece;
             Cube = Workpiece.gameObject;
+            var customAssemblyManager = new CustomAssemblyManager();
+            await customAssemblyManager.InitAsync();
+            Startup.Managers.Add(customAssemblyManager);
             Values = this.GetDefaultsOrCreate();
             Globals.Tool = this;
             Collider = Workpiece.GetComponent<MeshCollider>();
             await Workpiece.InitializeAsync();
-            Collider.sharedMesh = Workpiece.Current;
+            //Collider.sharedMesh = Workpiece.Current;
             var color = new Color(1, 1, 1, 1f);
             Vertices = new List<Vector3>(Workpiece.Current.vertices);
             Triangles = new List<int>(Workpiece.Current.triangles);

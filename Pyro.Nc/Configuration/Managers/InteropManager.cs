@@ -11,6 +11,7 @@ namespace Pyro.Nc.Configuration.Managers
     {
         public static object RichPresence;
         public bool IsAsync { get; }
+        public bool DisableAutoInit { get; }
 
         public void Init()
         {

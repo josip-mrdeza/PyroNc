@@ -1,11 +1,14 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Math;
 using Pyro.Math.Geometry;
+using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Configuration.Sim3D_Legacy;
 using Pyro.Nc.Exceptions;
 using Pyro.Nc.Parsing.GCommands;
@@ -24,6 +27,30 @@ namespace Pyro.Nc.Simulation
         private static Vector4[] TempArray = new Vector4[10_000];
 
         private static int TempArrayIndex = 0;
+        private static readonly Dictionary<string, MethodInfo> CachedMethods = new Dictionary<string, MethodInfo>().Do(
+            d =>
+            {
+                var asses = CustomAssemblyManager.Self.ImportedAssemblies;
+                foreach (var assembly in asses)
+                {
+                    foreach (var type in assembly.GetTypes())
+                    {
+                        foreach (var method in type.GetMethods())
+                        {
+                            try
+                            {
+                                d.Add(method.Name, method);
+                                Globals.Console.Push($"Added method '{method.Name}' to the cached dict.");
+                            }
+                            catch
+                            {
+                                Globals.Console.Push($"Failed to add '{method.Name}' to the dictionary, Key Already exists!");
+                            }
+                        }
+                    }
+                }
+                return d;
+            });
         /// <summary>
         /// Stalls the next action (ICommand) asynchronously until the previous one completes.
         /// </summary>
@@ -104,6 +131,16 @@ namespace Pyro.Nc.Simulation
         /// causing a rapid feed collision (High speed hit into the workpiece).</exception>
         public static async Task<CutResult> CheckPositionForCut(this ITool tool, Direction direction, bool throwIfCut)
         {
+            if (CachedMethods.ContainsKey("CheckPositionForCut"))
+            {
+                var method = CachedMethods["CheckPositionForCut"];
+                return await (Task<CutResult>) method.Invoke(null, new object[]
+                {
+                    tool,
+                    direction,
+                    throwIfCut
+                });
+            }
             //we could parse the cube once, and map all points that are close to the central point and then use those for all calculations?
             Stopwatch stopwatch = Stopwatch.StartNew();
             long verticesCut = 0;
@@ -134,22 +171,23 @@ namespace Pyro.Nc.Simulation
                     }
                     
                     tool.Colors[i] = tool.ToolConfig.ToolColor;
-                    Line2D line2D = new Line2D(new Vector2D(trV.x, trV.z), new Vector2D(realVert.x, realVert.z));
-                    var end = line2D.GetCorrectPoint(line2D.FindCircleEndPoint(tool.ToolConfig.Radius, trV.x, trV.z), new Vector2D(realVert.x, realVert.z));
-                    vertices[i] = new Vector3(end.x, vert.y - (tool.ToolConfig.VerticalMargin - distVertical), end.y);
+                    //Line2D line2D = new Line2D(new Vector2D(trV.x, trV.z), new Vector2D(realVert.x, realVert.z));
+                    //var end = line2D.GetCorrectPoint(line2D.FindCircleEndPoint(tool.ToolConfig.Radius, trV.x, trV.z), new Vector2D(realVert.x, realVert.z));
+                    //vertices[i] = new Vector3(end.x, vert.y - (tool.ToolConfig.VerticalMargin - distVertical), end.y);
+                    vertices[i] -= new Vector3(0, tool.ToolConfig.VerticalMargin - distVertical, 0);
                     verticesCut++;
                 }
-                else if (distHorizontal < altRad &&
-                         distVertical <= tool.ToolConfig.VerticalMargin && !lastWasFinalized)
-                {
-                    Line2D line2D = new Line2D(new Vector2D(trV.x, trV.z), new Vector2D(realVert.x, realVert.z));
-                    var end = (Vector3D) line2D.GetCorrectPoint(line2D.FindCircleEndPoint(altRad, trV.x, trV.z), new Vector2D(realVert.x, realVert.z));
-                    var vector3 = new Vector3(end.x, realVert.y, end.y);
-                    Debug.DrawLine(new Vector3(vector3.x, vector3.y, vector3.z), realVert, Color.green, 100f);
-                    vertices[i] = new Vector3(end.x, vert.y, end.y);
-                    lastWasFinalized = true;
-                    verticesCut++;
-                }
+                // else if (distHorizontal < altRad &&
+                //          distVertical <= tool.ToolConfig.VerticalMargin && !lastWasFinalized)
+                // {
+                //     Line2D line2D = new Line2D(new Vector2D(trV.x, trV.z), new Vector2D(realVert.x, realVert.z));
+                //     var end = (Vector3D) line2D.GetCorrectPoint(line2D.FindCircleEndPoint(altRad, trV.x, trV.z), new Vector2D(realVert.x, realVert.z));
+                //     var vector3 = new Vector3(end.x, realVert.y, end.y);
+                //     Debug.DrawLine(new Vector3(vector3.x, vector3.y, vector3.z), realVert, Color.green, 100f);
+                //     vertices[i] = new Vector3(end.x, vert.y, end.y);
+                //     lastWasFinalized = true;
+                //     verticesCut++;
+                // }
                 else
                 {
                     lastWasFinalized = false;
@@ -165,6 +203,7 @@ namespace Pyro.Nc.Simulation
             return new CutResult(stopwatch.ElapsedMilliseconds, verticesCut);
         }
 
+        [CustomMethod(nameof(TraverseFinal))]
         public static Task TraverseFinal(this ITool tool, Vector3[] points, bool draw, bool logStats)
         {
             var traverseState = Globals.MethodManager.Get("Traverse");
@@ -182,7 +221,13 @@ namespace Pyro.Nc.Simulation
 
                 default:
                 {
-                    throw new MissingMethodException("This method has not been re-implemented yet.");
+                    if (!CachedMethods.ContainsKey("Traverse"))
+                    {
+                        throw new MissingMethodException("This method has not been re-implemented yet.");
+                    }
+
+                    Task awaitableTask = (Task) CachedMethods["Traverse"].Invoke(null, new object[]{tool, points, draw, logStats});
+                    return awaitableTask;
                 }
             }
         }
@@ -194,6 +239,7 @@ namespace Pyro.Nc.Simulation
         /// <param name="points">The tool's current path.</param>
         /// <param name="draw">Whether to draw the path or not.</param>
         /// <param name="logStats">Whether to log the (averageTimeForCut) and (totalCut).</param>
+        [CustomMethod(nameof(Traverse))]
         public static async Task Traverse(this ITool tool, Vector3[] points, bool draw, bool logStats = true)
         {
             var toolValues = tool.Values;

@@ -177,6 +177,50 @@ namespace Pyro.Nc.Parsing
                                                 v => CreateMCommand(tool, typePrefixM, v, spaceSeparator));
             strg.ArbitraryCommands = acoms.ToDictionary(k => k.Split(spaceSeparator)[1], 
                                                         v => CreateOtherCommand(tool, typePrefixA, v, spaceSeparator));
+            
+            var types = AppDomain.CurrentDomain.GetAssemblies().Select(x => x.GetTypes()).SelectMany(t => t).ToArray();
+            foreach (var type in types)
+            {
+                if (type.BaseType == typeof(BaseCommand))
+                {
+                    var str = type.Name;
+                    try
+                    {
+                        if (str[0] == 'G' && char.IsDigit(str[1]))
+                        {
+                            var key = int.Parse(type.Name.Remove(0, 1));
+                            if (strg.GCommands.ContainsKey(key))
+                            {
+                                continue;
+                            }
+                            strg.GCommands.Add(key, Activator.CreateInstance(type, tool, new GCommandParameters(0, 0, 0)) as ICommand); 
+                        }
+                        else if (str[0] == 'M' && char.IsDigit(str[1]))
+                        {
+                            var key = int.Parse(type.Name.Remove(0, 1));
+                            if (strg.MCommands.ContainsKey(key))
+                            {
+                                continue;
+                            }
+                            strg.MCommands.Add(key, Activator.CreateInstance(type, tool, new MCommandParameters()) as ICommand); 
+                        }
+                        else
+                        {
+                            if (strg.ArbitraryCommands.ContainsKey(type.Name))
+                            {
+                                continue;
+                            }
+                            strg.ArbitraryCommands.Add(type.Name, Activator.CreateInstance(type, tool, new ArbitraryCommandParameters()) as ICommand);
+                        }
+                    }
+                    catch
+                    {
+                        Globals.Console.Push("An error has occured whilst adding commands to the database:",
+                            $"Value to add: \"{str}\"");
+                    }
+                }
+            }
+            
             CommandHelper._cachedKvp ??= strg.ArbitraryCommands.FirstOrDefault(kvp => kvp.Value.GetType() == typeof(Comment));
             return strg;
         }
