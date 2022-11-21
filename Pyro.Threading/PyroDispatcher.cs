@@ -25,6 +25,14 @@ namespace Pyro.Threading
         {
             Main.DoCallBack(() => function(input)); 
         }
+        
+        public static TOut ExecuteOnMain<TOut>(Func<TOut> function)
+        {
+            TOut res = default;
+            Main.DoCallBack(() => res = function());
+
+            return res;
+        }
 
         public static void ExecuteOnMain(CrossContextDelegate function)
         {

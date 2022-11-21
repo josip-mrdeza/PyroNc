@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Pyro.IO;
-
 namespace Pyro.Math.Geometry
 {
     public class Arc3D : I3DShape

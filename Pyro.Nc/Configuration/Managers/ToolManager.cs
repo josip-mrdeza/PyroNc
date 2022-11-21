@@ -12,6 +12,8 @@ namespace Pyro.Nc.Configuration.Managers
     {
         public List<ToolConfiguration> Tools;
         public string FileName = "ToolConfig.json";
+        public bool IsAsync { get; }
+
         public void Init()
         {
             Globals.ToolManager = this;
@@ -46,5 +48,7 @@ namespace Pyro.Nc.Configuration.Managers
                 Debug.LogError(e);
             }
         }
+
+        public Task InitAsync() => throw new NotImplementedException();
     }
 }

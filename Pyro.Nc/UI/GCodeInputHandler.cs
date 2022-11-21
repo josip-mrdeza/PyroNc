@@ -83,6 +83,11 @@ namespace Pyro.Nc.UI
             ViewHandler.ShowOne("3DView");
 
             //var currentCommand = Globals.Tool.Values.Current;
+            if (Globals.Tool.Values.IsPaused)
+            {
+                await Globals.Tool.Resume();
+                return;
+            }
             CommandHelper.PreviousModal = null;
             var variables = Text.text.ToUpper(CultureInfo.InvariantCulture)
                                 .Split('\n')
@@ -95,7 +100,15 @@ namespace Pyro.Nc.UI
 
             foreach (var command in arr)
             {
+                if (Globals.Tool.Values.IsReset)
+                {
+                    return;
+                }
                 await Globals.Tool.UseCommand(command, true);
+                if (command is M02 or M30)
+                {
+                    return;
+                }
             }
         }
 

@@ -27,7 +27,6 @@ public class ResetButton : MonoBehaviour
 
             tool.Colors = Enumerable.Repeat(color, tool.Vertices.Count).ToList();
             controller.Current.colors = tool.Colors.GetInternalArray();
-
             //Globals.Tool.
         });
     }

@@ -2,7 +2,6 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;

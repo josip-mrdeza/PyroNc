@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,7 +12,8 @@ namespace Pyro.IO
     {
         public Dictionary<string, FileInfo> Files { get; private set; }
         public Dictionary<string, DirectoryInfo> Folders { get; private set; }
-        public string Site { get; set; }
+        public string Site { get; private set; }
+        public DirectoryInfo Info { get; private set; }
         private static readonly Dictionary<string, LocalRoaming> Roamings = new Dictionary<string, LocalRoaming>();
 
         private static JsonSerializerOptions Options = new JsonSerializerOptions()
@@ -19,7 +21,7 @@ namespace Pyro.IO
             PropertyNameCaseInsensitive = true,
             WriteIndented = true
         };
-        private byte[] _emptyBytes = new byte[0];
+        private byte[] _emptyBytes = Array.Empty<byte>();
 
         private LocalRoaming(string id)
         {
@@ -46,13 +48,22 @@ namespace Pyro.IO
             Site = $"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}\\{name}\\";
             if (!Directory.Exists(Site))
             {
-                Directory.CreateDirectory(Site);
+                Info = Directory.CreateDirectory(Site);
+            }
+            else
+            {
+                Info = new DirectoryInfo(Site);
             }
 
             var files = Directory.EnumerateFiles(Site);
             var folders = Directory.EnumerateDirectories(Site);
             Files = files.ToDictionary(k => k.Remove(0, k.LastIndexOf('\\') + 1), fi => new FileInfo(fi));
             Folders = folders.ToDictionary(k => k.Remove(0, k.LastIndexOf('\\') + 1), di => new DirectoryInfo(di));
+        }
+
+        public IEnumerable<DirectoryInfo> ListAllDirectories()
+        {
+            return Info.EnumerateDirectories();
         }
 
         public IEnumerable<T> ListAll<T>()

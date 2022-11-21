@@ -15,7 +15,11 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
 
         public float GetValue(string s)
         {
-            return Values[s];
+            if (Values.ContainsKey(s))
+            {
+                return Values[s];
+            }
+            return Single.NaN;
         }
         
         public float AddValue(string key, float val)

@@ -32,7 +32,14 @@ namespace Pyro.Nc.UI
             var fileInfo = Globals.Roaming.AddFile("pyroLog.txt");
             lock (_lock)
             {
-                Stream = fileInfo.CreateText();
+                try
+                {
+                    Stream = fileInfo.CreateText();
+                }
+                catch (Exception e)
+                {
+                    Stream = Globals.Roaming.AddFile("pyroLogClient.txt").CreateText();
+                }
             }
             PushTextStatic($"Created Log Stream in: {fileInfo.FullName}.");
             return fileInfo;

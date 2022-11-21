@@ -64,6 +64,7 @@ namespace Pyro.Nc.Simulation
                 Position = Values.CurrentPath.Points.Last();
                 return Task.CompletedTask;
             };
+            var m0 = Values.Storage.TryGetCommand("M0") as M00;
             var copy = Values.Storage.TryGetCommand("TRANS").Copy() as Trans;
             var copy2 = Values.Storage.TryGetCommand("M05").Copy() as M05;
             var copy3 = Values.Storage.TryGetCommand("G40").Copy() as G40;
@@ -105,11 +106,18 @@ namespace Pyro.Nc.Simulation
                 Push("ProgramEnd->RESET SETTINGS");
                 Values.FeedRate.Set(0f);
                 Values.SpindleSpeed.Set(0f);
+                Position = new Vector3(0, 50, 0);
                 return Task.CompletedTask;
             });
+            EventSystem.AddAsyncSubscriber("RapidFeedError", async () =>
+            {
+                await this.Pause();
+                PushComment("A rapid feed error has occured whilst using the command '{0}'".Format(Values.Current), Color.red);
+            });
+            Position = new Vector3(0, 50, 0);
         }
 
-        private void FixedUpdate()
+        private async void FixedUpdate()
         {
             if (MovementType == -1 && Values.Current is
             {
@@ -118,7 +126,7 @@ namespace Pyro.Nc.Simulation
             {
                 _contained = true;
                 var pos = Position;
-                var cutResult = this.CheckPositionForCut(Direction.FromVectors(pos, pos + Vector3.down), Values.Current.GetType() == typeof(G00));
+                var cutResult = await this.CheckPositionForCut(Direction.FromVectors(pos, pos + Vector3.down), Values.Current.GetType() == typeof(G00));
                 Push("Traverse finished!",
                                                "Total vertices cut: {0} ({1}%)".Format(cutResult.TotalVerticesCut, 
                                                    ((double) cutResult.TotalVerticesCut / Vertices.Count).Round()),

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Nc.Exceptions;
 using Pyro.Nc.Simulation;
@@ -9,6 +10,8 @@ namespace Pyro.Nc.Configuration.Managers
     {
         private Dictionary<string, MethodState> MethodStates;
         private const string MethodStatesJson = "MethodStates.json";
+        public bool IsAsync { get; }
+
         public void Init()
         {
             Globals.MethodManager = this;
@@ -25,6 +28,8 @@ namespace Pyro.Nc.Configuration.Managers
                 roaming.AddFile(MethodStatesJson, MethodStates);
             }
         }
+
+        public Task InitAsync() => throw new System.NotImplementedException();
 
         public MethodState Get(string id)
         {

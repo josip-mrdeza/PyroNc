@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Pyro.IO;
 using PyroLauncher.Api;
 
@@ -9,6 +10,8 @@ namespace Pyro.Nc.Configuration.Managers
     {
         public AppConfiguration PyNcConfiguration;
         private string AppsFileID = "Apps.json";
+
+        public bool IsAsync { get; }
 
         public void Init()
         {
@@ -33,5 +36,7 @@ namespace Pyro.Nc.Configuration.Managers
             
             launcherRoaming.ModifyFile(AppsFileID, appConfigs);
         }
+
+        public Task InitAsync() => throw new NotImplementedException();
     }
 }

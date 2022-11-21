@@ -15,6 +15,16 @@ namespace Pyro.Math
             return (float) System.Math.Abs(x);
         }
         [Pure]
+        public static decimal Abs(this decimal x)
+        {
+            return System.Math.Abs(x);
+        }
+        [Pure]
+        public static decimal SquareRoot(this decimal x)
+        {
+            return (decimal) System.Math.Sqrt((double) x);
+        }
+        [Pure]
         public static float SquareRoot(this float x)
         {
             return (float) System.Math.Sqrt(x);
@@ -30,7 +40,17 @@ namespace Pyro.Math
             return x * x;
         }
         [Pure]
+        public static decimal Squared(this decimal x)
+        {
+            return x * x;
+        }
+        [Pure]
         public static float Cubed(this float x)
+        {
+            return x * x * x;
+        }
+        [Pure]
+        public static decimal Cubed(this decimal x)
         {
             return x * x * x;
         }

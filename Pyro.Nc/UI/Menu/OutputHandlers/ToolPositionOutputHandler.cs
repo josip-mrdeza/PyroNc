@@ -8,6 +8,10 @@ namespace Pyro.Nc.UI.Menu.OutputHandlers
     {
         private void Update()
         {
+            if (Globals.Tool is null)
+            {
+                return;
+            }
             ValueText.text = Globals.Tool.Position.ToString();
         }
     }

@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Math;
+using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Parsing.Rules;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
@@ -14,7 +16,7 @@ namespace Pyro.Nc.Configuration.Startup
     public class Startup : InitializerRoot
     {
         public static List<IManager> Managers;
-        public override void Initialize()
+        public override async Task InitializeAsync()
         {
             QualitySettings.shadows = ShadowQuality.All;
             QualitySettings.shadowProjection = ShadowProjection.CloseFit;
@@ -22,7 +24,7 @@ namespace Pyro.Nc.Configuration.Startup
             Push($"QualityLevel: {QualitySettings.GetQualityLevel().ToString()}");
             Push("Application Startup initializing...");
             Stopwatch stopwatch = Stopwatch.StartNew();
-            InitializeManagers();
+            await InitializeManagers();
             var rules = Globals.Rules;
             rules.AddRule(new MCommandPriorityRule("SCPR"));
             rules.AddRule(new CommandPriorityRule("CPR"));
@@ -34,17 +36,18 @@ namespace Pyro.Nc.Configuration.Startup
             Push($"Startup complete in {stopwatch.Elapsed.TotalMilliseconds.Round()} ms!");
         }
 
-        public void InitializeManagers()
+        public async Task InitializeManagers()
         {
             LocalRoaming roaming = LocalRoaming.OpenOrCreate("PyroNc\\Configuration");
-            if (!roaming.Exists("Managers.json"))
-            {
-                CreateManagersFromMemory(roaming);
-            }
-            else
-            {
-                CreateManagersFromDisk(roaming);
-            }
+            // if (!roaming.Exists("Managers.json"))
+            // {
+            //     CreateManagersFromMemory(roaming);
+            // }
+            // else
+            // {
+            //     CreateManagersFromDisk(roaming);
+            // }
+            await CreateManagersFromMemory(roaming);
         }
 
         private void CreateManagersFromDisk(LocalRoaming roaming)
@@ -63,10 +66,10 @@ namespace Pyro.Nc.Configuration.Startup
             }
         }
 
-        private void CreateManagersFromMemory(LocalRoaming roaming)
+        private async Task CreateManagersFromMemory(LocalRoaming roaming)
         {
             Stopwatch stopwatch = new Stopwatch();
-            Managers = new List<IManager>(10);
+            Managers = new List<IManager>(15);
             var managersTypes = new List<string>();
             foreach (var type in typeof(ManagerStorage).Assembly.GetTypes())
             {
@@ -74,7 +77,14 @@ namespace Pyro.Nc.Configuration.Startup
                 {
                     var manager = (IManager) Activator.CreateInstance(type);
                     stopwatch.Restart();
-                    manager.Init();  
+                    if (manager.IsAsync)
+                    {
+                        await manager.InitAsync();
+                    }
+                    else
+                    {
+                        manager.Init();
+                    }
                     Push($"Manager '{type.FullName}' completed in {stopwatch.Elapsed.TotalMilliseconds.Round()} ms!");
                     stopwatch.Stop();
                     Managers.Add(manager);

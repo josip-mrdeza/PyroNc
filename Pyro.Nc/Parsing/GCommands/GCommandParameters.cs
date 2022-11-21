@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -14,7 +15,11 @@ namespace Pyro.Nc.Parsing
         public Dictionary<string, float> Values { get; set; }
         public float GetValue(string s)
         {
-            return Values[s];
+            if (Values.ContainsKey(s))
+            {
+                return Values[s];
+            }
+            return Single.NaN;
         }
 
         public float AddValue(string key, float val)

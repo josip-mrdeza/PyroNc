@@ -48,6 +48,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathTests", "MathTests\Math
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pyro.Nc.Cpp", "Pyro.Nc.Cpp\Pyro.Nc.Cpp.vcxproj", "{1A1397FD-F943-4BFC-93E1-C4923916D138}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vectors", "..\TestProjects\Vectors\Vectors.csproj", "{44589AC2-ED03-4369-A004-9335D1D5FF51}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -150,5 +152,9 @@ Global
 		{1A1397FD-F943-4BFC-93E1-C4923916D138}.Debug|Any CPU.Build.0 = Debug|Win32
 		{1A1397FD-F943-4BFC-93E1-C4923916D138}.Release|Any CPU.ActiveCfg = Release|Win32
 		{1A1397FD-F943-4BFC-93E1-C4923916D138}.Release|Any CPU.Build.0 = Release|Win32
+		{44589AC2-ED03-4369-A004-9335D1D5FF51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{44589AC2-ED03-4369-A004-9335D1D5FF51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{44589AC2-ED03-4369-A004-9335D1D5FF51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{44589AC2-ED03-4369-A004-9335D1D5FF51}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -95,6 +95,10 @@ namespace Pyro.Nc.Parsing
             var type = GetType().Name;
             var toDraw = draw.ToString();
             await Tool.WaitUntilActionIsValid();
+            if (Tool.Values.IsReset)
+            {
+                return;
+            }
             UpdateCurrent();
             if (InteropManager.RichPresence is not null)
             {
@@ -277,7 +281,18 @@ namespace Pyro.Nc.Parsing
                 Builder.Append(' ');
                 foreach (var value in Parameters.Values)
                 {
-                    Builder.Append(value.Key).Append(value.Value).Append(' ');
+                    if (!Single.IsNaN(value.Value))
+                    {
+                        if (value.Key == "Y")
+                        {
+                            Builder.Append("Z");
+                        }
+                        else if (value.Key == "Z")
+                        {
+                            Builder.Append("Y");
+                        }
+                        Builder.Append(value.Value).Append(' ');
+                    }
                 }
                 
                 return Builder.ToString();

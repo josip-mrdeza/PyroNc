@@ -53,6 +53,8 @@ namespace Pyro.Nc.Simulation
         [JsonIgnore] public Path CurrentPath { get; set; }
         [JsonIgnore] public Target Destination { get; set; }
         public bool IsAllowed { get; set; }
+        public bool IsPaused { get; set; }
+        public bool IsReset { get; set; }
         public bool IsIncremental { get; set; }
         public bool IsImperial { get; set; }
         public bool IsMilling { get; set; }
@@ -62,7 +64,7 @@ namespace Pyro.Nc.Simulation
         [JsonIgnore] public Vector3[] WorkOffsets { get; set; }
         public Limiter SpindleSpeed { get; set; }
         public Limiter FeedRate { get; set; }
-        public float Radius => Globals.Tool.ToolConfig.Radius;
+        public float Radius => Globals.Tool is null ? 0 : Globals.Tool.ToolConfig.Radius;
         public float SpindleSpeedLimit { set => SpindleSpeed.UpperLimit = value; } 
         public float FeedRateLimit { set => FeedRate.UpperLimit = value; }
         public TimeSpan FastMoveTick { get; set; }

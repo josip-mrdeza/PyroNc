@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
@@ -9,6 +10,8 @@ namespace Pyro.Nc.Configuration.Managers
     public class InteropManager : IManager
     {
         public static object RichPresence;
+        public bool IsAsync { get; }
+
         public void Init()
         {
             var roaming = LocalRoaming.OpenOrCreate("PyroNc\\JGeneral");
@@ -33,5 +36,7 @@ namespace Pyro.Nc.Configuration.Managers
                 PyroConsoleView.PushTextStatic($"Failed to initialize rich presence, missing assembly components - '{fileId}'!");
             }
         }
+
+        public Task InitAsync() => throw new NotImplementedException();
     }
 }

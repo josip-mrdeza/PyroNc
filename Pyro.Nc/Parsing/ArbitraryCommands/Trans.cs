@@ -8,6 +8,7 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
     public class Trans : BaseCommand
     {
+        //TODO fix trans, does not work if the tool is at trans pos, moved tool backward for trans pos, which is very wrong.
         public Trans(ITool tool, ArbitraryCommandParameters parameters) : base(tool, parameters)
         {
             Parameters.AddValue("X", 0);
@@ -19,10 +20,11 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
 
         public override Task Execute(bool draw)
         {
+            var defaultValues = Globals.ReferencePointParser.ReferencePoint;
             Tool.Values.TransPosition =
-                new Vector3(ResolveNan(Parameters.GetValue("X"), 0),
-                            ResolveNan(Parameters.GetValue("Y"), 0),
-                            ResolveNan(Parameters.GetValue("Z"), 0));
+                new Vector3(ResolveNan(Parameters.GetValue("X"), defaultValues.x),
+                            ResolveNan(Parameters.GetValue("Y"), defaultValues.y),
+                            ResolveNan(Parameters.GetValue("Z"), defaultValues.z));
             var viewer = Globals.ReferencePointHandler.Trans;
             viewer.Position = Tool.Values.TransPosition;
             viewer.IsDirty = true;

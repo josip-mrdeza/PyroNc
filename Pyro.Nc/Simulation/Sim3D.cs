@@ -19,17 +19,27 @@ namespace Pyro.Nc.Simulation
     public static class Sim3D
     {
         /// <summary>
+        /// Allocated a vector3 array of 120KB.
+        /// </summary>
+        private static Vector4[] TempArray = new Vector4[10_000];
+
+        private static int TempArrayIndex = 0;
+        /// <summary>
         /// Stalls the next action (ICommand) asynchronously until the previous one completes.
         /// </summary>
         /// <param name="tool">The tool.</param>
         public static async Task WaitUntilActionIsValid(this ITool tool)
         {
             var toolValues = tool.Values;
-            if (!toolValues.IsAllowed)
+            if (!toolValues.IsAllowed || toolValues.IsPaused)
             {
                 Debug.Log("Waiting...");
-                while (!toolValues.IsAllowed)
+                while (!toolValues.IsAllowed || toolValues.IsPaused)
                 {
+                    if (toolValues.IsReset)
+                    {
+                        return;
+                    }
                     await Task.Delay(toolValues.FastMoveTick, toolValues.TokenSource.Token);
                     await Task.Yield();
                 }
@@ -92,52 +102,57 @@ namespace Pyro.Nc.Simulation
         /// <returns>An asynchronous task resulting in a <see cref="CutResult"/> statistic, defining time spent cutting and total vertices cut.</returns>
         /// <exception cref="RapidFeedCollisionException">This exception is thrown if the command used for the execution of this action is of type <see cref="G00"/>,
         /// causing a rapid feed collision (High speed hit into the workpiece).</exception>
-        public static CutResult CheckPositionForCut(this ITool tool, Direction direction, bool throwIfCut)
+        public static async Task<CutResult> CheckPositionForCut(this ITool tool, Direction direction, bool throwIfCut)
         {
             //we could parse the cube once, and map all points that are close to the central point and then use those for all calculations?
             Stopwatch stopwatch = Stopwatch.StartNew();
-            var toolRadius = tool.ToolConfig.Radius;
             long verticesCut = 0;
             var pos = tool.Position;
             var tr = tool.Cube.transform;
             
-            var v = new Vector3(0, 0.25f, 0);
             var vertices = tool.Vertices;
             var trVT = tool.Temp.transform;
             var trV = trVT.position;
+            var altRad = tool.ToolConfig.Radius + tool.ToolConfig.Radius / 8f;
+            bool lastWasFinalized = false;
             for (int i = 0; i < vertices.Count; i++)
             {
                 var vert = vertices[i];
                 var realVert = tr.TransformPoint(vert);
-                var dist = Space3D.Distance(trV.y, realVert.y);
-                if ((Vector2.Distance(new Vector2(realVert.x, realVert.z), new Vector2(pos.x, pos.z)) < tool.ToolConfig.Radius
-                        && dist+0.5f <= tool.ToolConfig.VerticalMargin))
+                var distVertical = Space3D.Distance(trV.y, realVert.y);
+                var distHorizontal = Vector2.Distance(new Vector2(realVert.x, realVert.z), new Vector2(pos.x, pos.z));
+                if (distHorizontal < tool.ToolConfig.Radius &&
+                    distVertical <= tool.ToolConfig.VerticalMargin)
                 {
-                    /*if (!tool.IsOkayToCutVertex(realVert))
-                    {
-                        if (throwIfCut)
-                        {
-                            tool.EventSystem.FireAsync("RapidFeedError").Wait();
-                            throw new RapidFeedCollisionException(tool.Values.Current);
-                        }
-                        //Debug.Log("+");
-                        Debug.DrawLine(trV, realVert, Color.red, 10f);
-                        tool.Colors[i] = tool.ToolConfig.ToolColor;
-                        vertices[i] -= new Vector3(0, dist);
-                        verticesCut++;
-                    }*/
                     if (throwIfCut)
                     {
-                        tool.EventSystem.FireAsync("RapidFeedError").Wait();
-                        throw new RapidFeedCollisionException(tool.Values.Current);
+                        //tool.EventSystem.FireAsync("RapidFeedError", new RapidFeedCollisionException(tool.Values.Current)).Wait();
+                        stopwatch.Stop();
+                        verticesCut++;
+                        return new CutResult(stopwatch.ElapsedMilliseconds, verticesCut, true);
+                        //throw new RapidFeedCollisionException(tool.Values.Current);
                     }
-                    //Debug.Log("+");
-                    Debug.DrawLine(trV, realVert, Color.red, 10f);
+                    
                     tool.Colors[i] = tool.ToolConfig.ToolColor;
-                    vertices[i] -= new Vector3(0, tool.ToolConfig.VerticalMargin - dist);
+                    Line2D line2D = new Line2D(new Vector2D(trV.x, trV.z), new Vector2D(realVert.x, realVert.z));
+                    var end = line2D.GetCorrectPoint(line2D.FindCircleEndPoint(tool.ToolConfig.Radius, trV.x, trV.z), new Vector2D(realVert.x, realVert.z));
+                    vertices[i] = new Vector3(end.x, vert.y - (tool.ToolConfig.VerticalMargin - distVertical), end.y);
                     verticesCut++;
-                    realVert = tr.TransformPoint(vertices[i]);
-                    Debug.DrawLine(trV, realVert, Color.green, 10f);
+                }
+                else if (distHorizontal < altRad &&
+                         distVertical <= tool.ToolConfig.VerticalMargin && !lastWasFinalized)
+                {
+                    Line2D line2D = new Line2D(new Vector2D(trV.x, trV.z), new Vector2D(realVert.x, realVert.z));
+                    var end = (Vector3D) line2D.GetCorrectPoint(line2D.FindCircleEndPoint(altRad, trV.x, trV.z), new Vector2D(realVert.x, realVert.z));
+                    var vector3 = new Vector3(end.x, realVert.y, end.y);
+                    Debug.DrawLine(new Vector3(vector3.x, vector3.y, vector3.z), realVert, Color.green, 100f);
+                    vertices[i] = new Vector3(end.x, vert.y, end.y);
+                    lastWasFinalized = true;
+                    verticesCut++;
+                }
+                else
+                {
+                    lastWasFinalized = false;
                 }
             }
 
@@ -185,6 +200,7 @@ namespace Pyro.Nc.Simulation
             var throwIfCutIsDetected = toolValues.Current.GetType() == typeof(G00);
             double averageTimeForCut = 0;
             long totalCut = 0;
+            TempArrayIndex = 0;
             tool.SetupTranslation(points);
             var currentPosition = tool.Position;
             var last = points.Last();
@@ -192,9 +208,13 @@ namespace Pyro.Nc.Simulation
             {
                 draw.DrawTranslation(currentPosition, point);
                 tool.Position = point;
-                var cutResult = tool.CheckPositionForCut(Direction.FromVectors(currentPosition, point), throwIfCutIsDetected);
+                var cutResult = await tool.CheckPositionForCut(Direction.FromVectors(currentPosition, point), throwIfCutIsDetected);
                 LogCutStatistics(logStats, cutResult,  ref averageTimeForCut, ref totalCut);
                 currentPosition = point;
+                if (cutResult.Threw)
+                {
+                    throw new RapidFeedCollisionException(tool.Values.Current);
+                }
                 await FinishCurrentMove(toolValues);
                 if (toolValues.TokenSource.IsCancellationRequested)
                 {
@@ -299,8 +319,8 @@ namespace Pyro.Nc.Simulation
         }
         internal static async Task FinishCurrentMove(ToolValues toolValues)
         {
-            await Task.Delay(toolValues.FastMoveTick);
             await Task.Yield();
+            await Task.Delay(toolValues.FastMoveTick);
         }
         internal static void LogCutStatistics(bool logStats, CutResult cutResult, ref double averageTimeForCut, ref long totalCut)
         {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using Pyro.IO;
 using Pyro.Math;
 using Pyro.Nc.Exceptions;
@@ -69,7 +70,7 @@ namespace Pyro.Nc.Parsing
                 Globals.Rules.Try(section);
                 if (Storage.FetchGCommand(section) != null 
                     || Storage.FetchMCommand(section) != null
-                    || Storage.FetchArbitraryCommand(section) != null)
+                    || Storage.FetchArbitraryCommand(section) != null || section.StartsWith("cycle", StringComparison.InvariantCultureIgnoreCase))
                 {
                     activated = true;
                     indices.Add(i);
@@ -114,6 +115,7 @@ namespace Pyro.Nc.Parsing
 
             return arrOfCommands;
         }
+        
         public static List<ICommand> CollectCommands(this List<string[]> arrOfCommands)
         {
             arrOfCommands = arrOfCommands.Select(x => x.Where(y => !string.IsNullOrEmpty(y)).ToArray()).ToList();
@@ -142,6 +144,48 @@ namespace Pyro.Nc.Parsing
                     var command = Storage.TryGetCommand(id).Copy();
                     if (command is null)
                     {
+                        continue;
+                    }
+
+                    if (command is Cycle cycle)
+                    {
+                        var fullString = string.Join("", arrOfCommands[arrOfCommands.FindIndex(x => 
+                                                                           x.FirstOrDefault(y => y.ToUpperInvariant().Contains("CYCLE")) != null)]);
+                        StringBuilder builder = new StringBuilder(fullString);
+
+                        var parameterListString = builder.Remove(0, fullString.IndexOf('(')+1).Replace(")", "").ToString();
+                        builder.Clear();
+                        for (int i = 0; i < parameterListString.Length; i++)
+                        {
+                            char c = parameterListString[i];
+                            if (c == ',')
+                            {
+                                char leading = parameterListString.ElementAtOrDefault(i + 1);
+                                builder.Append(' ');
+                                if (leading == ',')
+                                {
+                                    builder.Append("SKIP");
+                                }
+                            }
+                            else
+                            {
+                                builder.Append(c);
+                            }
+                        }
+
+                        var name = fullString.Substring(0, fullString.IndexOf('(')).ToUpperInvariant();
+                        string parameters = builder.ToString();
+                        float[] splitParameters = parameters.Split(' ').Select(x =>
+                        {
+                            var b = float.TryParse(x, out var f);
+
+                            return b ? f : float.NaN;
+                        }).ToArray();
+                        var fullTypeName = "Pyro.Nc.Parsing.Cycles.{0}".Format(name);
+                        var type = Type.GetType(fullTypeName);
+                        Cycle actualCycle = Activator.CreateInstance(type, Globals.Tool, new ArbitraryCommandParameters(), splitParameters) as Cycle;
+                        
+                        commands.Add(actualCycle);
                         continue;
                     }
 

@@ -26,6 +26,10 @@ public class RadiusDebugView : LineViewer
 
     public override void Update()
     {
+        if (Tool is null)
+        {
+            return;
+        }
         IsDirty = true;
         Radius = Tool.Values.Radius;
         base.Update();

@@ -5,11 +5,8 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
     public class Cycle : BaseCommand
     {
-        public Cycle(ITool tool, ICommandParameters parameters, bool throwOnNull = false, Group family = Group.None) : base(tool, parameters, throwOnNull, family)
+        public Cycle(ITool tool, ICommandParameters parameters) : base(tool, parameters)
         {
-            
         }
-        
-        public string CycleId { get; set; }
     }
 }

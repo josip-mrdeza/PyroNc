@@ -135,7 +135,18 @@ namespace Pyro.Nc.Parsing
             command ??= FetchMCommand(upper);
             command ??= FetchArbitraryCommand(upper);
             command ??= FetchUnresolved(upper);
-            return command;
+            if (command is not null)
+            {
+                return command;
+            }
+            if (upper.StartsWith("CYCLE"))
+            {
+                var cycle = new Cycle(Globals.Tool, new ArbitraryCommandParameters());
+                
+                return cycle;
+            }
+
+            return null;
         }
 
         public static ValueStorage CreateFromFile(ITool tool)
