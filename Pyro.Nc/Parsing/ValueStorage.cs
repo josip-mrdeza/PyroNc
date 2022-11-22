@@ -178,7 +178,7 @@ namespace Pyro.Nc.Parsing
             strg.ArbitraryCommands = acoms.ToDictionary(k => k.Split(spaceSeparator)[1], 
                                                         v => CreateOtherCommand(tool, typePrefixA, v, spaceSeparator));
             
-            var types = AppDomain.CurrentDomain.GetAssemblies().Select(x => x.GetTypes()).SelectMany(t => t).ToArray();
+            var types = CustomAssemblyManager.Self.ImportedAssemblies.Select(x => x.GetTypes()).SelectMany(t => t).ToArray();
             foreach (var type in types)
             {
                 if (type.BaseType == typeof(BaseCommand))
@@ -213,10 +213,11 @@ namespace Pyro.Nc.Parsing
                             strg.ArbitraryCommands.Add(type.Name, Activator.CreateInstance(type, tool, new ArbitraryCommandParameters()) as ICommand);
                         }
                     }
-                    catch
+                    catch (Exception e)
                     {
                         Globals.Console.Push("An error has occured whilst adding commands to the database:",
                             $"Value to add: \"{str}\"");
+                        Globals.Console.Push($"Descriptive look: {e}");
                     }
                 }
             }

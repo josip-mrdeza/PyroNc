@@ -151,6 +151,18 @@ namespace Pyro.IO
             return fn;
         }
         
+        public FileInfo AddFile(string variableId, byte[] data)
+        {
+            if (Files.ContainsKey(variableId))
+            {
+                return Files[variableId];
+            }
+            var fn = new FileInfo(Site + variableId);
+            Files.Add(variableId, fn);
+            File.WriteAllBytes(fn.FullName, data);
+            return fn;
+        }
+        
         public FileInfo AddFile(string variableId, string content)
         {
             if (Files.ContainsKey(variableId))

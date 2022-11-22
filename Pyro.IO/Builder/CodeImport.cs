@@ -20,14 +20,14 @@ public static class CodeImport
     {
         //typeof(Task).Assembly.Location,
         typeof(Enumerable).Assembly.Location,
-        _LoadedAssemblies.First(a => a.GetName().Name == "UnityEngine.CoreModule").Location,
-        _LoadedAssemblies.First(a => a.GetName().Name == "UnityEngine").Location,
+        _LoadedAssemblies.FirstOrDefault(a => a.GetName().Name == "UnityEngine.CoreModule")?.Location,
+        _LoadedAssemblies.FirstOrDefault(a => a.GetName().Name == "UnityEngine")?.Location,
         typeof(CodeImport).Assembly.Location,
         typeof(SharedMemory).Assembly.Location,
         typeof(Operations).Assembly.Location,
-        _LoadedAssemblies.First(a => a.GetName().Name == "Pyro.Nc").Location,
+        _LoadedAssemblies.FirstOrDefault(a => a.GetName().Name == "Pyro.Nc")?.Location,
         typeof(PyroDispatcher).Assembly.Location
-    };
+    }.Where(x => x is not null).ToArray();
 
     private static readonly string[] _assemblyNames = _assemblyPaths.Select(x =>
     {
@@ -50,7 +50,7 @@ public static class CodeImport
                             "\nusing Pyro.Nc.Parsing.GCommands;\nusing Pyro.Nc.Parsing.MCommands;\nusing Pyro.Nc.Exceptions;" +
                             "\nusing Pyro.Nc.Configuration;\nusing Pyro.Nc.Configuration.Managers;" +
                             "\nusing Pyro.Nc.Configuration.Sim3D_Legacy;\nusing Pyro.Nc.Configuration.Startup;" +
-                            "\nusing UnityEngine;\n//using UnityEngine.CoreModule;\n\n");
+                            "\nusing UnityEngine;\nusing Pyro.Nc.UI.UI_Screen\n\n");
             if (lines.Length == 0)
             {
                 foreach (var assemblyName in _assemblyNames)
@@ -78,13 +78,13 @@ public static class CodeImport
             File.WriteAllLines(filePath, l2);
         }
     }
-    public static CompilerResults ImportTextLibrary(string assemblyName, string path, params string[] filePaths)
+    public static CompilerResults ImportTextLibrary(string assemblyName, string path, string[] referencePaths, params string[] fileSourcePaths)
     {
         CSharpCodeProvider codeProvider = new CSharpCodeProvider();
-        AddAllImports(filePaths);
-        var cr = codeProvider.CompileAssemblyFromSource(new CompilerParameters(_assemblyPaths.Where(x => File.Exists(x)).ToArray(), 
+        AddAllImports(fileSourcePaths);
+        var cr = codeProvider.CompileAssemblyFromSource(new CompilerParameters(referencePaths ?? _assemblyPaths.Where(x => File.Exists(x)).ToArray(), 
                                                                                Path.Combine(path, assemblyName + ".dll")), 
-                                                        filePaths.Where(f => !f.EndsWith(".dll")).Select(x => File.ReadAllText(x)).ToArray());
+                                                        fileSourcePaths.Where(f => !f.EndsWith(".dll")).Select(x => File.ReadAllText(x)).ToArray());
         codeProvider.Dispose();
         return cr;
     }
