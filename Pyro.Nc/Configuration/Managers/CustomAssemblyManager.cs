@@ -27,18 +27,30 @@ public class CustomAssemblyManager : IManager
     {
         Self = this;
         ImportedAssemblies = new List<Assembly>();
+        LocalRoaming compilerFolder = LocalRoaming.OpenOrCreate("PyroNc\\Compiler");
+        var path = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName)!;
+        var fullPath = Path.Combine(path, "bin\\Debug");
+        DirectoryInfo di = new DirectoryInfo(fullPath);
+        var compilerFiles = di.GetFiles();
+        foreach (var file in compilerFiles)
+        {
+            if (!compilerFolder.Exists(file.Name))
+            {
+                compilerFolder.AddFile(file.Name, File.ReadAllBytes(file.FullName));
+                Globals.Console.Push($"Adding missing file: '{file.Name}' to compiler dir '{compilerFolder.Site}'.");
+            }
+        }
+        LocalRoaming roaming2 = LocalRoaming.OpenOrCreate("PyroNc\\Compiler\\References");
+        foreach (var assemblyPath in CodeImport.AssemblyPaths)
+        {
+            roaming2.AddFile(Path.GetFileName(assemblyPath), File.ReadAllBytes(assemblyPath));
+        }
         await Task.Run(() =>
         {
             var roaming = LocalRoaming.OpenOrCreate("PyroNc\\Configuration\\Plugins");
-            LocalRoaming roaming2 = LocalRoaming.OpenOrCreate("PyroNc\\Compiler\\References");
-            foreach (var assemblyPath in CodeImport.AssemblyPaths)
-            {
-                roaming2.AddFile(Path.GetFileName(assemblyPath), File.ReadAllBytes(assemblyPath));
-            }
             Globals.Console.Push("[CustomAssemblyManager]");
             foreach (var dir in roaming.ListAllDirectories().ToArray())
             {
-                string str = null;
                 try
                 {
                     var files = dir.GetFiles();
@@ -64,8 +76,12 @@ public class CustomAssemblyManager : IManager
                     startInfo.Arguments = $"\"{assemblyName}\" \"{dir.FullName}\" {string.Join(" ", files.Select(x => $"\"{x.FullName}\"").ToArray())}";
                     startInfo.UseShellExecute = false;
                     startInfo.RedirectStandardOutput = true;
-                    var process = Process.Start(startInfo);
+                    var process = Process.Start(startInfo);    
                     process.OutputDataReceived += OnWrite;
+                    process.Exited += (sender, args) =>
+                    {
+                        Globals.Console.Push(process.StandardOutput.ReadToEnd());
+                    };
                     process.WaitForExit();
                     var assembly = Assembly.LoadFrom(Path.Combine(dir.FullName, assemblyName) + ".dll");
                     ImportedAssemblies.Add(assembly);

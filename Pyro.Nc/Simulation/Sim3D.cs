@@ -40,7 +40,6 @@ namespace Pyro.Nc.Simulation
                             try
                             {
                                 d.Add(method.Name, method);
-                                Globals.Console.Push($"Added method '{method.Name}' to the cached dict.");
                             }
                             catch
                             {
@@ -49,6 +48,11 @@ namespace Pyro.Nc.Simulation
                         }
                     }
                 }
+                
+                Globals.Console.Push(new string[]
+                {
+                    $"Added {d.Count.ToString()} methods to the cached dictionary.\n    Methods:"
+                }.Concat(d.Keys).ToArray());
                 return d;
             });
         /// <summary>

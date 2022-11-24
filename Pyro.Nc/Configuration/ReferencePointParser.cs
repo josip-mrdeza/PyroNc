@@ -17,12 +17,8 @@ namespace Pyro.Nc.Configuration
             Globals.ReferencePointParser = this;
             PyroConsoleView.PushTextStatic("Starting ReferencePointParser in path:", Globals.Roaming?.Site);
             referencePointsTxt = LocalRoaming.OpenOrCreate("PyroNc\\Configuration").ReadFileAsText("referencePoints.txt").Split('\n');
-            PyroConsoleView.PushTextStatic("ReferencePointParser:", "{0} lines".Format(referencePointsTxt.Length));
-            PyroConsoleView.PushTextStatic(string.Join("\n", _cachedValues
-                                                             .Select(x => x.ToString())
-                                                             .Prepend("ReferencePointParser:")));
             var valid = referencePointsTxt.Where(l => !l.StartsWith("//")).ToArray();
-            PyroConsoleView.PushTextStatic(valid);
+            PyroConsoleView.PushTextStatic(new string[]{""}.Concat(valid).ToArray());
             _cachedValues = valid.Select(s => s.Split(':')[1])
                                  .Select(vc =>
                                  {
