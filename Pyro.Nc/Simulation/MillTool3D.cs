@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Pyro.IO;
 using Pyro.IO.Events;
 using Pyro.Math;
 using Pyro.Nc.Configuration;
@@ -48,6 +49,27 @@ namespace Pyro.Nc.Simulation
             Vertices = new List<Vector3>(Workpiece.Current.vertices);
             Triangles = new List<int>(Workpiece.Current.triangles);
             Colors = Enumerable.Repeat(color, Vertices.Count).ToList();
+            await Task.Run(() =>
+            {
+                var tr = Cube.transform;
+                var maxRadius = Globals.ToolManager.Tools.Max(x => x.Radius);
+                var vertsAsSpan = Vertices.GetInternalArray().AsSpan();
+                var caughtBlocks = new List<int>(75);
+                var length = vertsAsSpan.Length;
+                for (var i = 0; i < length; i++)
+                {
+                    var vertex = tr.TransformPoint(Vertices[i]);
+                    for (int j = 0; j < length; j++)
+                    {
+                        if (Vector3.Distance(vertex, vertsAsSpan[i]) <= maxRadius)
+                        {
+                            caughtBlocks.Add(i);
+                        }
+                    }
+                    Sim3D.CachedBlocks.Add(i, caughtBlocks.ToArray());
+                    caughtBlocks.Clear();
+                }
+            });
             ToolConfig = await this.ChangeTool(0);
             var bounds = Collider.bounds;
             var tr = Cube.transform;
@@ -67,7 +89,6 @@ namespace Pyro.Nc.Simulation
                 Position = Values.CurrentPath.Points.Last();
                 return Task.CompletedTask;
             };
-            var m0 = Values.Storage.TryGetCommand("M0") as M00;
             var copy = Values.Storage.TryGetCommand("TRANS").Copy() as Trans;
             var copy2 = Values.Storage.TryGetCommand("M05").Copy() as M05;
             var copy3 = Values.Storage.TryGetCommand("G40").Copy() as G40;

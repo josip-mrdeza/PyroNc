@@ -4,12 +4,15 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Math;
 using Pyro.Math.Geometry;
 using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Configuration.Sim3D_Legacy;
+using Pyro.Nc.Configuration.Statistics;
 using Pyro.Nc.Exceptions;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
@@ -21,12 +24,9 @@ namespace Pyro.Nc.Simulation
 {
     public static class Sim3D
     {
-        /// <summary>
-        /// Allocated a vector3 array of 120KB.
-        /// </summary>
-        private static Vector4[] TempArray = new Vector4[10_000];
+        public static readonly Dictionary<int, int[]> CachedBlocks =
+            new Dictionary<int, int[]>(Globals.Tool.Vertices.Count);
 
-        private static int TempArrayIndex = 0;
         private static readonly Dictionary<string, MethodInfo> CachedMethods = new Dictionary<string, MethodInfo>().Do(
             d =>
             {
@@ -65,14 +65,21 @@ namespace Pyro.Nc.Simulation
             if (!toolValues.IsAllowed || toolValues.IsPaused)
             {
                 Debug.Log("Waiting...");
+                using Hourglass hourglass = Hourglass.GetOrCreate(nameof(WaitUntilActionIsValid));
+                bool isEven = true;
                 while (!toolValues.IsAllowed || toolValues.IsPaused)
                 {
                     if (toolValues.IsReset)
                     {
                         return;
                     }
+
+                    if (isEven)
+                    {
+                        await Task.Yield();
+                        isEven = false;
+                    }
                     await Task.Delay(toolValues.FastMoveTick, toolValues.TokenSource.Token);
-                    await Task.Yield();
                 }
                 Debug.Log($"Exited: {nameof(WaitUntilActionIsValid)}!");
             }
@@ -133,12 +140,13 @@ namespace Pyro.Nc.Simulation
         /// <returns>An asynchronous task resulting in a <see cref="CutResult"/> statistic, defining time spent cutting and total vertices cut.</returns>
         /// <exception cref="RapidFeedCollisionException">This exception is thrown if the command used for the execution of this action is of type <see cref="G00"/>,
         /// causing a rapid feed collision (High speed hit into the workpiece).</exception>
-        public static async Task<CutResult> CheckPositionForCut(this ITool tool, Direction direction, bool throwIfCut)
+        public static Task<CutResult> CheckPositionForCut(this ITool tool, Direction direction, bool throwIfCut)
         {
             if (CachedMethods.ContainsKey("CheckPositionForCut"))
             {
+                using Hourglass hourglass = Hourglass.GetOrCreate("CheckPositionForCut_Custom");
                 var method = CachedMethods["CheckPositionForCut"];
-                return await (Task<CutResult>) method.Invoke(null, new object[]
+                return (Task<CutResult>) method.Invoke(null, new object[]
                 {
                     tool,
                     direction,
@@ -154,8 +162,6 @@ namespace Pyro.Nc.Simulation
             var vertices = tool.Vertices;
             var trVT = tool.Temp.transform;
             var trV = trVT.position;
-            var altRad = tool.ToolConfig.Radius + tool.ToolConfig.Radius / 8f;
-            bool lastWasFinalized = false;
             for (int i = 0; i < vertices.Count; i++)
             {
                 var vert = vertices[i];
@@ -167,34 +173,15 @@ namespace Pyro.Nc.Simulation
                 {
                     if (throwIfCut)
                     {
-                        //tool.EventSystem.FireAsync("RapidFeedError", new RapidFeedCollisionException(tool.Values.Current)).Wait();
                         stopwatch.Stop();
                         verticesCut++;
-                        return new CutResult(stopwatch.ElapsedMilliseconds, verticesCut, true);
-                        //throw new RapidFeedCollisionException(tool.Values.Current);
+
+                        return Task.FromResult(new CutResult(stopwatch.ElapsedMilliseconds, verticesCut, true));
                     }
                     
                     tool.Colors[i] = tool.ToolConfig.ToolColor;
-                    //Line2D line2D = new Line2D(new Vector2D(trV.x, trV.z), new Vector2D(realVert.x, realVert.z));
-                    //var end = line2D.GetCorrectPoint(line2D.FindCircleEndPoint(tool.ToolConfig.Radius, trV.x, trV.z), new Vector2D(realVert.x, realVert.z));
-                    //vertices[i] = new Vector3(end.x, vert.y - (tool.ToolConfig.VerticalMargin - distVertical), end.y);
                     vertices[i] -= new Vector3(0, tool.ToolConfig.VerticalMargin - distVertical, 0);
                     verticesCut++;
-                }
-                // else if (distHorizontal < altRad &&
-                //          distVertical <= tool.ToolConfig.VerticalMargin && !lastWasFinalized)
-                // {
-                //     Line2D line2D = new Line2D(new Vector2D(trV.x, trV.z), new Vector2D(realVert.x, realVert.z));
-                //     var end = (Vector3D) line2D.GetCorrectPoint(line2D.FindCircleEndPoint(altRad, trV.x, trV.z), new Vector2D(realVert.x, realVert.z));
-                //     var vector3 = new Vector3(end.x, realVert.y, end.y);
-                //     Debug.DrawLine(new Vector3(vector3.x, vector3.y, vector3.z), realVert, Color.green, 100f);
-                //     vertices[i] = new Vector3(end.x, vert.y, end.y);
-                //     lastWasFinalized = true;
-                //     verticesCut++;
-                // }
-                else
-                {
-                    lastWasFinalized = false;
                 }
             }
 
@@ -204,7 +191,7 @@ namespace Pyro.Nc.Simulation
             mesh.colors = tool.Colors.GetInternalArray();
             stopwatch.Stop();
 
-            return new CutResult(stopwatch.ElapsedMilliseconds, verticesCut);
+            return Task.FromResult(new CutResult(stopwatch.ElapsedMilliseconds, verticesCut));
         }
 
         [CustomMethod(nameof(TraverseFinal))]
@@ -250,7 +237,6 @@ namespace Pyro.Nc.Simulation
             var throwIfCutIsDetected = toolValues.Current.GetType() == typeof(G00);
             double averageTimeForCut = 0;
             long totalCut = 0;
-            TempArrayIndex = 0;
             tool.SetupTranslation(points);
             var currentPosition = tool.Position;
             var last = points.Last();

@@ -1,7 +1,10 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Pyro.IO;
@@ -61,12 +64,78 @@ namespace Pyro.Nc.UI
 
         private Action ApplicationOnQuit(FileInfo fileInfo)
         {
-            return async () =>
+            return () =>
             {
                 PushTextStatic($"Quitting Application...");
+                PushTextStatic("Logging all available runtime values...");
+                List<string> typeObjs = new List<string>();
+                StringBuilder builder = new StringBuilder();
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies()
+                                          .Where(x => x.GetName().Name.StartsWith("Pyro")).ToArray();
+                PushTextStatic($"Found {assemblies.Length} assemblies...");
+                foreach (var assembly in assemblies)
+                {
+                    var typesInAssembly = assembly.GetTypes();
+                    var assemblyName = assembly.GetName().Name;
+                    foreach (var type in typesInAssembly)
+                    {
+                        var staticMembersInType = type.GetMembers(BindingFlags.Public | BindingFlags.Static);
+                        foreach (var memberInfo in staticMembersInType)
+                        {
+                            try
+                            {
+                                var fieldInfo = memberInfo as FieldInfo;
+                                object value;
+                                if (fieldInfo != null)
+                                {
+                                    value = fieldInfo.GetValue(null);
+                                }
+                                else
+                                {
+                                    var prop = memberInfo as PropertyInfo;
+                                    if (prop is null)
+                                    {
+                                        continue;
+                                    }
+
+                                    value = prop.GetValue(null);
+                                }
+
+                                if (value is ICollection arr)
+                                {
+                                    if (arr.Count <= 100)
+                                    {
+                                        builder.Append('\'').Append(memberInfo.Name).Append('\'').Append(':');
+                                        var enumerator = arr.GetEnumerator();
+                                        while (enumerator.MoveNext())
+                                        {
+                                            builder.Append("\n    --'").Append(enumerator.Current).Append('\'');
+                                        }
+
+                                        typeObjs.Add(builder.ToString());
+                                        builder.Clear();
+                                    }
+                                }
+                                else
+                                {
+                                    typeObjs.Add($"\"{memberInfo.Name}\":\"" + value + '\"');
+                                }
+                            }
+                            catch
+                            {
+                                //ignored
+                            }
+                        }
+
+                        if (typeObjs.Count > 0)
+                        {
+                            PushTextStatic(typeObjs.Prepend($"Type '{type}' in assembly '{assemblyName}':").ToArray());
+                            typeObjs.Clear();
+                        }
+                    }
+                }
                 PushTextStatic($"Disposing log stream in: {fileInfo.FullName}...");
                 DisposeStream();
-                //await Collector.SendLogStatisticAsync();
             };
         }
 
