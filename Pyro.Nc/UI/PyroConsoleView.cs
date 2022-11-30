@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -8,8 +9,11 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Pyro.IO;
+using Pyro.Nc.Configuration;
+using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Configuration.Statistics;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.UI.Debug;
 using TMPro;
 using UnityEngine;
 
@@ -39,12 +43,13 @@ namespace Pyro.Nc.UI
                 {
                     Stream = fileInfo.CreateText();
                 }
-                catch (Exception e)
+                catch
                 {
                     Stream = Globals.Roaming.AddFile("pyroLogClient.txt").CreateText();
                 }
             }
-            PushTextStatic($"Created Log Stream in: {fileInfo.FullName}.");
+            PushTextStatic(Globals.Localisation.Find(Localisation.MapKey.ConsoleViewCreatedLogStream, 
+                                                     fileInfo.FullName));
             return fileInfo;
         }
 
@@ -52,27 +57,35 @@ namespace Pyro.Nc.UI
         {
             Globals.Console = this;
             Globals.Roaming ??= LocalRoaming.OpenOrCreate("PyroNc");
+            LocalisationManager manager = new LocalisationManager();
+            manager.Init();
         }
 
         private void PushEventCreation(FileInfo fileInfo)
         {
             Application.logMessageReceived += OnApplicationOnLogMessageReceived;
-            PushTextStatic("Added handler for Application.logMessageReceived.");
+            PushTextStatic(Globals.Localisation.Find(Localisation.MapKey.ConsoleViewAddedLogReceivedHandler));
             Application.quitting += ApplicationOnQuit(fileInfo);
-            PushTextStatic("Added handler for Application.quitting.");
+            PushTextStatic(Globals.Localisation.Find(Localisation.MapKey.ConsoleViewAddedAppQuitHandler));
         }
 
         private Action ApplicationOnQuit(FileInfo fileInfo)
         {
             return () =>
             {
-                PushTextStatic($"Quitting Application...");
-                PushTextStatic("Logging all available runtime values...");
+                PushTextStatic(Globals.Localisation.Find(Localisation.MapKey.ConsoleViewQuitting));
+                PushTextStatic(Globals.Localisation.Find(Localisation.MapKey.ConsoleViewLoggingRuntimeValues));
                 List<string> typeObjs = new List<string>();
                 StringBuilder builder = new StringBuilder();
                 var assemblies = AppDomain.CurrentDomain.GetAssemblies()
                                           .Where(x => x.GetName().Name.StartsWith("Pyro")).ToArray();
-                PushTextStatic($"Found {assemblies.Length} assemblies...");
+                PushTextStatic(Globals.Localisation.Find(Localisation.MapKey.ConsoleViewAssemblyLoad, assemblies.Length.ToString()));
+                PushTextStatic(Globals.Localisation.Find(Localisation.MapKey.ConsoleViewDisposingLogStream,
+                                                         fileInfo.FullName));
+                PushTextStatic(Globals.Localisation.Find(Localisation.MapKey.GenericMessage, 
+                                                         $"Average fps: {FpsCounter.averageFps.ToString(CultureInfo.InvariantCulture)}"));
+                DisposeStream();
+                return;
                 foreach (var assembly in assemblies)
                 {
                     var typesInAssembly = assembly.GetTypes();
@@ -123,19 +136,21 @@ namespace Pyro.Nc.UI
                             }
                             catch
                             {
+                                typeObjs.Clear();
+
                                 //ignored
                             }
                         }
 
                         if (typeObjs.Count > 0)
                         {
-                            PushTextStatic(typeObjs.Prepend($"Type '{type}' in assembly '{assemblyName}':").ToArray());
+                            PushTextStatic(typeObjs.Prepend(Globals.Localisation.Find(Localisation.MapKey.ConsoleViewTypeLogger,
+                                                                type, assemblyName)).ToArray());
                             typeObjs.Clear();
                         }
                     }
                 }
-                PushTextStatic($"Disposing log stream in: {fileInfo.FullName}...");
-                DisposeStream();
+
             };
         }
 
@@ -155,7 +170,7 @@ namespace Pyro.Nc.UI
                 "--------",
                 string.Join(",\n    --",
                             Globals.Roaming.Files.Values.Select(f => "[File]" + f.Name + " | " + f.Length + " bytes")));
-                PushTextStatic("Finished PyroConsoleView Setup!");
+                PushTextStatic(Globals.Localisation.Find(Localisation.MapKey.ConsoleViewFinishSetup));
         }
 
         public void PushText(string message, LogType type = LogType.Log)

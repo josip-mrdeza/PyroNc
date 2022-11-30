@@ -64,7 +64,7 @@ public struct Line2D
 
         var discriminant = (b.Squared() - (4 * a * cc)).SquareRoot();
 
-        var pos = (-b + discriminant) / (2*a);
+        var pos = (-b + discriminant) / (2 * a);
         var pos2 = (-b - discriminant) / (2 * a);
 
         return (new Vector2D((float) pos, GetY((float) pos)), new Vector2D((float) pos2, GetY((float) pos2)));

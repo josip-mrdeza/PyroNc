@@ -27,9 +27,13 @@ namespace Pyro.Nc.Simulation
         public static readonly Dictionary<int, int[]> CachedBlocks =
             new Dictionary<int, int[]>(Globals.Tool.Vertices.Count);
 
-        private static readonly Dictionary<string, MethodInfo> CachedMethods = new Dictionary<string, MethodInfo>().Do(
-            d =>
+        private static readonly Dictionary<string, MethodInfo> CachedMethods = new Dictionary<string, MethodInfo>();
+            /*d =>
             {
+                if (CustomAssemblyManager.Self is null)
+                {
+                    throw new NotSupportedException("CustomAssemblyManager was null when SIM3D was trying to access it!");
+                }
                 var asses = CustomAssemblyManager.Self.ImportedAssemblies;
                 foreach (var assembly in asses)
                 {
@@ -54,7 +58,7 @@ namespace Pyro.Nc.Simulation
                     $"Added {d.Count.ToString()} methods to the cached dictionary.\n    Methods:"
                 }.Concat(d.Keys).ToArray());
                 return d;
-            });
+            });*/
         /// <summary>
         /// Stalls the next action (ICommand) asynchronously until the previous one completes.
         /// </summary>
@@ -140,13 +144,13 @@ namespace Pyro.Nc.Simulation
         /// <returns>An asynchronous task resulting in a <see cref="CutResult"/> statistic, defining time spent cutting and total vertices cut.</returns>
         /// <exception cref="RapidFeedCollisionException">This exception is thrown if the command used for the execution of this action is of type <see cref="G00"/>,
         /// causing a rapid feed collision (High speed hit into the workpiece).</exception>
-        public static Task<CutResult> CheckPositionForCut(this ITool tool, Direction direction, bool throwIfCut)
+        public static CutResult CheckPositionForCut(this ITool tool, Direction direction, bool throwIfCut)
         {
             if (CachedMethods.ContainsKey("CheckPositionForCut"))
             {
                 using Hourglass hourglass = Hourglass.GetOrCreate("CheckPositionForCut_Custom");
                 var method = CachedMethods["CheckPositionForCut"];
-                return (Task<CutResult>) method.Invoke(null, new object[]
+                return (CutResult) method.Invoke(null, new object[]
                 {
                     tool,
                     direction,
@@ -162,6 +166,7 @@ namespace Pyro.Nc.Simulation
             var vertices = tool.Vertices;
             var trVT = tool.Temp.transform;
             var trV = trVT.position;
+            var radius = tool.Values.Radius;
             for (int i = 0; i < vertices.Count; i++)
             {
                 var vert = vertices[i];
@@ -176,12 +181,43 @@ namespace Pyro.Nc.Simulation
                         stopwatch.Stop();
                         verticesCut++;
 
-                        return Task.FromResult(new CutResult(stopwatch.ElapsedMilliseconds, verticesCut, true));
+                        return new CutResult(stopwatch.ElapsedMilliseconds, verticesCut, true);
                     }
                     
                     tool.Colors[i] = tool.ToolConfig.ToolColor;
-                    vertices[i] -= new Vector3(0, tool.ToolConfig.VerticalMargin - distVertical, 0);
+                    
+                    Line2D line = new Line2D(new Vector2D(realVert.x, realVert.z), new Vector2D(pos.x, pos.z));
+                    var vcs = line.FindCircleEndPoint(radius, pos.x, pos.z);
+                    var distance1 = Space2D.Distance(vcs.positive, new Vector2D(realVert.x, realVert.z));
+                    var distance2 = Space2D.Distance(vcs.negative, new Vector2D(realVert.x, realVert.z));
+                    bool flag = distance2 > distance1;
+                    Vector2D vector3d = ((flag ? vcs.positive : vcs.negative));
+                    
+                    vertices[i] = new Vector3(vector3d.x, vert.y - tool.ToolConfig.VerticalMargin - distVertical, vector3d.y);
                     verticesCut++;
+                }
+                //fucks shit up, when going into the material in the xy axes, because it tries to do the thing below, cuz it cant reach the verts yet. blah blah
+                else if (distHorizontal < tool.ToolConfig.Radius + 1f &&
+                         distVertical <= tool.ToolConfig.VerticalMargin)
+                {
+                    if (throwIfCut)
+                    {
+                        stopwatch.Stop();
+                        verticesCut++;
+
+                        return new CutResult(stopwatch.ElapsedMilliseconds, verticesCut, true);
+                    }
+                    
+                    //tool.Colors[i] = tool.ToolConfig.ToolColor;
+                    
+                    Line2D line = new Line2D(new Vector2D(realVert.x, realVert.z), new Vector2D(pos.x, pos.z));
+                    var vcs = line.FindCircleEndPoint(radius + 1f, pos.x, pos.z);
+                    var distance1 = Space2D.Distance(vcs.positive, new Vector2D(realVert.x, realVert.z));
+                    var distance2 = Space2D.Distance(vcs.negative, new Vector2D(realVert.x, realVert.z));
+                    bool flag = distance2 > distance1;
+                    Vector2D vector3d = ((flag ? vcs.positive : vcs.negative));
+                    Vector3 vector3 = new Vector3(vector3d.x, vert.y, vector3d.y);
+                    vertices[i] = vector3;
                 }
             }
 
@@ -191,7 +227,7 @@ namespace Pyro.Nc.Simulation
             mesh.colors = tool.Colors.GetInternalArray();
             stopwatch.Stop();
 
-            return Task.FromResult(new CutResult(stopwatch.ElapsedMilliseconds, verticesCut));
+            return new CutResult(stopwatch.Elapsed.TotalMilliseconds, verticesCut);
         }
 
         [CustomMethod(nameof(TraverseFinal))]
@@ -244,7 +280,7 @@ namespace Pyro.Nc.Simulation
             {
                 draw.DrawTranslation(currentPosition, point);
                 tool.Position = point;
-                var cutResult = await tool.CheckPositionForCut(Direction.FromVectors(currentPosition, point), throwIfCutIsDetected);
+                var cutResult = tool.CheckPositionForCut(Direction.FromVectors(currentPosition, point), throwIfCutIsDetected);
                 LogCutStatistics(logStats, cutResult,  ref averageTimeForCut, ref totalCut);
                 currentPosition = point;
                 if (cutResult.Threw)
@@ -270,7 +306,7 @@ namespace Pyro.Nc.Simulation
             }
             if (logStats)
             {
-                PyroConsoleView.PushTextStatic("Traverse finished!", $"Total vertices cut: {totalCut} ({((double) totalCut/tool.Vertices.Count).Round().ToString(CultureInfo.InvariantCulture)}%)",
+                PyroConsoleView.PushTextStatic("Traverse finished!", $"Total vertices cut: {totalCut} ({(((double) totalCut / tool.Vertices.Count) * 100).Round().ToString(CultureInfo.InvariantCulture)}%)",
                                                $"Average time spent cutting: {averageTimeForCut.Round().ToString(CultureInfo.InvariantCulture)}ms");  
             }
         }
@@ -355,8 +391,8 @@ namespace Pyro.Nc.Simulation
         }
         internal static async Task FinishCurrentMove(ToolValues toolValues)
         {
-            await Task.Yield();
             await Task.Delay(toolValues.FastMoveTick);
+            await Task.Yield();
         }
         internal static void LogCutStatistics(bool logStats, CutResult cutResult, ref double averageTimeForCut, ref long totalCut)
         {

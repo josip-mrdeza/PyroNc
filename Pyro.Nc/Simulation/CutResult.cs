@@ -2,11 +2,11 @@ namespace Pyro.Nc.Simulation
 {
     public struct CutResult
     {
-        public long TotalTime;
+        public double TotalTime;
         public long TotalVerticesCut;
         public bool Threw;
 
-        public CutResult(long totalTime, long totalVerticesCut)
+        public CutResult(double totalTime, long totalVerticesCut)
         {
             TotalTime = totalTime;
             TotalVerticesCut = totalVerticesCut;

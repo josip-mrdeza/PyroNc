@@ -7,8 +7,22 @@ namespace Pyro.Nc
 {
     public static class Formatter
     {
-        private static readonly StringBuilder Builder = new StringBuilder();
+        private static readonly StringBuilder Builder = new StringBuilder();     
         private const string Qualifier = "{0}";
+        public static string Format(this string template, object[] args)
+        {
+            lock (Builder)
+            {
+                Builder.Clear();
+                Builder.Append(template);
+                for (int i = 0; i < args.Length; i++)
+                {
+                    Builder.Replace($"{{{i}}}", args[i].ToString());
+                }
+
+                return Builder.ToString();
+            }
+        }
         /// <summary>
         /// Causes no allocation (apart from the returned string) formatting if the struct has an overriden ToString method.
         /// </summary>

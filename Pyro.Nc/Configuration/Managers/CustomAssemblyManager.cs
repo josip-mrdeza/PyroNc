@@ -28,27 +28,51 @@ public class CustomAssemblyManager : IManager
         Self = this;
         ImportedAssemblies = new List<Assembly>();
         LocalRoaming compilerFolder = LocalRoaming.OpenOrCreate("PyroNc\\Compiler");
-        var path = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName)!;
-        var fullPath = Path.Combine(path, "bin\\Debug");
-        DirectoryInfo di = new DirectoryInfo(fullPath);
-        var compilerFiles = di.GetFiles();
+        string path = null;
+        string fullPath = null;
+        DirectoryInfo di = null;
+        FileInfo[] compilerFiles = null;
+        try
+        {
+            path = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName)!;
+            fullPath = Path.Combine(path, "bin\\Debug");
+            di = new DirectoryInfo(fullPath);
+            compilerFiles = di.GetFiles();
+        }
+        catch (Exception e)
+        {
+            Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.CustomAssemblyManagerFailed, 
+                                                           $"Path={path}", e));
+            Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.GenericHandledError, 
+                                                           "Cannot find compiler path, skipping manager..."));
+            return;
+        }
         foreach (var file in compilerFiles)
         {
             if (!compilerFolder.Exists(file.Name))
             {
                 compilerFolder.AddFile(file.Name, File.ReadAllBytes(file.FullName));
-                Globals.Console.Push($"Adding missing file: '{file.Name}' to compiler dir '{compilerFolder.Site}'.");
+                Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.CustomAssemblyManagerAddMissingFile, 
+                                                               file.Name, 
+                                                               compilerFolder.Site));
             }
         }
         LocalRoaming roaming2 = LocalRoaming.OpenOrCreate("PyroNc\\Compiler\\References");
         foreach (var assemblyPath in CodeImport.AssemblyPaths)
         {
-            roaming2.AddFile(Path.GetFileName(assemblyPath), File.ReadAllBytes(assemblyPath));
+            try
+            {
+                roaming2.AddFile(Path.GetFileName(assemblyPath), File.ReadAllBytes(assemblyPath));
+            }
+            catch (Exception e)
+            {
+                Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.CustomAssemblyManagerFailed, assemblyPath, e.Message));
+            }
         }
         await Task.Run(() =>
         {
             var roaming = LocalRoaming.OpenOrCreate("PyroNc\\Configuration\\Plugins");
-            Globals.Console.Push("[CustomAssemblyManager]");
+            Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.CustomAssemblyManagerTitleBrackets));
             foreach (var dir in roaming.ListAllDirectories().ToArray())
             {
                 try
@@ -57,18 +81,21 @@ public class CustomAssemblyManager : IManager
                     var assemblyName = dir.Name;
                     if (files.Length == 0)
                     {
-                        Globals.Console.Push("[CustomAssemblyManager] - Directory '{0}' is empty, skipping!".Format(dir.Name));
+                        Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.CustomAssemblyManagerDirectoryEmpty,
+                                                                       dir.Name));
                         continue;
                     }
 
                     var assemblyFile = files.FirstOrDefault(f => f.Name == "{0}.dll".Format(assemblyName));
                     if (assemblyFile != null)
                     {
-                        Globals.Console.Push("[CustomAssemblyManager] - Directory '{0}' has already been compiled into an assembly, skipping!".Format(dir.Name));
+                        Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.CustomAssemblyManagerAlreadyCompiled,
+                                                                       dir.Name));
                         ImportedAssemblies.Add(Assembly.LoadFrom(assemblyFile.FullName));
                         continue;
                     }
-                    Globals.Console.Push(new string[]{"[CustomAssemblyManager] - Attempting to build assembly with references:"}.Concat(CodeImport.AssemblyPaths).ToArray());
+                    Globals.Console.Push(new string[]{Globals.Localisation.Find(Localisation.MapKey.CustomAssemblyManagerStartBuildWithReferences)}
+                                         .Concat(CodeImport.AssemblyPaths).ToArray());
                     var compilerRoaming = LocalRoaming.OpenOrCreate("PyroNc\\Compiler");
                     var exe = compilerRoaming.Files.Single(x => x.Key == "PyroCompiler.exe").Value;
                     var startInfo = new ProcessStartInfo();
@@ -85,14 +112,17 @@ public class CustomAssemblyManager : IManager
                     process.WaitForExit();
                     var assembly = Assembly.LoadFrom(Path.Combine(dir.FullName, assemblyName) + ".dll");
                     ImportedAssemblies.Add(assembly);
-                    Globals.Console.Push($"[CustomAssemblyManager] - Loaded assembly '{assemblyName}'!");
+                    Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.CustomAssemblyManagerLoadedAssembly, 
+                                             assemblyName));
                 }
                 catch (Exception e)
                 {
-                    Globals.Console.Push(e.Message);
+                    Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.CustomAssemblyManagerFailed, e.Message));
                 }
             }    
-            Globals.Console.Push(new string[]{$"[CustomAssemblyManager] - Completed && Imported {ImportedAssemblies.Count} assemblies!"}.Concat(ImportedAssemblies.Select(
+            Globals.Console.Push(new string[]{Globals.Localisation.Find(Localisation.MapKey.CustomAssemblyManagerCompletedAndImportedCount, 
+                                                                        ImportedAssemblies.Count.ToString())}
+                                 .Concat(ImportedAssemblies.Select(
                                      a => a.GetName().Name)).ToArray());
         });
     }
@@ -101,6 +131,7 @@ public class CustomAssemblyManager : IManager
 
     public void OnWrite(object o, DataReceivedEventArgs args)
     {
-        Globals.Console.Push($"[PyroCompiler] - Compiler message: \"{args.Data}\".");
+        Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.CustomAssemblyManagerCompilerComMessage,
+                                 args.Data));
     }
 }

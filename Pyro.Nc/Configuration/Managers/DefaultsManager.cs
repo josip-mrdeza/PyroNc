@@ -18,10 +18,10 @@ namespace Pyro.Nc.Configuration.Managers
             LocalRoaming roaming = LocalRoaming.OpenOrCreate("PyroNc\\Configuration");
             if (!roaming.Exists(DefaultsJson))
             {
-                Globals.Console.Push("Missing defaults.json, creating...");
+                Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.DefaultsManagerMissingJson));
                 Values = new ToolValues();
                 roaming.AddFile(DefaultsJson, Values);
-                Globals.Console.Push("Created defaults.json!");
+                Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.DefaultManagerCreatedMissingJson));
             }
             else
             {

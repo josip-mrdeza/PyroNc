@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Pyro.IO;
+using Pyro.Nc.Configuration;
 using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Parser;
 using Pyro.Nc.Parsing;
@@ -125,7 +126,7 @@ namespace Pyro.Nc.UI
             {
                 suggestions = new string[]
                 {   
-                    "No commands found!"
+                    Globals.Localisation.Find(Localisation.MapKey.GCodeNoCommandsFound)
                 };
             }
             SuggestionDisplay.text = string.Join("\n", suggestions);
@@ -169,11 +170,13 @@ namespace Pyro.Nc.UI
             }
             catch (Exception e)
             {
-                 Push($"Error in GetSuggestions: line -> \"{GetLineAtCaret()}\"", $"Error: {e}");
-                 return new string[]{"Faulty variable / Undeclared command! - " + e.Message};
+                 Push(Globals.Localisation.Find(Localisation.MapKey.GCodeFault, 
+                                                GetLineAtCaret()),
+                      Globals.Localisation.Find(Localisation.MapKey.GenericError, 
+                                                e));
+                 return new string[]{Globals.Localisation.Find(Localisation.MapKey.GCodeFaultOrUndeclared)
+                     + e.Message};
             }
-
-            return new string[]{"Faulty variable / Undeclared command!"};
         }
 
         public string Snip(int caretPos)
@@ -194,7 +197,8 @@ namespace Pyro.Nc.UI
             {
                 if (string.IsNullOrEmpty(fileName))
                 {
-                    PopupHandler.PopInputOption("Name your program:", "Ok", Option);
+                    PopupHandler.PopInputOption(Globals.Localisation.Find(Localisation.MapKey.GCodeNameProgram), 
+                                                "Ok", Option);
                 }
                 else
                 {

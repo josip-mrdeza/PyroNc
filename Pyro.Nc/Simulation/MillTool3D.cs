@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.IO.Events;
@@ -16,6 +17,7 @@ using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.UI;
+using Pyro.Threading;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -45,20 +47,22 @@ namespace Pyro.Nc.Simulation
             Collider = Workpiece.GetComponent<MeshCollider>();
             await Workpiece.InitializeAsync();
             //Collider.sharedMesh = Workpiece.Current;
-            var color = new Color(1, 1, 1, 1f);
+            var color = new Color(1, 1, 1, 255f);
             Vertices = new List<Vector3>(Workpiece.Current.vertices);
             Triangles = new List<int>(Workpiece.Current.triangles);
+            Workpiece.Current.MarkDynamic();
+            Workpiece.Current.Optimize();
             Colors = Enumerable.Repeat(color, Vertices.Count).ToList();
-            await Task.Run(() =>
+            var tr = Cube.transform;
+            /*Task.Run(() =>
             {
-                var tr = Cube.transform;
                 var maxRadius = Globals.ToolManager.Tools.Max(x => x.Radius);
                 var vertsAsSpan = Vertices.GetInternalArray().AsSpan();
-                var caughtBlocks = new List<int>(75);
+                var caughtBlocks = new List<int>();
                 var length = vertsAsSpan.Length;
                 for (var i = 0; i < length; i++)
                 {
-                    var vertex = tr.TransformPoint(Vertices[i]);
+                    var vertex = PyroDispatcher.ExecuteOnMain(t => tr.TransformPoint(Vertices[t]), i);
                     for (int j = 0; j < length; j++)
                     {
                         if (Vector3.Distance(vertex, vertsAsSpan[i]) <= maxRadius)
@@ -69,10 +73,10 @@ namespace Pyro.Nc.Simulation
                     Sim3D.CachedBlocks.Add(i, caughtBlocks.ToArray());
                     caughtBlocks.Clear();
                 }
-            });
+                Globals.Console.Push($"Returned from thread {Thread.CurrentThread.ManagedThreadId.ToString()}, spawned in {nameof(MillTool3D)}.");
+            });*/
             ToolConfig = await this.ChangeTool(0);
             var bounds = Collider.bounds;
-            var tr = Cube.transform;
             var max = tr.TransformVector(bounds.max);
             MaxX = max.x;
             MaxY = max.y;
@@ -141,7 +145,7 @@ namespace Pyro.Nc.Simulation
             Position = new Vector3(0, 50, 0);
         }
 
-        private async void FixedUpdate()
+        private void FixedUpdate()
         {
             if (MovementType == -1 && Values.Current is
             {
@@ -150,10 +154,10 @@ namespace Pyro.Nc.Simulation
             {
                 _contained = true;
                 var pos = Position;
-                var cutResult = await this.CheckPositionForCut(Direction.FromVectors(pos, pos + Vector3.down), Values.Current.GetType() == typeof(G00));
+                var cutResult = this.CheckPositionForCut(Direction.FromVectors(pos, pos + Vector3.down), Values.Current.GetType() == typeof(G00));
                 Push("Traverse finished!",
                                                "Total vertices cut: {0} ({1}%)".Format(cutResult.TotalVerticesCut, 
-                                                   ((double) cutResult.TotalVerticesCut / Vertices.Count).Round()),
+                                                   (((double) cutResult.TotalVerticesCut / Vertices.Count) * 100).Round()),
                                                "Average time spent cutting: {0}ms"
                                                    .Format(cutResult.TotalTime));
             }

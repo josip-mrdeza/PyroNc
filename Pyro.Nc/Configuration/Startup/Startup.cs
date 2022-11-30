@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Pyro.Injector;
 using Pyro.IO;
 using Pyro.Math;
 using Pyro.Nc.Configuration.Managers;
@@ -21,8 +22,8 @@ namespace Pyro.Nc.Configuration.Startup
             QualitySettings.shadows = ShadowQuality.All;
             QualitySettings.shadowProjection = ShadowProjection.CloseFit;
             QualitySettings.SetQualityLevel(5);
-            Push($"QualityLevel: {QualitySettings.GetQualityLevel().ToString()}");
-            Push("Application Startup initializing...");
+            Push(Globals.Localisation.Find(Localisation.MapKey.StartupInitializeAsyncQuality, QualitySettings.GetQualityLevel().ToString()));
+            Push(Globals.Localisation.Find(Localisation.MapKey.StartupAppInitializing));
             Stopwatch stopwatch = Stopwatch.StartNew();
             await InitializeManagers();
             var rules = Globals.Rules;
@@ -33,41 +34,13 @@ namespace Pyro.Nc.Configuration.Startup
             rules.AddRule(new YZAxisSwitchRule("YZASS")); //lmao
             rules.AddRule(new UnknownParameterRule("UPR"));
             stopwatch.Stop();
-            Push($"Startup complete in {stopwatch.Elapsed.TotalMilliseconds.Round()} ms!");
+            Push(Globals.Localisation.Find(Localisation.MapKey.StartupComplete, stopwatch.Elapsed.TotalMilliseconds.Round().ToString()));
         }
 
         public async Task InitializeManagers()
         {
             LocalRoaming roaming = LocalRoaming.OpenOrCreate("PyroNc\\Configuration");
-            // if (!roaming.Exists("Managers.json"))
-            // {
-            //     CreateManagersFromMemory(roaming);
-            // }
-            // else
-            // {
-            //     CreateManagersFromDisk(roaming);
-            // }
             await CreateManagersFromMemory(roaming);
-        }
-
-        private void CreateManagersFromDisk(LocalRoaming roaming)
-        {
-            Stopwatch stopwatch = new Stopwatch();
-            var fullNames = roaming.ReadFileAs<string[]>("Managers.json");
-            Managers = new List<IManager>(fullNames.Length);
-            foreach (var fullName in fullNames)
-            {
-                var manager = (IManager) Activator.CreateInstance(Type.GetType(fullName)!);
-                if (manager.DisableAutoInit)
-                {
-                    continue;
-                }
-                stopwatch.Restart();
-                manager.Init();  
-                Push($"Manager '{fullName}' completed in {stopwatch.Elapsed.TotalMilliseconds.Round()} ms!");
-                stopwatch.Stop();
-                Managers.Add(manager);
-            }
         }
 
         private async Task CreateManagersFromMemory(LocalRoaming roaming)
@@ -85,15 +58,22 @@ namespace Pyro.Nc.Configuration.Startup
                         continue;
                     }
                     stopwatch.Restart();
-                    if (manager.IsAsync)
+                    try
                     {
-                        await manager.InitAsync();
+                        if (manager.IsAsync)
+                        {
+                            await manager.InitAsync();
+                        }
+                        else
+                        {
+                            manager.Init();
+                        }
                     }
-                    else
+                    catch (Exception e)
                     {
-                        manager.Init();
+                        Push(Globals.Localisation.Find(Localisation.MapKey.GenericHandledError, e.ToString()));
                     }
-                    Push($"Manager '{type.FullName}' completed in {stopwatch.Elapsed.TotalMilliseconds.Round()} ms!");
+                    Push(Globals.Localisation.Find(Localisation.MapKey.StartupCreateManagersFromMemoryCompleted, type.FullName, stopwatch.Elapsed.TotalMilliseconds.Round().ToString()));
                     stopwatch.Stop();
                     Managers.Add(manager);
                     managersTypes.Add(type.FullName);

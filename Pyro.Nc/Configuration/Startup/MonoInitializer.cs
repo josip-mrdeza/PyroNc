@@ -27,16 +27,19 @@ namespace Pyro.Nc.Configuration.Startup
                     individual.Restart();
                     await root.InitializeComplete();
                     individual.Stop();
-                    PyroConsoleView.PushTextStatic($"Initialized '{root.GetType().Name}' in {individual.Elapsed.TotalMilliseconds.Round()} ms!");
+                    PyroConsoleView.PushTextStatic(Globals.Localisation.Find(Localisation.MapKey.MonoInitializerComplete,
+                                                                             root.GetType().Name, 
+                                                                             individual.Elapsed.TotalMilliseconds.Round().ToString()));
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(e);
+                    Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.GenericHandledError, e));
                 }
             }
             stopwatch.Stop();
             ViewHandler.Active = false;
-            PyroConsoleView.PushTextStatic($"Completed 'MonoInitializer' in {stopwatch.Elapsed.TotalMilliseconds.Round()} ms!");
+            PyroConsoleView.PushTextStatic(Globals.Localisation.Find(Localisation.MapKey.MonoInitializerCompleteFull, 
+                                                                     stopwatch.Elapsed.TotalMilliseconds.Round().ToString()));
         }
     }
 }

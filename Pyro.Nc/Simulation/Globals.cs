@@ -38,6 +38,7 @@ namespace Pyro.Nc.Simulation
         public static ReferencePointParser ReferencePointParser;
         public static ParseRules Rules = new ParseRules();
         public static Loader Loader;
+        public static Localisation Localisation;
 
         public static bool IsNetworkPresent = Pyro.Threading.PyroDispatcher.ExecuteOnMain(_isNetworkPresent, null);
     }

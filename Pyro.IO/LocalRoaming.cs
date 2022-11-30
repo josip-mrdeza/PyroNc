@@ -3,8 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
 namespace Pyro.IO
 {
@@ -91,6 +93,25 @@ namespace Pyro.IO
 
             return File.ReadAllBytes(fn);
         }
+        public async Task<byte[]> ReadFileAsync(string variableId)
+        {
+            FileInfo fi;
+            if (!Files.ContainsKey(variableId))
+            {
+                return _emptyBytes;
+            }
+            fi = Files[variableId];
+            using var fs = fi.OpenRead();
+            byte[] arr = new byte[fi.Length];
+            var length = arr.Length;
+            int read = 0;
+            while (read < length)
+            {
+                read += await fs.ReadAsync(arr, 0, arr.Length);
+            }
+
+            return arr;
+        }
         
         public string ReadFileAsText(string variableId)
         {
@@ -120,23 +141,73 @@ namespace Pyro.IO
 
         public void ModifyFile(string variableId, byte[] content)
         {
-            var fn = Files[variableId].FullName;
-            File.WriteAllBytes(fn, content);
+            FileInfo fi;
+            if (!Files.ContainsKey(variableId))
+            {
+                fi = AddFile(variableId);
+            }
+            else
+            {
+                fi = Files[variableId];
+            }
+            using var fs = fi.OpenWrite();
+            fs.Write(content, 0, content.Length);
+        }
+
+        public async Task ModifyFileAsync(string variableId, byte[] content)
+        {
+            FileInfo fi;
+            if (!Files.ContainsKey(variableId))
+            {
+                fi = AddFile(variableId);
+            }
+            else
+            {
+                fi = Files[variableId];
+            }
+            using var fs = fi.OpenWrite();
+            await fs.WriteAsync(content, 0, content.Length);
         }
 
         public void ModifyFile(string variableId, string content)
         {
+            FileInfo fi;
             if (!Files.ContainsKey(variableId))
             {
-                AddFile(variableId);
+                fi = AddFile(variableId);
             }
-            var fn = Files[variableId].FullName;
+            else
+            {
+                fi = Files[variableId];
+            }
+            var fn = fi.FullName;
             File.WriteAllText(fn, content);
+        }
+        
+        public async Task ModifyFileAsync(string variableId, string content)
+        {
+            FileInfo fi;
+            if (!Files.ContainsKey(variableId))
+            {
+                fi = AddFile(variableId);
+            }
+            else
+            {
+                fi = Files[variableId];
+            }
+            using var fs = fi.OpenWrite();
+            var bytes = Encoding.Default.GetBytes(content);
+            await fs.WriteAsync(bytes, 0, bytes.Length);
         }
         
         public void ModifyFile<T>(string variableId, T content)
         {
             ModifyFile(variableId, JsonSerializer.Serialize(content, Options));
+        }
+        
+        public async Task ModifyFileAsync<T>(string variableId, T content)
+        {
+            await ModifyFileAsync(variableId, JsonSerializer.Serialize(content, Options));
         }
         
         public FileInfo AddFile(string variableId)
