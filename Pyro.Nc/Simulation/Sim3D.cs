@@ -27,8 +27,8 @@ namespace Pyro.Nc.Simulation
         public static readonly Dictionary<int, int[]> CachedBlocks =
             new Dictionary<int, int[]>(Globals.Tool.Vertices.Count);
 
-        private static readonly Dictionary<string, MethodInfo> CachedMethods = new Dictionary<string, MethodInfo>();
-            /*d =>
+        private static readonly Dictionary<string, MethodInfo> CachedMethods = new Dictionary<string, MethodInfo>().Do(
+            d =>
             {
                 if (CustomAssemblyManager.Self is null)
                 {
@@ -43,7 +43,10 @@ namespace Pyro.Nc.Simulation
                         {
                             try
                             {
-                                d.Add(method.Name, method);
+                                if (method.GetCustomAttribute<CustomMethodAttribute>() != null)
+                                {
+                                    d.Add(method.Name, method);
+                                }
                             }
                             catch
                             {
@@ -58,7 +61,7 @@ namespace Pyro.Nc.Simulation
                     $"Added {d.Count.ToString()} methods to the cached dictionary.\n    Methods:"
                 }.Concat(d.Keys).ToArray());
                 return d;
-            });*/
+            });
         /// <summary>
         /// Stalls the next action (ICommand) asynchronously until the previous one completes.
         /// </summary>
@@ -135,6 +138,8 @@ namespace Pyro.Nc.Simulation
             var isOk = d.X == 0 && d.Y == 0 && d.Z == 0;
             return isOk;
         }
+        
+        
         /// <summary>
         /// Checks if the tool has come in (radius) distance of some vertex in the <see cref="ITool.Cube"/>'s mesh, if it has then it attempts to 'cut' it.
         /// </summary>
@@ -173,7 +178,7 @@ namespace Pyro.Nc.Simulation
                 var realVert = tr.TransformPoint(vert);
                 var distVertical = Space3D.Distance(trV.y, realVert.y);
                 var distHorizontal = Vector2.Distance(new Vector2(realVert.x, realVert.z), new Vector2(pos.x, pos.z));
-                if (distHorizontal < tool.ToolConfig.Radius &&
+                if (distHorizontal <= tool.ToolConfig.Radius &&
                     distVertical <= tool.ToolConfig.VerticalMargin)
                 {
                     if (throwIfCut)
@@ -192,12 +197,10 @@ namespace Pyro.Nc.Simulation
                     var distance2 = Space2D.Distance(vcs.negative, new Vector2D(realVert.x, realVert.z));
                     bool flag = distance2 > distance1;
                     Vector2D vector3d = ((flag ? vcs.positive : vcs.negative));
-                    
-                    vertices[i] = new Vector3(vector3d.x, vert.y - tool.ToolConfig.VerticalMargin - distVertical, vector3d.y);
+                    vertices[i] = new Vector3(vector3d.x, vert.y - distVertical, vector3d.y);
                     verticesCut++;
                 }
-                //fucks shit up, when going into the material in the xy axes, because it tries to do the thing below, cuz it cant reach the verts yet. blah blah
-                else if (distHorizontal < tool.ToolConfig.Radius + 1f &&
+                else if (distHorizontal <= tool.ToolConfig.Radius + 2f &&
                          distVertical <= tool.ToolConfig.VerticalMargin)
                 {
                     if (throwIfCut)

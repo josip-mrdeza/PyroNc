@@ -50,7 +50,7 @@ public static class CodeImport
                             "\nusing Pyro.Nc.Parsing.GCommands;\nusing Pyro.Nc.Parsing.MCommands;\nusing Pyro.Nc.Exceptions;" +
                             "\nusing Pyro.Nc.Configuration;\nusing Pyro.Nc.Configuration.Managers;" +
                             "\nusing Pyro.Nc.Configuration.Sim3D_Legacy;\nusing Pyro.Nc.Configuration.Startup;" +
-                            "\nusing UnityEngine;\nusing Pyro.Nc.UI.UI_Screen;\n\n");
+                            "\nusing UnityEngine;\nusing Pyro.Nc.UI.UI_Screen;\nusing Pyro.IO;\nusing Pyro.IO.Builder;\nusing Pyro.IO.Events;\n");
             if (lines.Length == 0)
             {
                 foreach (var assemblyName in _assemblyNames)
