@@ -156,7 +156,7 @@ namespace Pyro.Nc.UI
 
         private void OnApplicationOnLogMessageReceived(string condition, string stackTrace, LogType type)
         {
-            Push(condition, stackTrace.Substring(0, 100).Insert(100, "..."));
+            Push(condition, stackTrace);
             //await Collector.HttpClient.PostAsync(Collector.BaseAddress + $"/error/{Collector.Info.Name}_ERR", new StringContent(condition));
         }
 

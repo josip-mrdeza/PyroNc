@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Nc.Configuration;
 using Pyro.Nc.Configuration.Managers;
+using Pyro.Nc.Exceptions;
 using Pyro.Nc.Parser;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.Parsing.MCommands;
+using Pyro.Nc.Parsing.SyntacticalCommands;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.UI.Programs;
 using Pyro.Nc.UI.UI_Screen;
@@ -91,20 +93,43 @@ namespace Pyro.Nc.UI
             }
             CommandHelper.PreviousModal = null;
             var variables = Text.text.ToUpper(CultureInfo.InvariantCulture)
-                                .Split('\n')
-                                .Select(x => x.Trim().ToUpper()
-                                              .FindVariables());
+                                .Split('\n')//lines
+                                .Select(x => x.Trim().ToUpper().FindVariables()); //line commands
             var commands = variables.Select(x => x.CollectCommands())
                                     .SelectMany(y => y);
-
-            var arr = commands.ToArray();
-
-            foreach (var command in arr)
+            
+            var arr = commands.ToList();
+            for (var i = 0; i < arr.Count; i++)
             {
+                var command = arr[i];
                 if (Globals.Tool.Values.IsReset)
                 {
                     return;
                 }
+
+                if (command is ForLoopGCode loop)
+                {
+                    if (arr.FindLastIndex(x => typeof(EndForGCode) == x.GetType()) == -1)
+                    {
+                        throw new ForLoopNoEndException();  
+                    }
+                    for (int j = i+1; j < arr.Count; j++)
+                    {
+                        var cmnd = arr[j];
+                        if (cmnd is EndForGCode)
+                        {
+                            break;
+                        }
+
+                        arr.Remove(cmnd);
+                        loop.ContainedCommands.Add((BaseCommand) cmnd);
+                        j--;
+                    }
+
+                    await command.ExecuteFinal(true, true);
+                    continue;
+                }
+
                 await Globals.Tool.UseCommand(command, true);
                 if (command is M02 or M30)
                 {
@@ -166,7 +191,7 @@ namespace Pyro.Nc.UI
                     commands = variables.CollectCommands();
                 }
                 return commands.Select(x => $"{x.GetType().Name}: \"{x.Description}\", " +
-                                           $"({x.Parameters.Values.Values.Count(v => !float.IsNaN(v)).ToString()}) {x.AdditionalInfo}");
+                                           $"({x.Parameters?.Values.Values.Count(v => !float.IsNaN(v)).ToString()}) {x.AdditionalInfo}");
             }
             catch (Exception e)
             {

@@ -44,7 +44,6 @@ namespace Pyro.Nc.Configuration.Sim3D_Legacy
                 //Debug.Log(magn);
                 await Task.Yield();
             }
-            Debug.Log($"Exited loop - {toolValues.Current.Id}!");
             if (toolValues.ExactStopCheck)
             {
                 await tool.InvokeOnConsumeStopCheck();

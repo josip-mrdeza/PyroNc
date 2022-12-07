@@ -71,8 +71,8 @@ namespace Pyro.Nc.Simulation
             var toolValues = tool.Values;
             if (!toolValues.IsAllowed || toolValues.IsPaused)
             {
-                Debug.Log("Waiting...");
-                using Hourglass hourglass = Hourglass.GetOrCreate(nameof(WaitUntilActionIsValid));
+                Globals.Console.Push("Waiting...");
+                Hourglass hourglass = Hourglass.GetOrCreate(nameof(WaitUntilActionIsValid));
                 bool isEven = true;
                 while (!toolValues.IsAllowed || toolValues.IsPaused)
                 {
@@ -86,9 +86,14 @@ namespace Pyro.Nc.Simulation
                         await Task.Yield();
                         isEven = false;
                     }
+                    else
+                    {
+                        isEven = true;
+                    }
                     await Task.Delay(toolValues.FastMoveTick, toolValues.TokenSource.Token);
                 }
-                Debug.Log($"Exited: {nameof(WaitUntilActionIsValid)}!");
+                hourglass.Dispose();
+                Globals.Console.Push($"Exited: {nameof(WaitUntilActionIsValid)}!");
             }
         }
         /// <summary>
@@ -293,7 +298,7 @@ namespace Pyro.Nc.Simulation
                 await FinishCurrentMove(toolValues);
                 if (toolValues.TokenSource.IsCancellationRequested)
                 {
-                    Debug.Log($"Cancelled task - {toolValues.Current.Id}!");
+                    Globals.Console.Push($"Cancelled task - {toolValues.Current.Id}!");
                     break;
                 }
 
@@ -302,7 +307,6 @@ namespace Pyro.Nc.Simulation
                     break;
                 }
             }
-            Debug.Log($"Exited loop - {toolValues.Current.Id}!");
             if (toolValues.ExactStopCheck)
             {
                 await tool.InvokeOnConsumeStopCheck();

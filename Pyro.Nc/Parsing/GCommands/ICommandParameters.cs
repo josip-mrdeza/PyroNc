@@ -8,6 +8,7 @@ namespace Pyro.Nc.Parsing.GCommands
     public interface ICommandParameters
     {
         public Dictionary<string, float> Values { get; set; }
+        //public Dictionary<string, string> VariableToValueMap { get; set; }
 
         public float GetValue(string s);
         public float AddValue(string key, float val);

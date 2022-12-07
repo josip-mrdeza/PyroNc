@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Pyro.IO;
+using Pyro.IO.PyroSc.Keywords;
 using Pyro.Math;
 using Pyro.Nc.Exceptions;
 using Pyro.Nc.Parsing.ArbitraryCommands;
+using Pyro.Nc.Parsing.SyntacticalCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
@@ -18,6 +21,7 @@ namespace Pyro.Nc.Parsing
     {
         internal static ValueStorage Storage;
         internal static BaseCommand PreviousModal;
+        internal static Dictionary<string, object> VariableMap = new Dictionary<string, object>(); 
         public static bool IsTrue<T>(this T obj, Predicate<T> predicate)
         {
             return predicate(obj);
@@ -58,6 +62,14 @@ namespace Pyro.Nc.Parsing
                     code = code.Insert(index, " ");
                 } 
             }
+
+            if (code.StartsWith("FOR"))
+            {
+                return new List<string[]>()
+                {
+                    new string[]{code}
+                };
+            }
             return FindVariables(code.Split(' '));
         }
         public static List<string[]> FindVariables(this string[] splitCode)
@@ -70,7 +82,8 @@ namespace Pyro.Nc.Parsing
                 Globals.Rules.Try(section);
                 if (Storage.FetchGCommand(section) != null 
                     || Storage.FetchMCommand(section) != null
-                    || Storage.FetchArbitraryCommand(section) != null || section.StartsWith("cycle", StringComparison.InvariantCultureIgnoreCase))
+                    || Storage.FetchArbitraryCommand(section) != null 
+                    || section.StartsWith("cycle", StringComparison.InvariantCultureIgnoreCase))
                 {
                     activated = true;
                     indices.Add(i);
@@ -90,7 +103,6 @@ namespace Pyro.Nc.Parsing
                 }   
                 if (Storage.FetchUnresolved(section) != null && !activated)
                 {
-                    //splitCode[i] = "G1 " + section;
                     indices.Add(i);
                     activated = true;
                 }
@@ -141,13 +153,49 @@ namespace Pyro.Nc.Parsing
                         continue;
                     }
 
-                    var command = Storage.TryGetCommand(id).Copy();
+                    ICommand command;
+                    if (id.StartsWith("FOR"))
+                    {
+                        var reg = Regex.Matches(id, @"[\d]+");
+                        var reg2 = Regex.Match(id, @"[\w]+=");
+                        var r = reg.GetEnumerator();
+                        int i = 0;
+                        if (r.MoveNext())
+                        {
+                            int.TryParse(((Match) r.Current).Value, out i);
+                        }
+                        int iterations = 0;
+                        if (r.MoveNext())
+                        {
+                            int.TryParse(((Match) r.Current).Value, out iterations);
+                        }
+                        r.Reset();
+                        command = new ForLoopGCode(i, iterations, reg2.Value.Replace("=", ""));
+                        commands.Add(command);
+                        var loop = command as ForLoopGCode;
+                        if (VariableMap.ContainsKey(loop.VariableName))
+                        {
+                            VariableMap[loop.VariableName] = loop.StartIndex;
+                        }
+                        else
+                        {
+                            VariableMap.Add(loop.VariableName, i);
+                        }
+                        return commands;
+                    }
+                    if (id.StartsWith("ENDFOR"))
+                    {
+                        command = new EndForGCode();
+                        commands.Add(command);
+                        return commands;
+                    }
+                    command = Storage.TryGetCommand(id).Copy();
                     if (command is null)
                     {
                         continue;
                     }
 
-                    if (command is Cycle cycle)
+                    if (command is Cycle)
                     {
                         var fullString = string.Join("", arrOfCommands[arrOfCommands.FindIndex(x => 
                                                                            x.FirstOrDefault(y => y.ToUpperInvariant().Contains("CYCLE")) != null)]);
@@ -210,8 +258,10 @@ namespace Pyro.Nc.Parsing
                             var nums = reqStr.LookForNumbers();
                             var results = nums.Solve();
                             f = (float) results[1].Value;
-
-                            //Debug.Log($"Solver result: {f.ToString(CultureInfo.InvariantCulture)}");
+                        }
+                        else
+                        {
+                            
                         }
 
                         command.Parameters.Values[char.ToUpperInvariant(par[0]).ToString()] = f;
@@ -249,7 +299,7 @@ namespace Pyro.Nc.Parsing
                         }
 
                         command = lastModal.Copy();
-                        command.AdditionalInfo = $"(Scoped modal)";
+                        command.AdditionalInfo = "(Scoped modal)";
                         command.Parameters = unresolvedCommand.Parameters;
                     }
                     else
@@ -259,7 +309,6 @@ namespace Pyro.Nc.Parsing
                             PreviousModal = (BaseCommand) command;
                         }
                     }
-
                     commands.Add(command);
                 }
                 catch (NullReferenceException e)
@@ -275,14 +324,14 @@ namespace Pyro.Nc.Parsing
                 }
                 catch (IndexOutOfRangeException e)
                 {
-                    PyroConsoleView.PushTextStatic(
-                        "A IndexOutOfRangeException has occured in CommandHelper.CollectCommands:",
-                        $"List length: {commands.Count.ToString()}",
-                        $"List contents: [{string.Join(" ", commands)}]",
-                        $"Current index: {index.ToString()}",
-                        $"Current string: [{string.Join(" ", commandString!)}]",
-                        $"Current id: {id}",
-                        e.Message, e.TargetSite.Name);
+                    // PyroConsoleView.PushTextStatic(
+                    //     "A IndexOutOfRangeException has occured in CommandHelper.CollectCommands:",
+                    //     $"List length: {commands.Count.ToString()}",
+                    //     $"List contents: [{string.Join(" ", commands)}]",
+                    //     $"Current index: {index.ToString()}",
+                    //     $"Current string: [{string.Join(" ", commandString!)}]",
+                    //     $"Current id: {id}",
+                    //     e.Message, e.TargetSite.Name);
                 }
                 catch (NoModalCommandFoundException e)
                 {

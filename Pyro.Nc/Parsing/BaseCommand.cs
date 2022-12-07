@@ -43,6 +43,8 @@ namespace Pyro.Nc.Parsing
             var fieldInfo = typeof(Locals).GetField(GetType().Name);
             if (fieldInfo is null)
             {
+                AdditionalInfo = "";
+                Description = "";
                 return;
             }
 
@@ -82,24 +84,31 @@ namespace Pyro.Nc.Parsing
             Tool.Values.Current = this;
             Tool.Values.IsAllowed = false;
         }
+
         /// <summary>
         /// A final execution of the command, logging every step of the way and executing <see cref="ICommand.Execute"/> defined on the class inheriting <see cref="BaseCommand"/>.
         /// </summary>
         /// <param name="draw"></param>
+        /// <param name="skipSetup"></param>
         /// <exception cref="NotImplementedException">This exception is thrown when the <see cref="ICommand"/> inheriting from <see cref="BaseCommand"/>
         /// does not define it's own <see cref="Execute"/> method, meaning it would do nothing.This is not allowed.</exception>
         /// <exception cref="NotSupportedException">This exception is thrown when the <see cref="ICommandParameters"/> of a <see cref="ExecuteTurning"/> method contain a 'Y' value.
         /// This is not allowed because the 'Y' value is not used in TURN Mode.</exception>
-        public async Task ExecuteFinal(bool draw)
+        public async Task ExecuteFinal(bool draw, bool skipSetup = false)
         {
             var type = GetType().Name;
             var toDraw = draw.ToString();
+            if (skipSetup)
+            {
+                goto afterSetup;
+            }
             await Tool.WaitUntilActionIsValid();
             if (Tool.Values.IsReset)
             {
                 return;
             }
             UpdateCurrent();
+            afterSetup:
             if (InteropManager.RichPresence is not null)
             {
                 var clientType = InteropManager.RichPresence.GetType();
@@ -129,6 +138,13 @@ namespace Pyro.Nc.Parsing
                 msgs.AddRange(Parameters.Values.Select(x => x.ToString()));
                 msgs.Add("Executing in Mill mode...");
                 PyroConsoleView.PushTextStatic(msgs.ToArray());
+                if (skipSetup)
+                {  
+                    await Execute(draw);
+                    PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw}) - {Id}",
+                                                   "Finished execution!");
+                    return;
+                }
                 try
                 {
                     await Execute(draw);
@@ -158,6 +174,14 @@ namespace Pyro.Nc.Parsing
                                                    $"Parameters contained a 'Y' value, which is forbidden in Turn mode!",
                                                    "Throwing!!");
                     throw new NotSupportedException("Y axis is not supported in TURN Mode");
+                }
+
+                if (skipSetup)
+                {
+                    await ExecuteTurning(draw);
+                    PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw}) - {Id}",
+                                                   "Finished execution!");
+                    return;
                 }
                 try
                 {

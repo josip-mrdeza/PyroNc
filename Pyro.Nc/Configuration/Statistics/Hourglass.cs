@@ -24,22 +24,17 @@ public class Hourglass : IDisposable
 
     private void Begin()
     {
-        lock (_stopwatch)
-        {
-            _stopwatch.Start();
-            IsFree = false;
-        }
+        _stopwatch.Start();
+        IsFree = false;
     }
-    
+
     public void Dispose()
     {
-        lock (_stopwatch)
-        {                   
-            _stopwatch.Stop();
-            Globals.Console.Push($"[Hourglass] - Method '{Name}' took {_stopwatch.Elapsed.TotalMilliseconds.Round(3)}ms to complete.");
-            _stopwatch.Reset();
-            IsFree = true;
-        }
+        _stopwatch.Stop();
+        Globals.Console.Push(
+            $"[Hourglass] - Method '{Name}' took {_stopwatch.Elapsed.TotalMilliseconds.Round(3)}ms to complete.");
+        _stopwatch.Reset();
+        IsFree = true;
     }
 
     public static Hourglass GetOrCreate(string name)

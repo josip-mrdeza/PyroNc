@@ -98,51 +98,91 @@ namespace Pyro.Nc.Simulation
             var copy3 = Values.Storage.TryGetCommand("G40").Copy() as G40;
             var copy4 = Values.Storage.TryGetCommand("G54").Copy() as G54;
             var copy5 = Values.Storage.TryGetCommand("G90").Copy() as G90;
-            EventSystem.AddAsyncSubscriber("ProgramEnd", async () =>
+            EventSystem.AddAsyncSubscriber("ProgramEnd", ResetTrans(copy));
+            EventSystem.AddAsyncSubscriber("ProgramEnd", StopSpindle(copy2));
+            EventSystem.AddAsyncSubscriber("ProgramEnd", DisableG40(copy3));
+            EventSystem.AddAsyncSubscriber("ProgramEnd", ResetG54(copy4));
+            EventSystem.AddAsyncSubscriber("ProgramEnd", ResetG90(copy5));
+            EventSystem.AddAsyncSubscriber("ProgramEnd", ResetTool());
+            EventSystem.AddAsyncSubscriber("ProgramEnd", ResetSettings());
+            EventSystem.AddAsyncSubscriber("RapidFeedError", ResolveRapidFeedCollision());
+            Position = new Vector3(0, 50, 0);
+        }
+
+        private Func<Task> ResolveRapidFeedCollision()
+        {
+            return async () =>
             {
-                Push("ProgramEnd->RESET TRANS");
-                await copy.Execute(false);
-            });
-            EventSystem.AddAsyncSubscriber("ProgramEnd", async () =>
-            {
-                Push("ProgramEnd->STOP SPINDLE");
-                await copy2.Execute(false);
-            });
-            EventSystem.AddAsyncSubscriber("ProgramEnd", async () =>
-            {
-                Push("ProgramEnd->DISABLE (R) COMPENSATION");
-                await copy3.Execute(false);
-            });
-            EventSystem.AddAsyncSubscriber("ProgramEnd", async () =>
-            {
-                Push("ProgramEnd->RESET TEMPORARY REFERENCE POINT");
-                await copy4.Execute(false);
-            });
-            EventSystem.AddAsyncSubscriber("ProgramEnd", async () =>
-            {
-                Push("ProgramEnd->SET TO ABSOLUTE MODE");
-                await copy5.Execute(false);
-            });
-            EventSystem.AddAsyncSubscriber("ProgramEnd", async () =>
-            {
-                Push("ProgramEnd->CHANGE TOOL TO DEFAULT(0)");
-                this.Values.Current.Expire();
-                await this.ChangeTool(0);
-            });
-            EventSystem.AddAsyncSubscriber("ProgramEnd", () =>
+                await this.Pause();
+                PushComment("A rapid feed error has occured whilst using the command '{0}'".Format(Values.Current), Color.red);
+            };
+        }
+
+        private Func<Task> ResetSettings()
+        {
+            return () =>
             {
                 Push("ProgramEnd->RESET SETTINGS");
                 Values.FeedRate.Set(0f);
                 Values.SpindleSpeed.Set(0f);
                 Position = new Vector3(0, 50, 0);
                 return Task.CompletedTask;
-            });
-            EventSystem.AddAsyncSubscriber("RapidFeedError", async () =>
+            };
+        }
+
+        private Func<Task> ResetTool()
+        {
+            return async () =>
             {
-                await this.Pause();
-                PushComment("A rapid feed error has occured whilst using the command '{0}'".Format(Values.Current), Color.red);
-            });
-            Position = new Vector3(0, 50, 0);
+                Push("ProgramEnd->CHANGE TOOL TO DEFAULT(0)");
+                this.Values.Current?.Expire();
+                await this.ChangeTool(0);
+            };
+        }
+
+        private Func<Task> ResetG90(G90 copy5)
+        {
+            return async () =>
+            {
+                Push("ProgramEnd->SET TO ABSOLUTE MODE");
+                await copy5.Execute(false);
+            };
+        }
+
+        private Func<Task> ResetG54(G54 copy4)
+        {
+            return async () =>
+            {
+                Push("ProgramEnd->RESET TEMPORARY REFERENCE POINT");
+                await copy4.Execute(false);
+            };
+        }
+
+        private Func<Task> DisableG40(G40 copy3)
+        {
+            return async () =>
+            {
+                Push("ProgramEnd->DISABLE (R) COMPENSATION");
+                await copy3.Execute(false);
+            };
+        }
+
+        private Func<Task> StopSpindle(M05 copy2)
+        {
+            return async () =>
+            {
+                Push("ProgramEnd->STOP SPINDLE");
+                await copy2.Execute(false);
+            };
+        }
+
+        private Func<Task> ResetTrans(Trans copy)
+        {
+            return async () =>
+            {
+                Push("ProgramEnd->RESET TRANS");
+                await copy.Execute(false);
+            };
         }
 
         private void FixedUpdate()
