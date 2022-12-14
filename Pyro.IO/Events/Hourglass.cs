@@ -1,20 +1,20 @@
 using System;
 using System.Diagnostics;
-using Pyro.Math;
-using Pyro.Nc.Simulation;
 
-namespace Pyro.Nc.Configuration.Statistics;
+namespace Pyro.IO.Events;
 
 public class Hourglass : IDisposable
 {
-    private readonly Stopwatch _stopwatch = new Stopwatch();
     private static Hourglass FreeHourglassInstance;
     public string Name { get; private set; }
+    public Stopwatch Stopwatch { get; private set; }
     public bool IsFree { get; private set; }
+    public Action<Hourglass> Finishing { get; set; }
 
     public Hourglass(string name)
     {
         Name = name;
+        Stopwatch = new Stopwatch();
         Begin();
         if (FreeHourglassInstance is null)
         {
@@ -24,16 +24,17 @@ public class Hourglass : IDisposable
 
     private void Begin()
     {
-        _stopwatch.Start();
+        Stopwatch.Start();
         IsFree = false;
     }
 
     public void Dispose()
     {
-        _stopwatch.Stop();
-        Globals.Console.Push(
-            $"[Hourglass] - Method '{Name}' took {_stopwatch.Elapsed.TotalMilliseconds.Round(3)}ms to complete.");
-        _stopwatch.Reset();
+        Stopwatch.Stop();
+        // Globals.Console.Push(
+        //     $"[Hourglass] - Method '{Name}' took {_stopwatch.Elapsed.TotalMilliseconds.Round(3)}ms to complete.");
+        Finishing(this);
+        Stopwatch.Reset();
         IsFree = true;
     }
 

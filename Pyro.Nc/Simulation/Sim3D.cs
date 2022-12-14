@@ -8,12 +8,14 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Pyro.IO;
+using Pyro.IO.Events;
 using Pyro.Math;
 using Pyro.Math.Geometry;
 using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Configuration.Sim3D_Legacy;
 using Pyro.Nc.Configuration.Statistics;
 using Pyro.Nc.Exceptions;
+using Pyro.Nc.Parsing.Cycles;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.UI;
@@ -159,6 +161,13 @@ namespace Pyro.Nc.Simulation
             if (CachedMethods.ContainsKey("CheckPositionForCut"))
             {
                 using Hourglass hourglass = Hourglass.GetOrCreate("CheckPositionForCut_Custom");
+                if (hourglass.Finishing is null)
+                {
+                    hourglass.Finishing = hg =>
+                    {
+                        Globals.Console.Push($"[Hourglass] - Method '{hg.Name}' took {hg.Stopwatch.Elapsed.TotalMilliseconds.Round(3)}ms to complete.");
+                    };
+                }
                 var method = CachedMethods["CheckPositionForCut"];
                 return (CutResult) method.Invoke(null, new object[]
                 {
@@ -177,6 +186,7 @@ namespace Pyro.Nc.Simulation
             var trVT = tool.Temp.transform;
             var trV = trVT.position;
             var radius = tool.Values.Radius;
+            var isDrilling = tool.Values.Current.GetType() == typeof(CYCLE81);
             for (int i = 0; i < vertices.Count; i++)
             {
                 var vert = vertices[i];
@@ -205,7 +215,7 @@ namespace Pyro.Nc.Simulation
                     vertices[i] = new Vector3(vector3d.x, vert.y - distVertical, vector3d.y);
                     verticesCut++;
                 }
-                else if (distHorizontal <= tool.ToolConfig.Radius + 2f &&
+                else if (isDrilling && distHorizontal <= tool.ToolConfig.Radius + 2f &&
                          distVertical <= tool.ToolConfig.VerticalMargin)
                 {
                     if (throwIfCut)
