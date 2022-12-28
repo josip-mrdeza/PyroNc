@@ -10,6 +10,13 @@ namespace Pyro.Threading
     public static class PyroDispatcher
     {
         private static Context Main => Context.DefaultContext;
+
+        public static Task<TOut> ExecuteOnMainAsync<TIn, TOut>(Func<TIn, TOut> function, TIn input)
+        {
+            TOut result = default;
+            Task<TOut> task = new Task<TOut>(i => ExecuteOnMain(function, (TIn) i), input);
+            return task;
+        }                                   
         public static TOut ExecuteOnMain<TIn, TOut>(Func<TIn, TOut> function, TIn input)
         {
             TOut result = default;
@@ -20,7 +27,16 @@ namespace Pyro.Threading
 
             return result;
         }
-
+        public static Task ExecuteOnMainAsync(Action function)
+        {
+            Task task = new Task(() => Main.DoCallBack(new CrossContextDelegate(function)));
+            return task;
+        }  
+        public static Task ExecuteOnMainAsync<TIn>(Action<TIn> function, TIn input)
+        {
+            Task task = new Task(i => ExecuteOnMain(function, input), input);
+            return task;
+        }     
         public static void ExecuteOnMain<TIn>(Action<TIn> function, TIn input)
         {
             Main.DoCallBack(() => function(input)); 
@@ -29,7 +45,10 @@ namespace Pyro.Threading
         public static TOut ExecuteOnMain<TOut>(Func<TOut> function)
         {
             TOut res = default;
-            Main.DoCallBack(() => res = function());
+            Main.DoCallBack(() =>
+            {
+                res = function();
+            });
 
             return res;
         }

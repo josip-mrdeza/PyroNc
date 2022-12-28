@@ -1,11 +1,15 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Remoting.Contexts;
+using System.Threading;
 using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.IO.Events;
@@ -19,8 +23,11 @@ using Pyro.Nc.Parsing.Cycles;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.UI;
+using Pyro.Nc.UI.Debug;
+using Pyro.Threading;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
+using Path = Pyro.Nc.Pathing.Path;
 
 namespace Pyro.Nc.Simulation
 {
@@ -156,7 +163,7 @@ namespace Pyro.Nc.Simulation
         /// <returns>An asynchronous task resulting in a <see cref="CutResult"/> statistic, defining time spent cutting and total vertices cut.</returns>
         /// <exception cref="RapidFeedCollisionException">This exception is thrown if the command used for the execution of this action is of type <see cref="G00"/>,
         /// causing a rapid feed collision (High speed hit into the workpiece).</exception>
-        public static CutResult CheckPositionForCut(this ITool tool, Direction direction, bool throwIfCut)
+        public static async Task<CutResult> CheckPositionForCut(this ITool tool, Direction direction, bool throwIfCut)
         {
             if (CachedMethods.ContainsKey("CheckPositionForCut"))
             {
@@ -169,11 +176,17 @@ namespace Pyro.Nc.Simulation
                     };
                 }
                 var method = CachedMethods["CheckPositionForCut"];
-                return (CutResult) method.Invoke(null, new object[]
+                // return (CutResult) method.Invoke(null, new object[]
+                // {
+                //     tool,
+                //     direction,
+                //     throwIfCut
+                // });
+                method.Invoke(null, new object[]
                 {
-                    tool,
-                    direction,
-                    throwIfCut
+                     tool,
+                     direction,
+                     throwIfCut
                 });
             }
             //we could parse the cube once, and map all points that are close to the central point and then use those for all calculations?
@@ -203,16 +216,15 @@ namespace Pyro.Nc.Simulation
 
                         return new CutResult(stopwatch.ElapsedMilliseconds, verticesCut, true);
                     }
-                    
                     tool.Colors[i] = tool.ToolConfig.ToolColor;
-                    
                     Line2D line = new Line2D(new Vector2D(realVert.x, realVert.z), new Vector2D(pos.x, pos.z));
                     var vcs = line.FindCircleEndPoint(radius, pos.x, pos.z);
                     var distance1 = Space2D.Distance(vcs.positive, new Vector2D(realVert.x, realVert.z));
                     var distance2 = Space2D.Distance(vcs.negative, new Vector2D(realVert.x, realVert.z));
                     bool flag = distance2 > distance1;
                     Vector2D vector3d = ((flag ? vcs.positive : vcs.negative));
-                    vertices[i] = new Vector3(vector3d.x, vert.y - distVertical, vector3d.y);
+                    var height = vert.y + distVertical - tool.ToolConfig.VerticalMargin;
+                    vertices[i] = new Vector3(vector3d.x, height, vector3d.y);
                     verticesCut++;
                 }
                 else if (isDrilling && distHorizontal <= tool.ToolConfig.Radius + 2f &&
@@ -222,7 +234,7 @@ namespace Pyro.Nc.Simulation
                     {
                         stopwatch.Stop();
                         verticesCut++;
-
+                        
                         return new CutResult(stopwatch.ElapsedMilliseconds, verticesCut, true);
                     }
                     
@@ -241,27 +253,28 @@ namespace Pyro.Nc.Simulation
 
             var mesh = tool.Workpiece.Current;
             mesh.vertices = vertices.GetInternalArray();
-            mesh.triangles = tool.Triangles.GetInternalArray();
             mesh.colors = tool.Colors.GetInternalArray();
+            mesh.triangles = tool.Triangles.GetInternalArray();
             stopwatch.Stop();
-
             return new CutResult(stopwatch.Elapsed.TotalMilliseconds, verticesCut);
         }
 
         [CustomMethod(nameof(TraverseFinal))]
-        public static Task TraverseFinal(this ITool tool, Vector3[] points, bool draw, bool logStats)
+        public static async Task TraverseFinal(this ITool tool, Vector3[] points, bool draw, bool logStats)
         {
             var traverseState = Globals.MethodManager.Get("Traverse");
             switch (traverseState.Index)
             {
                 case -1:
                 {
-                    return tool.TraverseForceBased(points, draw, logStats);
+                    await tool.TraverseForceBased(points, draw, logStats);
+                    break;
                 }
 
                 case 0:
                 {
-                    return tool.Traverse(points, draw, logStats);
+                    await tool.Traverse(points, draw, logStats);
+                    break;
                 }
 
                 default:
@@ -271,8 +284,9 @@ namespace Pyro.Nc.Simulation
                         throw new MissingMethodException("This method has not been re-implemented yet.");
                     }
 
-                    Task awaitableTask = (Task) CachedMethods["Traverse"].Invoke(null, new object[]{tool, points, draw, logStats});
-                    return awaitableTask;
+                    Task awaitableTask = CachedMethods["Traverse"].Invoke(null, new object[]{tool, points, draw, logStats}).CastInto<Task>();
+                    await awaitableTask;
+                    break;
                 }
             }
         }
@@ -298,13 +312,15 @@ namespace Pyro.Nc.Simulation
             {
                 draw.DrawTranslation(currentPosition, point);
                 tool.Position = point;
-                var cutResult = tool.CheckPositionForCut(Direction.FromVectors(currentPosition, point), throwIfCutIsDetected);
-                LogCutStatistics(logStats, cutResult,  ref averageTimeForCut, ref totalCut);
+                // var cutResult = tool.CheckPositionForCut(Direction.FromVectors(currentPosition, point), throwIfCutIsDetected);
+                // LogCutStatistics(logStats, cutResult,  ref averageTimeForCut, ref totalCut);
+                await tool.CheckPositionForCut(Direction.FromVectors(currentPosition, point), throwIfCutIsDetected);
+                //LogCutStatistics(logStats, new CutResult(),  ref averageTimeForCut, ref totalCut);
                 currentPosition = point;
-                if (cutResult.Threw)
-                {
-                    throw new RapidFeedCollisionException(tool.Values.Current);
-                }
+                // if (cutResult.Threw)
+                // {
+                //     throw new RapidFeedCollisionException(tool.Values.Current);
+                // }
                 await FinishCurrentMove(toolValues);
                 if (toolValues.TokenSource.IsCancellationRequested)
                 {
@@ -408,7 +424,7 @@ namespace Pyro.Nc.Simulation
         }
         internal static async Task FinishCurrentMove(ToolValues toolValues)
         {
-            await Task.Delay(toolValues.FastMoveTick);
+            //await Task.Delay(toolValues.FastMoveTick);
             await Task.Yield();
         }
         internal static void LogCutStatistics(bool logStats, CutResult cutResult, ref double averageTimeForCut, ref long totalCut)

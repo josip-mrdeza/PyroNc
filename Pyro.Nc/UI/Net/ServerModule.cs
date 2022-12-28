@@ -28,6 +28,7 @@ public class ServerModule : View
         StartListeningButton.onClick.AddListener(StartServer());
         Receiver = new PyroReceiver();
         Devices.Add(DevicePrefab);
+        DevicePrefab.SetActive(false);
     }
 
     private void Update()
@@ -41,6 +42,7 @@ public class ServerModule : View
         {
             return;
         }
+        
         var connected = Receiver.Devices.Values.ToArray();
         for (int i = 0; i < connected.Length; i++)
         {
@@ -57,6 +59,7 @@ public class ServerModule : View
                 comps[1].text = "Sent: " + (device.Sent / 1_000_000d).Round() + "MB";
                 comps[2].text = "Received: " + (device.Received / 1_000_000d).Round() + "MB";
                 comps[3].text = "Requests: " + device.Requests;
+                deviceObj.SetActive(true);
             }
         }
     }

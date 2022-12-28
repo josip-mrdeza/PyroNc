@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,6 +8,14 @@ namespace Pyro.IO
 {
     public static class LINQExt
     {
+        public static void Iterate(this IEnumerable enumerable)
+        {
+            var en = enumerable.GetEnumerator();
+            while (en.MoveNext())
+            {
+                
+            }
+        }
         public static TR Mutate<T, TR>(this T obj, Func<T, TR> func) => func(obj);
         public static TR Do<T, TR>(this T obj, Func<T, TR> func) => func(obj);
         public static void Do<T>(this T obj, Action<T> action) => action(obj);

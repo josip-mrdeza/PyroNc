@@ -194,12 +194,12 @@ namespace Pyro.Nc.Simulation
             {
                 _contained = true;
                 var pos = Position;
-                var cutResult = this.CheckPositionForCut(Direction.FromVectors(pos, pos + Vector3.down), Values.Current.GetType() == typeof(G00));
-                Push("Traverse finished!",
-                                               "Total vertices cut: {0} ({1}%)".Format(cutResult.TotalVerticesCut, 
-                                                   (((double) cutResult.TotalVerticesCut / Vertices.Count) * 100).Round()),
-                                               "Average time spent cutting: {0}ms"
-                                                   .Format(cutResult.TotalTime));
+                //var cutResult = this.CheckPositionForCut(Direction.FromVectors(pos, pos + Vector3.down), Values.Current.GetType() == typeof(G00));
+                // Push("Traverse finished!",
+                //                                "Total vertices cut: {0} ({1}%)".Format(cutResult.TotalVerticesCut, 
+                //                                    (((double) cutResult.TotalVerticesCut / Vertices.Count) * 100).Round()),
+                //                                "Average time spent cutting: {0}ms"
+                //                                    .Format(cutResult.TotalTime));
             }
             else
             {

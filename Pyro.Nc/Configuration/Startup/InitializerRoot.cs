@@ -45,14 +45,17 @@ namespace Pyro.Nc.Configuration.Startup
 
         public void Push(params string[] arr)
         {
+            #if DEBUG
             if (Globals.Console is not null)
             {
                 PyroConsoleView.PushTextStatic(arr);
             }
+            #endif
         }
 
         public void PushComment(string arr, Color color)
         {
+            #if DEBUG
             if (Globals.Console is not null)
             {
                 PyroConsoleView.PushTextStatic(arr);
@@ -65,6 +68,7 @@ namespace Pyro.Nc.Configuration.Startup
                 textMeshProUGUI.text = arr;
                 textMeshProUGUI.color = color;
             }
+            #endif
         }
     }
 }

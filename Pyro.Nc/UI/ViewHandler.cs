@@ -6,22 +6,22 @@ namespace Pyro.Nc.UI
 {
     public static class ViewHandler
     {
-        public static List<View> Views = new List<View>();
+        public static readonly Dictionary<string, View> Views = new Dictionary<string, View>();
         public static bool Active = false;
         public static void Add(View view)
         {
-            Views.Add(view);
+            Views.Add(view.Id, view);
         }
 
         public static void Show(string id)
         {
-            Views.First(x => x.Id == id).Show();
+            Views[id].Show();
         }
 
         public static void ShowOne(string id)
         {
             View v = null;
-            foreach (var view in Views)
+            foreach (var view in Views.Values)
             {
                 if (view.Id == id)
                 {
@@ -40,18 +40,12 @@ namespace Pyro.Nc.UI
         
         public static void Hide(string id)
         {
-            Views.First(x => x.Id == id).Hide();
+            Views[id].Hide();
         }
 
         public static void HideOne(string id)
         {
-            foreach (var view in Views)
-            {
-                if (view.Id == id)
-                {
-                    view.Hide();
-                }
-            } 
+            Views[id].Hide();
         }
     }
 }

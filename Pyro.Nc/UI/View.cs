@@ -14,6 +14,7 @@ namespace Pyro.Nc.UI
         public bool ActiveByDefault;
         public bool IsPersistent;
         public bool IsActive;
+        public bool IsDisabled;
         public KeyCode Key;
         public List<GameObject> Objects;
         public List<Button> Buttons;
@@ -45,12 +46,28 @@ namespace Pyro.Nc.UI
             Push($"Initialized View: {gameObject.name}", $"View has {Objects.Count} children.");
         }
 
+        public void Update()
+        {
+            if (IsActive)
+            {
+                UpdateView();
+            }
+        }
+
+        public virtual void UpdateView()
+        {
+        }
+
         public void ShowAtIndex(int index)
         {
             ViewHandler.Show(LinkedViews[index].Id);
         }
         public virtual void Show()
         {
+            if (IsDisabled)
+            {
+                return;
+            }
             foreach (var go in Objects)
             {
                 go.SetActive(true);
@@ -67,6 +84,9 @@ namespace Pyro.Nc.UI
             }
             IsActive = false;
             ViewHandler.Active = false;
+            OnHidden?.Invoke(this, EventArgs.Empty);
         }
+
+        public event EventHandler OnHidden;
     }
 }

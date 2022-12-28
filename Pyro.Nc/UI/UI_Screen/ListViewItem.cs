@@ -26,6 +26,11 @@ namespace Pyro.Nc.UI.UI_Screen
         public override void Initialize()
         {
             Button = gameObject.GetComponent<Button>();
+            var colors = Button.colors;
+            colors.pressedColor = Color.clear;
+            colors.selectedColor = Color.clear;
+            colors.highlightedColor = new Color(125 / 255f, 125 / 255f, 125 / 255f, 1);
+            Button.colors = colors;
             TextMesh = gameObject.GetComponent<TextMeshProUGUI>();
             var typeGo = new GameObject("T");
             var lengthGo = new GameObject("L");

@@ -142,6 +142,10 @@ public class Localisation
             "Error in GetSuggestions: line -> \"{0}\""
         },
         {
+             MapKey.GenericError, 
+             "Generic (Handled?) error: {0}!"
+        },
+        {
             MapKey.GenericUnhandledError, 
             "Unhandled error: {0}!"
         },

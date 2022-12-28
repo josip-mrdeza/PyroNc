@@ -179,27 +179,30 @@ namespace Pyro.Nc.UI
         }
         public IEnumerable<string> GetSuggestions(string text)
         {
-            List<string[]> variables = null;
-            List<ICommand> commands = new List<ICommand>();
             try
             {
                 var lines = text.Split('\n').Take(GetLineNumber() + 1).ToArray();
                 CommandHelper.PreviousModal = null;
+                List<ICommand> commands = null;
+                if (lines.Length == 0)
+                {
+                    return Enumerable.Empty<string>();
+                }
                 foreach (var line in lines)
                 {
-                    variables = line.Trim().FindVariables();
+                    var variables = line.Trim().FindVariables();
                     commands = variables.CollectCommands();
                 }
-                return commands.Select(x => $"{x.GetType().Name}: \"{x.Description}\", " +
+                return commands!.Select(x => $"{x.GetType().Name}: \"{x.Description}\", " +
                                            $"({x.Parameters?.Values.Values.Count(v => !float.IsNaN(v)).ToString()}) {x.AdditionalInfo}");
             }
             catch (Exception e)
             {
                  Push(Globals.Localisation.Find(Localisation.MapKey.GCodeFault, 
-                                                GetLineAtCaret()),
-                      Globals.Localisation.Find(Localisation.MapKey.GenericError, 
-                                                e));
-                 return new string[]{Globals.Localisation.Find(Localisation.MapKey.GCodeFaultOrUndeclared)
+                                                GetLineAtCaret()), Globals.Localisation.Find(Localisation.MapKey.GenericError, 
+                                                e)
+                      );
+                 return new []{Globals.Localisation.Find(Localisation.MapKey.GCodeFaultOrUndeclared)
                      + e.Message};
             }
         }
@@ -214,7 +217,7 @@ namespace Pyro.Nc.UI
             throw new Exception($"GCode Snip exception, no line matched the caret's position. Caret pos: {caretPos}, Text len: {Text.text.Length}; sum = {0}");
         }
 
-        private void LateUpdate()
+        public override void UpdateView()
         {
             var lineNum = GetLineNumber();
             LineNumber.text = $"Line: {lineNum.ToString()} | {Text.caretPosition.ToString()}";
@@ -232,12 +235,9 @@ namespace Pyro.Nc.UI
                     HasSaved = true;
                 }
             }
-
-            if (IsActive)
-            {
-                ApplySuggestions();
-                UpdateDisplaySize(len);
-            }
+            
+            ApplySuggestions();
+            UpdateDisplaySize(len);
         }
 
         public int GetLineNumber()

@@ -302,9 +302,9 @@ namespace Pyro.Nc.Parsing
             {
                 Builder.Clear();
                 Builder.Append(GetType().Name);
-                Builder.Append(' ');
                 foreach (var value in Parameters.Values)
                 {
+                    Builder.Append(' ');
                     if (!Single.IsNaN(value.Value))
                     {
                         if (value.Key == "Y")
@@ -315,7 +315,8 @@ namespace Pyro.Nc.Parsing
                         {
                             Builder.Append("Y");
                         }
-                        Builder.Append(value.Value).Append(' ');
+
+                        Builder.Append(value.Value);
                     }
                 }
                 
@@ -340,6 +341,7 @@ namespace Pyro.Nc.Parsing
 
             return (T) command;
         }
+        
         private static readonly StringBuilder Builder = new StringBuilder(); 
     }
 }

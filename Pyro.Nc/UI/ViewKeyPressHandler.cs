@@ -8,7 +8,7 @@ namespace Pyro.Nc.UI
     {
         private void Update()
         {
-            foreach (var view in ViewHandler.Views)
+            foreach (var view in ViewHandler.Views.Values)
             {
                 if (Input.GetKeyDown(view.Key))
                 {

@@ -71,7 +71,7 @@ namespace Pyro.Nc.UI.UI_Screen
         public virtual void Handler(ListViewItem item)
         {
             var id = "GCodeEditor";
-            var view = ViewHandler.Views.Find(x => x.Id == id) as GCodeInputHandler;
+            var view = ViewHandler.Views[id] as GCodeInputHandler;
             ViewHandler.ShowOne(view.Id);
             view.LoadText(LocalRoaming.OpenOrCreate("PyroNc\\GCode").ReadFileAsText(item.Content), item.Content);
         }
