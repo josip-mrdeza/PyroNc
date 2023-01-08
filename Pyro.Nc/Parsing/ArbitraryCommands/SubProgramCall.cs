@@ -1,0 +1,26 @@
+using System.Threading.Tasks;
+using Pyro.IO;
+using Pyro.Nc.Parsing.GCommands;
+using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation;
+using Pyro.Nc.UI;
+
+namespace Pyro.Nc.Parsing.ArbitraryCommands;
+
+public class SubProgramCall : BaseCommand                                        
+{
+    public SubProgramCall(ITool tool, ICommandParameters parameters) : base(tool, parameters)
+    {
+    }
+
+    public override string Description => Name;
+    
+    public string Name { get; set; }
+
+    public override async Task Execute(bool draw)
+    {
+        Globals.Console.Push($"Sub program call: {Description}!");
+        var text = LocalRoaming.OpenOrCreate("PyroNc\\GCode").ReadFileAsText(Description);
+        await Globals.GCodeInputHandler.Call(text, false);
+    }
+}

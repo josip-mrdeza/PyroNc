@@ -33,12 +33,12 @@ namespace Pyro.Nc.Configuration.Managers
                 {
                     Tools = new List<ToolConfiguration>()
                     {
-                        new("emptyTool", 0, 0, 0, 0, 0, 0, 0),
-                        new("end_mill_3mm", 1.5f, 1, 5, Color.red),
-                        new("end_mill_6mm", 3f, 2, 12.3f, Color.green),
-                        new("end_mill_12mm", 6f, 3, 10f, Color.blue),
-                        new("face_mill_40mm", 20f, 4, 12.212f, Color.magenta),
-                        new("twist_drill_8mm", 4f, 5, 23, Color.yellow)
+                        new("No Tool", "emptyTool", 0, 0, 0, 0, 0, 0, 0),
+                        new("End mill 3mm", "end_mill_3mm", 1.5f, 1, 5, Color.red),
+                        new("End mill 6mm", "end_mill_6mm", 3f, 2, 12.3f, Color.green),
+                        new("End mill 12mm", "end_mill_12mm", 6f, 3, 10f, Color.blue),
+                        new("Face mill 40mm", "face_mill_40mm", 20f, 4, 12.212f, Color.magenta),
+                        new("Twist drill 8mm", "twist_drill_8mm", 4f, 5, 23, Color.yellow)
                     };
                     Debug.Log($"Adding list to file {FileName}!");
                     Globals.Roaming.AddFile(FileName, Tools);

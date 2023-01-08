@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Nc.Configuration;
+using Pyro.Nc.Exceptions;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.MCommands;
@@ -27,10 +28,7 @@ namespace Pyro.Nc.Simulation
 
         public static async Task<ToolConfiguration> ChangeTool(this ITool tool, int index)
         {
-            if (tool is null)
-            {
-                throw new NullReferenceException("ChangeTool: Parameter 'tool' is null!");
-            }
+            ThrowNoToolException(tool);
             Setter ??= new ToolSetter(tool, new ArbitraryCommandParameters());
             Setter.Parameters.AddValue("value", index);
             await Setter.ExecuteFinal(true);
@@ -38,27 +36,36 @@ namespace Pyro.Nc.Simulation
             return tool.ToolConfig;
         }
 
+        public static bool IsPresent(this ITool tool)
+        {
+            ThrowNoToolException(tool);
+
+            return tool.ToolConfig.Index != 0;
+        }
+
         public static async Task Pause(this ITool tool)
         {
-            if (tool is null)
-            {
-                throw new NullReferenceException("Pause: Parameter 'tool' is null!");
-            }
-            
+            ThrowNoToolException(tool);
+
             tool.Values.IsPaused = true;    
             await tool.EventSystem.FireAsync("ProgramPause");
         }
 
         public static Task Resume(this ITool tool)
         {
-            if (tool is null)
-            {
-                throw new NullReferenceException("Pause: Parameter 'tool' is null!");
-            }
+            ThrowNoToolException(tool);
 
             tool.Values.IsPaused = false;
 
             return Task.CompletedTask;
+        }
+        
+        public static void ThrowNoToolException(this ITool tool)
+        {
+            if (tool is null)
+            {
+                throw new NotifyException("ChangeTool: Parameter 'tool' is null!");
+            }
         }
     }
 }

@@ -23,13 +23,13 @@ namespace Pyro.Nc.Parsing.GCommands
         /// <inheritdoc />
         public override async Task Execute(bool draw)
         {
-            if (Tool.ToolConfig.Index == 0)
-            {
-                throw new ToolNotDefinedException();
-            }
             if (Tool.Values.FeedRate == 0)
             {
                 throw new FeedRateNotDefinedException();
+            }
+            if (Tool.ToolConfig.Index == 0)
+            {
+                throw new ToolNotDefinedException();
             }
             await Tool.Traverse(ResolvePosition(), Parameters.LineSmoothness, draw);
         }
@@ -59,9 +59,10 @@ namespace Pyro.Nc.Parsing.GCommands
             else
             {
                 var pos = Tool.Position;
-                point = new Vector3(ResolveNan(parameters.X, pos.x),
-                                    ResolveNan(parameters.Y, pos.y),
-                                    ResolveNan(parameters.Z, pos.z)) + trans;
+                point = new Vector3((parameters.X + trans.x).FixNan(pos.x),
+                                    (parameters.Y + trans.y).FixNan(pos.y),
+                                    (parameters.Z + trans.z).FixNan(pos.z));
+
             }
 
             return point;

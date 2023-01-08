@@ -3,10 +3,7 @@ using System.Linq;
 namespace Pyro.Math.Geometry
 {
     public class Circle3D : I3DShape, IPrimitive
-    { 
-        public readonly Vector3D Start;
-        public readonly Vector3D End;
-
+    {
         public Vector3D[] Points { get; set; }
         public Limit[] XLimits { get; }
         public Limit[] YLimits { get; }
@@ -26,8 +23,6 @@ namespace Pyro.Math.Geometry
         {
             Radius = radius;
             Points = Space3D.PlotCircle3D(radius, depth, smoothness);
-            Start = Points[0];
-            End = Start;
             Smoothness = smoothness;
             GeometricalShape = Shape.Circle;
         }
@@ -37,8 +32,6 @@ namespace Pyro.Math.Geometry
             Radius = radius;
             var depth = Operations.Average(startPoint.z, endPoint.z);
             Points = Space3D.PlotCircle3D(radius, depth, smoothness);
-            Start = startPoint;
-            End = endPoint;
             Smoothness = smoothness;
             XLimits = new[]
             {

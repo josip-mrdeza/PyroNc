@@ -15,5 +15,7 @@ namespace Pyro.Math
         {
             return new Vector3D(v2d.x, v2d.y, 0);
         }
+
+        public override string ToString() => $"({x}, {y})";
     }
 }

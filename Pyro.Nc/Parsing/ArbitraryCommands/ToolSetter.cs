@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Pyro.Nc.Exceptions;
@@ -15,7 +16,22 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
             
         }
 
-        public override string Description => Locals.ToolSetter;
+        public override string Description
+        {
+            get
+            {
+                try
+                {
+                    var value = (int) Parameters.GetValue("value");
+                    var tool = Globals.ToolManager.Tools.FirstOrDefault(t => t.Index == value);
+                    return $"{tool.Name} (R{tool.Radius.ToString(CultureInfo.InvariantCulture)})";
+                }
+                catch
+                {
+                    return "No such tool exists.";
+                }
+            }
+        }
         public override async Task Execute(bool draw)
         {
             if (Globals.ToolManager is null)

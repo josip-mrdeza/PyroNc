@@ -1,26 +1,26 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using BenchmarkDotNet.Attributes;
 using Pyro.IO;
+using Pyro.IO.Memory;
 
 namespace TriangulationBenchmarks
 {
     [MemoryDiagnoser]
     public class TriangulationLINQ
     {
-        public string Start = "The balls have been busted !";
-        public char separator = ' ';
+        public SharedMemory Memory = new SharedMemory("shared", 1_000_000, 1_000_000);
+        
         [Benchmark]
-        public void Contains()
+        public void ReadMemory()
         {
-            _ = Start.Contains("Busted !");
         }
-
+        
         [Benchmark]
-        public void Contains_Custom()
+        public void WriteMemory()
         {
-            _ = Start.ContainsFast("Busted !");
         }
     }
 }

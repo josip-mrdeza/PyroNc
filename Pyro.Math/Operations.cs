@@ -146,6 +146,16 @@ namespace Pyro.Math
         {
             return (float) System.Math.Round(x, decimals, MidpointRounding.ToEven);
         }
+
+        public static float ToDegreeFromRadian(this float radian)
+        {
+            return (float) (radian * 57.2958d);
+        }
+
+        public static float ToRadianFromDegree(this float degree)
+        {
+            return (float)(degree * 0.0174533d);
+        }
         
         public static float Average(params float[] nums)
         {
@@ -169,42 +179,14 @@ namespace Pyro.Math
             return result;
         }
 
+        public static float FixNan(this float val, float defaultValue = 0)
+        {
+            return float.IsNaN(val) ? defaultValue : val;
+        }
+
         public static float CalculateCircleRadius(this float x, float y, float xCenter, float yCenter)
         {
             return ((x - xCenter).Squared() + (y - yCenter).Squared()).SquareRoot();
-        }
-
-        public static void Reverse(this I3DShape shape)
-        {
-            var points = shape.Points;
-            for (int i = points.Length - 1; i >= 0; i--)
-            {
-                Arc3D._RevArr[i] = points[points.Length - 1 - i];
-            }
-
-            for (int i = 0; i < points.Length; i++)
-            {
-                points[i] = Arc3D._RevArr[i];
-                Arc3D._RevArr[i] = default;
-            }
-        }
-
-        public static void Rotate(this I3DShape shape, float degrees)
-        {
-            //uzet svaku tocku i svaku postavit na onu koja je 'degrees' vise od nje * radius.
-            
-            for (int i = 0; i < shape.Points.Length; i++)
-            {
-                ref var p = ref shape.Points[i];
-                var dgr = ((p.x / shape.Radius).ArcCos() + degrees).Round();
-                p.x += dgr.Cos() * shape.Radius;
-                p.z += dgr.Sin() * shape.Radius;
-            }
-        }
-        
-        public static void Rotate(this I3DShape shape, Vector3D standpoint)
-        {
-             
         }
     }
 }

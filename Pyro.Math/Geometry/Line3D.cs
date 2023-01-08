@@ -34,7 +34,7 @@ namespace Pyro.Math.Geometry
         {
             Start = p1;
             End = p2;
-            LinePoints = new LinePoint[numOfPoints > 1 ? numOfPoints : throw new ArgumentException("Argument 'numOfPoints' cannot deviate from a set <1, Int32.MaxValue>!")];
+            LinePoints = new LinePoint[numOfPoints];
             NumberOfPoints = numOfPoints;
             int endPoint = numOfPoints - 1;
             LinePoints[0] = new LinePoint(p1, 0);

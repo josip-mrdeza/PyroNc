@@ -78,6 +78,10 @@ public class CustomAssemblyManager : IManager
                 try
                 {
                     var files = dir.GetFiles();
+                    if (files.FirstOrDefault(x => x.Name == "plugin.disable") != null)
+                    {
+                        continue;
+                    }
                     var assemblyName = dir.Name;
                     if (files.Length == 0)
                     {

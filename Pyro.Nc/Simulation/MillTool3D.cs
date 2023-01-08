@@ -32,7 +32,7 @@ namespace Pyro.Nc.Simulation
         }
 
         public override async Task InitializeAsync()
-        {  
+        {
             //const float c = 0.18823529411764705882352941176471f;
             Temp = GameObject.FindWithTag("temp");
             _transform = transform;
@@ -106,7 +106,7 @@ namespace Pyro.Nc.Simulation
             EventSystem.AddAsyncSubscriber("ProgramEnd", ResetTool());
             EventSystem.AddAsyncSubscriber("ProgramEnd", ResetSettings());
             EventSystem.AddAsyncSubscriber("RapidFeedError", ResolveRapidFeedCollision());
-            Position = new Vector3(0, 50, 0);
+            Position = new Vector3(-50, 100, -50);
         }
 
         private Func<Task> ResolveRapidFeedCollision()
@@ -125,7 +125,8 @@ namespace Pyro.Nc.Simulation
                 Push("ProgramEnd->RESET SETTINGS");
                 Values.FeedRate.Set(0f);
                 Values.SpindleSpeed.Set(0f);
-                Position = new Vector3(0, 50, 0);
+                Position = new Vector3(-50, 100, -50);
+                MCALL.ClearSubroutine();
                 return Task.CompletedTask;
             };
         }
@@ -233,7 +234,7 @@ namespace Pyro.Nc.Simulation
             {
                 _toolConfig = value;
                 //Resources.UnloadAsset(meshFilter.mesh);
-                var str = "Tools/{0}".Format(_toolConfig.Name);
+                var str = "Tools/{0}".Format(_toolConfig.Id);
                 toolfilter.mesh = Resources.Load<Mesh>(str);
                 //transform.localScale = Vector3.one * (_toolConfig.Radius * 2);
             }

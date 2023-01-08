@@ -81,7 +81,6 @@ namespace Pyro.Nc.Simulation
             if (!toolValues.IsAllowed || toolValues.IsPaused)
             {
                 Globals.Console.Push("Waiting...");
-                Hourglass hourglass = Hourglass.GetOrCreate(nameof(WaitUntilActionIsValid));
                 bool isEven = true;
                 while (!toolValues.IsAllowed || toolValues.IsPaused)
                 {
@@ -101,7 +100,7 @@ namespace Pyro.Nc.Simulation
                     }
                     await Task.Delay(toolValues.FastMoveTick, toolValues.TokenSource.Token);
                 }
-                hourglass.Dispose();
+                
                 Globals.Console.Push($"Exited: {nameof(WaitUntilActionIsValid)}!");
             }
         }
@@ -163,7 +162,7 @@ namespace Pyro.Nc.Simulation
         /// <returns>An asynchronous task resulting in a <see cref="CutResult"/> statistic, defining time spent cutting and total vertices cut.</returns>
         /// <exception cref="RapidFeedCollisionException">This exception is thrown if the command used for the execution of this action is of type <see cref="G00"/>,
         /// causing a rapid feed collision (High speed hit into the workpiece).</exception>
-        public static async Task<CutResult> CheckPositionForCut(this ITool tool, Direction direction, bool throwIfCut)
+        public static unsafe CutResult CheckPositionForCut(this ITool tool, Dictionary<int, bool> dict, Direction direction, bool throwIfCut)
         {
             if (CachedMethods.ContainsKey("CheckPositionForCut"))
             {
@@ -188,6 +187,8 @@ namespace Pyro.Nc.Simulation
                      direction,
                      throwIfCut
                 });
+
+                return default;
             }
             //we could parse the cube once, and map all points that are close to the central point and then use those for all calculations?
             Stopwatch stopwatch = Stopwatch.StartNew();
@@ -199,7 +200,7 @@ namespace Pyro.Nc.Simulation
             var trVT = tool.Temp.transform;
             var trV = trVT.position;
             var radius = tool.Values.Radius;
-            var isDrilling = tool.Values.Current.GetType() == typeof(CYCLE81);
+            List<CutInfo> infos = new List<CutInfo>();
             for (int i = 0; i < vertices.Count; i++)
             {
                 var vert = vertices[i];
@@ -209,6 +210,11 @@ namespace Pyro.Nc.Simulation
                 if (distHorizontal <= tool.ToolConfig.Radius &&
                     distVertical <= tool.ToolConfig.VerticalMargin)
                 {
+                    if (dict[i])
+                    {
+                        //continue;
+                    }
+                    dict[i] = true;
                     if (throwIfCut)
                     {
                         stopwatch.Stop();
@@ -216,41 +222,36 @@ namespace Pyro.Nc.Simulation
 
                         return new CutResult(stopwatch.ElapsedMilliseconds, verticesCut, true);
                     }
+
+                    infos.Add(new CutInfo(i, vert.y));
+                    var realVector2D = new Vector2D(realVert.x, realVert.z);
+                    Line2D line = new Line2D(realVector2D, new Vector2D(pos.x, pos.z));
+                    var lineEquationResults = line.FindCircleEndPoint(radius, pos.x, pos.z);
+                    if (lineEquationResults.ResultOfDiscriminant == Line2D.LineEquationResults.DiscriminantResult.Imaginary)
+                    {
+                        continue;
+                    }
+                    Vector2D vector3d;
+                    if (lineEquationResults.ResultOfDiscriminant == Line2D.LineEquationResults.DiscriminantResult.One)
+                    {
+                        vector3d = lineEquationResults.Result1;
+                    }
+                    else
+                    {
+                        var distance1 = Space2D.Distance(lineEquationResults.Result1, realVector2D);
+                        var distance2 = Space2D.Distance(lineEquationResults.Result2, realVector2D);
+                        //Debug.Log($"x1: {distance1}, x2: {distance2}");
+                        bool flag = distance2 > distance1;
+                        vector3d = flag ? lineEquationResults.Result1 : lineEquationResults.Result2;
+                    }
+                    var actualVector = tr.InverseTransformPoint(new Vector3(vector3d.x, pos.y, vector3d.y));
+
                     tool.Colors[i] = tool.ToolConfig.ToolColor;
-                    Line2D line = new Line2D(new Vector2D(realVert.x, realVert.z), new Vector2D(pos.x, pos.z));
-                    var vcs = line.FindCircleEndPoint(radius, pos.x, pos.z);
-                    var distance1 = Space2D.Distance(vcs.positive, new Vector2D(realVert.x, realVert.z));
-                    var distance2 = Space2D.Distance(vcs.negative, new Vector2D(realVert.x, realVert.z));
-                    bool flag = distance2 > distance1;
-                    Vector2D vector3d = ((flag ? vcs.positive : vcs.negative));
-                    var height = vert.y + distVertical - tool.ToolConfig.VerticalMargin;
-                    vertices[i] = new Vector3(vector3d.x, height, vector3d.y);
+                    vertices[i] = actualVector;
+                    //TODO check if the actualVector crosses any workpiece boundaries, which it currently does a lot, do this with the use of the workpiece controller of some sorts.
                     verticesCut++;
                 }
-                else if (isDrilling && distHorizontal <= tool.ToolConfig.Radius + 2f &&
-                         distVertical <= tool.ToolConfig.VerticalMargin)
-                {
-                    if (throwIfCut)
-                    {
-                        stopwatch.Stop();
-                        verticesCut++;
-                        
-                        return new CutResult(stopwatch.ElapsedMilliseconds, verticesCut, true);
-                    }
-                    
-                    //tool.Colors[i] = tool.ToolConfig.ToolColor;
-                    
-                    Line2D line = new Line2D(new Vector2D(realVert.x, realVert.z), new Vector2D(pos.x, pos.z));
-                    var vcs = line.FindCircleEndPoint(radius + 1f, pos.x, pos.z);
-                    var distance1 = Space2D.Distance(vcs.positive, new Vector2D(realVert.x, realVert.z));
-                    var distance2 = Space2D.Distance(vcs.negative, new Vector2D(realVert.x, realVert.z));
-                    bool flag = distance2 > distance1;
-                    Vector2D vector3d = ((flag ? vcs.positive : vcs.negative));
-                    Vector3 vector3 = new Vector3(vector3d.x, vert.y, vector3d.y);
-                    vertices[i] = vector3;
-                }
             }
-
             var mesh = tool.Workpiece.Current;
             mesh.vertices = vertices.GetInternalArray();
             mesh.colors = tool.Colors.GetInternalArray();
@@ -308,19 +309,26 @@ namespace Pyro.Nc.Simulation
             tool.SetupTranslation(points);
             var currentPosition = tool.Position;
             var last = points.Last();
+            Dictionary<int, bool> dictVector = Enumerable.Range(0, tool.Vertices.Count).ToDictionary(k => k, _ => false);
+            
             foreach (var point in points)
             {
+                if (tool.Values.IsReset)
+                {
+                    return;
+                }
                 draw.DrawTranslation(currentPosition, point);
                 tool.Position = point;
                 // var cutResult = tool.CheckPositionForCut(Direction.FromVectors(currentPosition, point), throwIfCutIsDetected);
                 // LogCutStatistics(logStats, cutResult,  ref averageTimeForCut, ref totalCut);
-                await tool.CheckPositionForCut(Direction.FromVectors(currentPosition, point), throwIfCutIsDetected);
-                //LogCutStatistics(logStats, new CutResult(),  ref averageTimeForCut, ref totalCut);
+                var cr = tool.CheckPositionForCut(dictVector, Direction.FromVectors(currentPosition, point), throwIfCutIsDetected);
+                averageTimeForCut = cr.TotalTime / cr.TotalVerticesCut;
+                totalCut = cr.TotalVerticesCut;
                 currentPosition = point;
-                // if (cutResult.Threw)
-                // {
-                //     throw new RapidFeedCollisionException(tool.Values.Current);
-                // }
+                if (cr.Threw)
+                {
+                    throw new RapidFeedCollisionException(tool.Values.Current);
+                }
                 await FinishCurrentMove(toolValues);
                 if (toolValues.TokenSource.IsCancellationRequested)
                 {
@@ -362,13 +370,9 @@ namespace Pyro.Nc.Simulation
         /// <param name="reverse">Whether to reverse the direction of movement for the <see cref="I3DShape"/>.</param>
         /// <param name="draw">Whether to draw the path or not.</param>
         /// <param name="logStats">Whether to log the (averageTimeForCut) and (totalCut).</param>
-        public static async Task Traverse(this ITool tool, I3DShape arc, bool reverse, bool draw, bool logStats = true)
+        public static async Task Traverse(this ITool tool, Arc3D arc, bool draw, bool logStats = true)
         {
-            if (reverse)
-            {
-                arc.Reverse();
-            }
-            await tool.TraverseFinal(arc.ToVector3s(), draw, logStats);
+            await tool.TraverseFinal(arc.Points.ToArray(), draw, logStats);
         }
         /// <summary>
         /// Attempts to traverse the along the path defined by either a <see cref="Circle"/>, <see cref="Circle3D"/> or <see cref="Arc3D"/>.
@@ -403,13 +407,13 @@ namespace Pyro.Nc.Simulation
             var p1 = tool.Position.ToVector3D();
             var p2 = destination.ToVector3D();
             var dist = Space3D.Distance(p1, p2);
+            if (dist == 0)
+            {
+                return;
+            }
             var line = new Line3D(tool.Position.ToVector3D(), destination.ToVector3D(), dist.Mutate(d =>
             {
-                if (d == 0f)
-                {
-                    return 1;
-                }
-                else if (d < 5)
+                if (d < 5)
                 {
                     return 10;
                 }

@@ -214,7 +214,9 @@ namespace Pyro.Nc.UI
             }
 
             builder.AppendLine("<-------------");
-            Globals.Console.PushText(builder.ToString());
+            var str = builder.ToString();
+            Globals.Console.PushText(str);
+            Globals.InvokeOnLog(str);
         }
 
         public void DisposeStream()

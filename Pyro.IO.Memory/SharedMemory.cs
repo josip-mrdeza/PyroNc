@@ -22,7 +22,7 @@ using System.Linq;
         private Dictionary<string, long> TSizes;
 
 
-        public SharedMemory(string id, long maxCapacity, long defaultViewSize)
+        public SharedMemory(string id, long maxCapacity, long defaultViewSize = -1)
         {
             Id = id;
             Capacity = maxCapacity;
@@ -43,6 +43,10 @@ using System.Linq;
             Offsets = new Dictionary<string, Dictionary<string, long>>();
             Views = new Dictionary<string, MemoryMappedViewAccessor>();
             ViewOffsets = new Dictionary<string, long>();
+            if (defaultViewSize == -1)
+            {
+                defaultViewSize = maxCapacity;
+            }
             View = CreateNewSection_Internal("default", defaultViewSize);
             TSizes = new Dictionary<string, long>();
         }
@@ -101,8 +105,9 @@ using System.Linq;
         /// <param name="structUniqueId">A unique identifier for this structure type value.</param>
         /// <param name="size">The size of the structure type.</param>
         /// <typeparam name="T">A structure type.</typeparam>
-        public void Write<T>(T structure, string viewId, string structUniqueId, long size) where T : struct
+        public void Write<T>(T structure, string viewId = null, string structUniqueId = null) where T : unmanaged
         {
+            var dft = typeof(T).Name;
             if (viewId == null)
             {
                 viewId = "default";
@@ -112,7 +117,21 @@ using System.Linq;
             {
                 var offset = GetAvailableOffsetForStructInView(viewId);
                 view.Write(offset, ref structure);
-                Offsets[viewId].Add(structUniqueId, offset + size);
+                if (structUniqueId == null)
+                {
+                    structUniqueId = dft;
+                }
+
+                int size;
+                unsafe
+                {
+                    size = sizeof(T);
+                }
+
+                if (!Offsets[viewId].ContainsKey(structUniqueId))
+                {
+                    Offsets[viewId].Add(structUniqueId, offset + size);
+                }
                 if (!TSizes.ContainsKey(structUniqueId))
                 {
                     TSizes.Add(structUniqueId, size);
@@ -127,13 +146,28 @@ using System.Linq;
         /// <param name="structUniqueId">A unique identifier for this structure type value.</param>
         /// <param name="sizeOfEach">The size of the structure type.</param>
         /// <typeparam name="T">A structure type.</typeparam>
-        public void Write<T>(T[] structureArr, string viewId, string structUniqueId, long sizeOfEach) where T : struct
+        public void Write<T>(T[] structureArr, string viewId = null, string structUniqueId = null) where T : unmanaged
         {
+            var dft = "default";
+            if (viewId == null)
+            {
+                viewId = dft;
+            }
             var view = Views[viewId];
             if (view.CanWrite)
             {
                 var offset = GetAvailableOffsetForStructInView(viewId);
                 view.WriteArray(offset, structureArr, 0, structureArr.Length);
+                if (structUniqueId == null)
+                {
+                    structUniqueId = dft;
+                }                    
+
+                int sizeOfEach;
+                unsafe
+                {
+                    sizeOfEach = sizeof(T);
+                }
                 Offsets[viewId].Add(structUniqueId, offset + (structureArr.Length * sizeOfEach));
                 if (!TSizes.ContainsKey(structUniqueId))
                 {
@@ -147,7 +181,7 @@ using System.Linq;
         /// <param name="viewId">The name of the view.</param>
         /// <param name="structureUniqueId">The name of the structure type in the private offset dictionary.</param>
         /// <returns>A reference to an array of structures.</returns>
-        public Reference<byte[]> Read(string viewId, string structureUniqueId)
+        public byte[] Read(string viewId, string structureUniqueId)
         {
             var view = Views[viewId];
             if (view.CanRead)
@@ -160,10 +194,11 @@ using System.Linq;
                 {
                     TSizes.Add(structureUniqueId, 1);
                 }
-                return new Reference<byte[]>(ref arr);
+
+                return arr;
             }
 
-            return null;
+            return default;
         }
         /// <summary>
         /// Reads a structure from the set view, from offset
@@ -172,7 +207,7 @@ using System.Linq;
         /// <param name="structureUniqueId">The name of the structure type in the private offset dictionary.</param>
         /// <typeparam name="T">A type of structure.</typeparam>
         /// <returns>A reference to an array of structures.</returns>
-        public Reference<T> Read<T>(string viewId, string structureUniqueId) where T : struct
+        public T Read<T>(string viewId, string structureUniqueId) where T : struct
         {
             var view = Views[viewId];
             
@@ -182,10 +217,10 @@ using System.Linq;
                 var reduce = TSizes[structureUniqueId];
                 view.Read(offset - reduce, out T val);
 
-                return new Reference<T>(ref val);
+                return val;
             }
 
-            return null;
+            return default;
         }
         
         /// <summary>
@@ -193,7 +228,7 @@ using System.Linq;
         /// </summary>
         /// <typeparam name="T">A type of structure.</typeparam>
         /// <returns>A reference to an array of structures.</returns>
-        public Reference<T> Read<T>(long offset) where T : struct
+        public T Read<T>(long offset = 0) where T : unmanaged
         {
             var view = Views["default"];
             
@@ -201,10 +236,10 @@ using System.Linq;
             {
                 view.Read(offset, out T val);
 
-                return new Reference<T>(ref val);
+                return val;
             }
 
-            return null;
+            return default;
         }
 
         /// <summary>
@@ -212,7 +247,7 @@ using System.Linq;
         /// </summary>
         /// <typeparam name="T">A type of structure.</typeparam>
         /// <returns>A reference to an array of structures.</returns>
-        public Reference<T> Read<T>(string viewId, long offset) where T : struct
+        public T Read<T>(string viewId, long offset) where T : unmanaged
         {
             var view = Views[viewId];
             
@@ -220,10 +255,10 @@ using System.Linq;
             {
                 view.Read(offset, out T val);
 
-                return new Reference<T>(ref val);
+                return val;
             }
 
-            return null;
+            return default;
         }
 
         /// <summary>
@@ -235,7 +270,7 @@ using System.Linq;
         /// <param name="sizeOfEach">The size of each structure in the array.</param>
         /// <typeparam name="T">A type of structure.</typeparam>
         /// <returns>A reference to an array of structures.</returns>
-        public Reference<T[]> Read<T>(string viewId, string structureUniqueId, int elementsInArray, int sizeOfEach) where T : struct
+        public T[] Read<T>(string viewId, string structureUniqueId, int elementsInArray, int sizeOfEach) where T : unmanaged
         {
             var view = Views[viewId];
             if (view.CanRead)
@@ -244,7 +279,7 @@ using System.Linq;
                 var offset = GetOffsetForStructInView(viewId, structureUniqueId);
                 view.ReadArray(offset - (elementsInArray * sizeOfEach), arr, 0, elementsInArray * sizeOfEach);
 
-                return new Reference<T[]>(ref arr);
+                return arr;
             }
 
             return null;
@@ -258,7 +293,7 @@ using System.Linq;
         /// <param name="elementsInArray">The size of the array.</param>
         /// <typeparam name="T">A type of structure.</typeparam>
         /// <returns>A reference to an array of structures.</returns>
-        public Reference<T[]> Read<T>(string viewId, string structureUniqueId, int elementsInArray) where T : struct
+        public T[] Read<T>(string viewId, string structureUniqueId, int elementsInArray) where T : unmanaged
         {
             var view = Views[viewId];
             if (view.CanRead)
@@ -269,7 +304,8 @@ using System.Linq;
                 var count = (elementsInArray * reduce);
                 var pos = offset - count;
                 view.ReadArray(pos, arr, 0, elementsInArray);
-                return new Reference<T[]>(ref arr);
+
+                return arr;
             }
 
             return null;
@@ -284,7 +320,7 @@ using System.Linq;
         /// <param name="sizeOfEach">The size of each struct in an array.</param>
         /// <typeparam name="T">A type of structure.</typeparam>
         /// <returns>A reference to an array of structures.</returns>
-        public Reference<T[]> Read<T>(string viewId, long offset, int elementsInArray, int sizeOfEach) where T : struct
+        public T[] Read<T>(string viewId, long offset, int elementsInArray, int sizeOfEach) where T : unmanaged
         {
             var view = Views[viewId];
             if (view.CanRead)
@@ -292,7 +328,7 @@ using System.Linq;
                 T[] arr = new T[elementsInArray];
                 view.ReadArray(offset, arr, 0, elementsInArray * sizeOfEach);
 
-                return new Reference<T[]>(ref arr);
+                return arr;
             }
 
             return null;
@@ -303,18 +339,17 @@ using System.Linq;
         /// </summary>
         /// <param name="offset">The offset from the beginning of the MMF.</param>
         /// <param name="elementsInArray">The size of the array.</param>
-        /// <param name="sizeOfEach">The size of each struct in an array.</param>
         /// <typeparam name="T">A type of structure.</typeparam>
         /// <returns>A reference to an array of structures.</returns>
-        public Reference<T[]> Read<T>(long offset, int elementsInArray, int sizeOfEach) where T : struct
+        public T[] Read<T>(long offset, int elementsInArray) where T : unmanaged
         {
             var view = Views["default"];
             if (view.CanRead)
             {
                 T[] arr = new T[elementsInArray];
-                view.ReadArray(offset, arr, 0, elementsInArray * sizeOfEach);
+                view.ReadArray(offset, arr, 0, elementsInArray);
 
-                return new Reference<T[]>(ref arr);
+                return arr;
             }
 
             return null;

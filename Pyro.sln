@@ -58,6 +58,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroNetServer", "PyroNetSer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroNetServerIntermediateLibrary", "PyroNetServerIntermediateLibrary\PyroNetServerIntermediateLibrary.csproj", "{BF22C75D-6BCF-4EC4-99DC-62E06FB159F8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroNetServerTester", "PyroNetServerTester\PyroNetServerTester.csproj", "{C284FA71-4EAD-4190-AB49-F85FA353BCB5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroCharting", "PyroCharting\PyroCharting.csproj", "{DF932DB3-1343-47A2-A6BC-EB328BC0F344}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -180,5 +184,13 @@ Global
 		{BF22C75D-6BCF-4EC4-99DC-62E06FB159F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF22C75D-6BCF-4EC4-99DC-62E06FB159F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF22C75D-6BCF-4EC4-99DC-62E06FB159F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C284FA71-4EAD-4190-AB49-F85FA353BCB5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C284FA71-4EAD-4190-AB49-F85FA353BCB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C284FA71-4EAD-4190-AB49-F85FA353BCB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C284FA71-4EAD-4190-AB49-F85FA353BCB5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DF932DB3-1343-47A2-A6BC-EB328BC0F344}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DF932DB3-1343-47A2-A6BC-EB328BC0F344}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DF932DB3-1343-47A2-A6BC-EB328BC0F344}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DF932DB3-1343-47A2-A6BC-EB328BC0F344}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

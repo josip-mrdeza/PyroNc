@@ -1,3 +1,5 @@
+using System;
+
 namespace Pyro.Nc.Simulation
 {
     public struct CutResult

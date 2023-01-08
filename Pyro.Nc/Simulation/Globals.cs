@@ -21,6 +21,7 @@ namespace Pyro.Nc.Simulation
         private static readonly Func<object, bool> _isNetworkPresent = o =>
             Application.internetReachability != NetworkReachability.NotReachable;
         public static ITool Tool;
+        public static GCodeInputHandler GCodeInputHandler;
         public static WorkpieceController Workpiece;
         public static ToolManager ToolManager;
         public static PyroConsoleView Console;
@@ -41,5 +42,12 @@ namespace Pyro.Nc.Simulation
         public static Localisation Localisation;
 
         public static bool IsNetworkPresent = Pyro.Threading.PyroDispatcher.ExecuteOnMain(_isNetworkPresent, null);
+        
+        public static event Action<string> OnLog;
+
+        internal static void InvokeOnLog(string str)
+        {
+            OnLog?.Invoke(str);
+        }
     }
 }

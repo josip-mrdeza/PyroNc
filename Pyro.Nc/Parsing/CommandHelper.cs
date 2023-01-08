@@ -21,7 +21,8 @@ namespace Pyro.Nc.Parsing
     {
         internal static ValueStorage Storage;
         internal static BaseCommand PreviousModal;
-        internal static Dictionary<string, object> VariableMap = new Dictionary<string, object>(); 
+        internal static Dictionary<string, object> VariableMap = new Dictionary<string, object>();
+        internal static string PreviousExceptionMessage;
         public static bool IsTrue<T>(this T obj, Predicate<T> predicate)
         {
             return predicate(obj);
@@ -130,7 +131,7 @@ namespace Pyro.Nc.Parsing
         
         public static List<ICommand> CollectCommands(this List<string[]> arrOfCommands)
         {
-            arrOfCommands = arrOfCommands.Select(x => x.Where(y => !string.IsNullOrEmpty(y)).ToArray()).ToList();
+            arrOfCommands = arrOfCommands.Select(x => x.Where(y => !string.IsNullOrEmpty(y)).ToArray()).Where(z => z.Length > 0).ToList();
             List<ICommand> commands = new List<ICommand>();
             string[] commandString = null;
             string id = null;
@@ -197,44 +198,35 @@ namespace Pyro.Nc.Parsing
 
                     if (command is Cycle)
                     {
-                        var fullString = string.Join("", arrOfCommands[arrOfCommands.FindIndex(x => 
-                                                                           x.FirstOrDefault(y => y.ToUpperInvariant().Contains("CYCLE")) != null)]);
-                        StringBuilder builder = new StringBuilder(fullString);
+                        var fullString = string.Join("", arrOfCommands[arrOfCommands.FindIndex(x =>
+                                                                           x.FirstOrDefault(
+                                                                               y => y.ToUpperInvariant()
+                                                                                   .Contains("CYCLE")) != null)]);
+                        var actualCycle = ExtractCycle(fullString);
 
-                        var parameterListString = builder.Remove(0, fullString.IndexOf('(')+1).Replace(")", "").ToString();
-                        builder.Clear();
-                        for (int i = 0; i < parameterListString.Length; i++)
+                        commands.Add(actualCycle);
+                        continue;
+                    }
+
+                    if (command is MCALL mcall)
+                    {
+                        if (arrOfCommands.Count == 2)
                         {
-                            char c = parameterListString[i];
-                            if (c == ',')
+                            var cmd = arrOfCommands[index + 1][0];
+                            if (Regex.IsMatch(cmd, @"(CYCLE)(\d+)"))
                             {
-                                char leading = parameterListString.ElementAtOrDefault(i + 1);
-                                builder.Append(' ');
-                                if (leading == ',')
-                                {
-                                    builder.Append("SKIP");
-                                }
+                                mcall.NextSubroutine = ExtractCycle(cmd);
                             }
-                            else
+                            else //GOTTA BE AN SPF
                             {
-                                builder.Append(c);
+                                var spf = new SubProgramCall(mcall.Tool, mcall.Parameters);
+                                spf.Name = cmd;
+                                mcall.NextSubroutine = spf;
                             }
                         }
 
-                        var name = fullString.Substring(0, fullString.IndexOf('(')).ToUpperInvariant();
-                        string parameters = builder.ToString();
-                        float[] splitParameters = parameters.Split(' ').Select(x =>
-                        {
-                            var b = float.TryParse(x, out var f);
-
-                            return b ? f : float.NaN;
-                        }).ToArray();
-                        var fullTypeName = "Pyro.Nc.Parsing.Cycles.{0}".Format(name);
-                        var type = Type.GetType(fullTypeName);
-                        Cycle actualCycle = Activator.CreateInstance(type, Globals.Tool, new ArbitraryCommandParameters(), splitParameters) as Cycle;
-                        
-                        commands.Add(actualCycle);
-                        continue;
+                        commands.Add(mcall);
+                        return commands;
                     }
 
                     foreach (var key in command.Parameters.Values.Keys.ToArray())
@@ -258,10 +250,6 @@ namespace Pyro.Nc.Parsing
                             var nums = reqStr.LookForNumbers();
                             var results = nums.Solve();
                             f = (float) results[1].Value;
-                        }
-                        else
-                        {
-                            
                         }
 
                         command.Parameters.Values[char.ToUpperInvariant(par[0]).ToString()] = f;
@@ -299,7 +287,7 @@ namespace Pyro.Nc.Parsing
                         }
 
                         command = lastModal.Copy();
-                        command.AdditionalInfo = "(Scoped modal)";
+                        command.AdditionalInfo = "(Modal)";
                         command.Parameters = unresolvedCommand.Parameters;
                     }
                     else
@@ -313,47 +301,37 @@ namespace Pyro.Nc.Parsing
                 }
                 catch (NullReferenceException e)
                 {
-                    PyroConsoleView.PushTextStatic(
-                        "A NullReferenceException has occured in CommandHelper.CollectCommands:",
-                        $"List length: {commands.Count.ToString()}",
-                        $"List contents: [{string.Join(" ", commands)}]",
-                        $"Current index: {index.ToString()}",
-                        $"Current string: [{string.Join(" ", commandString!)}]",
-                        $"Current id: {id}",
-                        e.Message, e.TargetSite.Name);
-                }
-                catch (IndexOutOfRangeException e)
-                {
-                    // PyroConsoleView.PushTextStatic(
-                    //     "A IndexOutOfRangeException has occured in CommandHelper.CollectCommands:",
-                    //     $"List length: {commands.Count.ToString()}",
-                    //     $"List contents: [{string.Join(" ", commands)}]",
-                    //     $"Current index: {index.ToString()}",
-                    //     $"Current string: [{string.Join(" ", commandString!)}]",
-                    //     $"Current id: {id}",
-                    //     e.Message, e.TargetSite.Name);
+                    if (PreviousExceptionMessage != e.Message)
+                    {
+                        PyroConsoleView.PushTextStatic(
+                            "An Exception has occured in CommandHelper.CollectCommands:",
+                            $"List length: {commands.Count.ToString()}",
+                            $"List contents: [{string.Join(" ", commands)}]",
+                            $"Current index: {index.ToString()}",
+                            $"Current string: [{string.Join(" ", commandString!)}]",
+                            $"Current id: {id}",
+                            e.Message, e.TargetSite.Name);
+                        PreviousExceptionMessage = e.Message;
+                    }
                 }
                 catch (NoModalCommandFoundException e)
                 {
                     exception = e;
                 }
-                // catch (FormatException e)
-                // {
-                //     // PyroConsoleView.PushTextStatic(
-                //     //     "A FormatException has occured in CommandHelper.CollectCommands:",
-                //     //     $"Current id: {id}",
-                //     //     e.Message);
-                // }
                 catch (Exception e)
                 {
-                    PyroConsoleView.PushTextStatic(
-                        "An Exception has occured in CommandHelper.CollectCommands:",
-                        $"List length: {commands.Count.ToString()}",
-                        $"List contents: [{string.Join(" ", commands)}]",
-                        $"Current index: {index.ToString()}",
-                        $"Current string: [{string.Join(" ", commandString!)}]",
-                        $"Current id: {id}",
-                        e.Message, e.TargetSite.Name);
+                    if (PreviousExceptionMessage != e.Message)
+                    {
+                        PyroConsoleView.PushTextStatic(
+                            "An Exception has occured in CommandHelper.CollectCommands:",
+                            $"List length: {commands.Count.ToString()}",
+                            $"List contents: [{string.Join(" ", commands)}]",
+                            $"Current index: {index.ToString()}",
+                            $"Current string: [{string.Join(" ", commandString!)}]",
+                            $"Current id: {id}",
+                            e.Message, e.TargetSite.Name);
+                        PreviousExceptionMessage = e.Message;
+                    }
                 }
             }
 
@@ -367,6 +345,46 @@ namespace Pyro.Nc.Parsing
             return commands;
         }
 
+        private static Cycle ExtractCycle(string fullString)
+        {
+            StringBuilder builder = new StringBuilder(fullString);
+
+            var parameterListString = builder.Remove(0, fullString.IndexOf('(') + 1).Replace(")", "").ToString();
+            builder.Clear();
+            for (int i = 0; i < parameterListString.Length; i++)
+            {
+                char c = parameterListString[i];
+                if (c == ',')
+                {
+                    char leading = parameterListString.ElementAtOrDefault(i + 1);
+                    builder.Append(' ');
+                    if (leading == ',')
+                    {
+                        builder.Append("SKIP");
+                    }
+                }
+                else
+                {
+                    builder.Append(c);
+                }
+            }
+
+            var name = fullString.Substring(0, fullString.IndexOf('(')).ToUpperInvariant();
+            string parameters = builder.ToString();
+            float[] splitParameters = parameters.Split(' ').Select(x =>
+            {
+                var b = float.TryParse(x, out var f);
+
+                return b ? f : float.NaN;
+            }).ToArray();
+            var fullTypeName = "Pyro.Nc.Parsing.Cycles.{0}".Format(name);
+            var type = Type.GetType(fullTypeName);
+            Cycle actualCycle =
+                Activator.CreateInstance(type, Globals.Tool, new ArbitraryCommandParameters(), splitParameters) as Cycle;
+
+            return actualCycle;
+        }
+
         private static bool ScrapSpindleSpeedSetter(string id, List<ICommand> commands)
         {
             if (id[0] is 'S' or 's')
@@ -377,7 +395,7 @@ namespace Pyro.Nc.Parsing
                 {
                     return false;
                 } 
-                var command = Storage.FetchArbitraryCommand("S");
+                var command = Storage.FetchArbitraryCommand("S").Copy();
                 command.Parameters.AddValue("value", num);
                 commands.Add(command);
 
@@ -397,7 +415,7 @@ namespace Pyro.Nc.Parsing
                 {
                     return false;
                 } 
-                var command = Storage.FetchArbitraryCommand("F");
+                var command = Storage.FetchArbitraryCommand("F").Copy();
                 command.Parameters.AddValue("value", num);
                 commands.Add(command);
 
@@ -418,7 +436,7 @@ namespace Pyro.Nc.Parsing
                 {
                     return false;
                 }
-                var command = Storage.FetchArbitraryCommand("T");
+                var command = Storage.FetchArbitraryCommand("T").Copy();
                 command.Parameters.AddValue("value", num);
                 commands.Add(command);
                 return true;
@@ -459,7 +477,7 @@ namespace Pyro.Nc.Parsing
                 {
                     return false;
                 }
-                var notation = Storage.FetchArbitraryCommand("N") as Notation;
+                var notation = Storage.FetchArbitraryCommand("N").Copy() as Notation;
                 notation!.Number = num;
                 commands.Add(notation);
 

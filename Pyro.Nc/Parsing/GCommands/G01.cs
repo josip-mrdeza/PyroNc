@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Pyro.Nc.Exceptions;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation;
 using UnityEngine;
 
 namespace Pyro.Nc.Parsing.GCommands
@@ -13,6 +14,7 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override async Task Execute(bool draw)
         {
+            Tool.ThrowNoToolException();
             if (Tool.Values.SpindleSpeed == 0)
             {
                 throw new SpindleSpeedNotDefinedException();

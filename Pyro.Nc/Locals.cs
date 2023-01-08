@@ -2,6 +2,23 @@ namespace Pyro.Nc
 {
     public static class Locals
     {
+        public const string CYCLE81 = "Drilling (Centering)" +
+            "\n   -RTP=Retraction plane absolute" +
+            "\n   -RFP=Reference plane absolute" +
+            "\n   -SDIS=Safety distance without sign" +
+            "\n   -DP=End depth absolute" +
+            "\n   -DPR=End depth relative to reference plane";
+
+        public const string CYCLE82 = "Drilling (Counterboring)" + 
+            "\n   -RTP=Retraction plane absolute" +
+            "\n   -RFP=Reference plane absolute" +
+            "\n   -SDIS=Safety distance without sign" +
+            "\n   -DP=End depth absolute" +
+            "\n   -DPR=End depth relative to reference plane" +
+            "\n   -DTP=Dwell time at hole ground (s)";
+
+        public const string CYCLE83 = "Deep hole drilling";
+        public const string MCALL = "Modal subroutine call";
         public const string UnresolvedCommand = "Unable to parse command";
         public const string Trans = "Programmable Work Offset";
         public const string Lims = "Spindle Speed Limiter";
@@ -33,9 +50,11 @@ namespace Pyro.Nc
         public const string G97 = "Disable spindle speed limit";
         public const string M00 = "Unconditional Stop (Pause)";
         public const string M01 = "Optional Stop (Pause)";
+        public const string M02 = M30;
         public const string M03 = "Spindle On (Clockwise)";
         public const string M04 = "Spindle On (Counter-Clockwise)";
         public const string M05 = "Spindle Stop";
         public const string M06 = "Tool Change";
+        public const string M30 = "Program End";
     }
 }

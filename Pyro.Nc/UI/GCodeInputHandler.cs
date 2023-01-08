@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Nc.Configuration;
@@ -19,6 +20,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 namespace Pyro.Nc.UI
 {
@@ -59,8 +61,9 @@ namespace Pyro.Nc.UI
         public override void Initialize()
         {
             //Text.onValueChanged.AddListener(_ => ApplySuggestions());
-            Button.onClick.AddListener(Call);
+            Button.onClick.AddListener(async () => await Call(Text.text, true));
             _data = new PointerEventData(EventSystem.current);
+            Globals.GCodeInputHandler = this;
             base.Initialize();
             //PopupHandler.PopInputOption("Name your program:", "Ok", Option);
         }
@@ -80,25 +83,31 @@ namespace Pyro.Nc.UI
             Globals.Loader.ShowOnScreen();
         }
 
-        private async void Call()
+        public async Task Call(string text, bool reset)
         {
-            Globals.Comment.PushComment("3DView", Color.gray);
-            ViewHandler.ShowOne("3DView");
-
             //var currentCommand = Globals.Tool.Values.Current;
             if (Globals.Tool.Values.IsPaused)
             {
                 await Globals.Tool.Resume();
+                PushComment("Resumed program", Color.gray);
                 return;
             }
-            CommandHelper.PreviousModal = null;
-            var variables = Text.text.ToUpper(CultureInfo.InvariantCulture)
+
+            if (reset)
+            {
+                ResetButton.Instance.onClick.Invoke();
+                Globals.Comment.PushComment("3DView", Color.gray);
+                ViewHandler.ShowOne("3DView");
+                CommandHelper.PreviousModal = null;
+            }
+            var variables = text.ToUpper(CultureInfo.InvariantCulture)
                                 .Split('\n')//lines
                                 .Select(x => x.Trim().ToUpper().FindVariables()); //line commands
             var commands = variables.Select(x => x.CollectCommands())
                                     .SelectMany(y => y);
             
             var arr = commands.ToList();
+            Globals.Tool.Values.IsReset = false;
             for (var i = 0; i < arr.Count; i++)
             {
                 var command = arr[i];
@@ -164,7 +173,8 @@ namespace Pyro.Nc.UI
             var localPos = GetLocalCaretPosition();
             if (localPos != null)
             {
-                Display.transform.localPosition = ((Vector2) localPos.Value) - LeftTop;
+                var nPos = (Vector2)localPos.Value - LeftTop;
+                Display.transform.localPosition = nPos;
             }
         }
 
@@ -190,7 +200,7 @@ namespace Pyro.Nc.UI
                 }
                 foreach (var line in lines)
                 {
-                    var variables = line.Trim().FindVariables();
+                    var variables = line.Trim().ToUpper().FindVariables();
                     commands = variables.CollectCommands();
                 }
                 return commands!.Select(x => $"{x.GetType().Name}: \"{x.Description}\", " +
@@ -238,6 +248,46 @@ namespace Pyro.Nc.UI
             
             ApplySuggestions();
             UpdateDisplaySize(len);
+            var infos = Text.textComponent.textInfo.wordInfo;
+            for (int i = 0; i < infos.Length; i++)
+            {
+                try
+                {
+                    var word = infos[i];
+                    var str = word.GetWord();
+                    var isParameter = Regex.IsMatch(str, @"[xXyYzZiIjJ](\d*)|(\.\d*)");
+                    if (isParameter)
+                    {
+                        SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(177, 3, 252, 200));
+                        continue; 
+                    }
+                    var isGCommand = Regex.IsMatch(str, @"(G|g)\d*");
+                    if (isGCommand)
+                    {
+                        SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(52, 235, 152, 200));
+                        continue;
+                    }
+                    var isMCommand = Regex.IsMatch(str, @"(M|m)\d*");
+                    if (isMCommand)
+                    {
+                        SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(255, 255, 0, 200));
+                        continue;
+                    }
+
+                    var isArbCommand = Regex.IsMatch(str, @"[^xXyYzZiIjJ]\d*");
+                    if (isArbCommand)
+                    {
+                        SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(50, 120, 200, 200));
+                        continue;
+                    }
+
+                    SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(255, 0, 0, 200));
+                }
+                catch
+                {
+                    //ignore
+                }
+            }
         }
 
         public int GetLineNumber()
@@ -282,12 +332,35 @@ namespace Pyro.Nc.UI
             if (Text.isFocused)
             {
                 var textInfo = Text.textComponent.textInfo;
-                var charPos = textInfo.characterInfo[Text.caretPosition].bottomRight;
-
+                var charInfo = textInfo.characterInfo[Text.caretPosition];
+                var charPos = charInfo.bottomRight;
+                if (charInfo.baseLine < -540)
+                {
+                    var lineIndex = charInfo.lineNumber;
+                    var multiplier = lineIndex / 20;
+                    charInfo.baseLine += 500 * multiplier;
+                }
+                charPos.y = charInfo.baseLine;
                 return charPos;
             }
 
             return null;
+        }
+
+        public void SetCharacterColors(int startIndex, int endIndex, Color32 color)
+        {
+            var txt = Text.textComponent.textInfo;
+            var characters = txt.characterInfo;
+            for (int i = startIndex; i < endIndex; i++)
+            {
+                var index = characters[i].vertexIndex;
+                for (int j = 0; j < 4; j++)
+                {
+                    txt.meshInfo[characters[i].materialReferenceIndex].colors32[index + j] = color;
+                }
+            }
+            txt.meshInfo[0].mesh.vertices = txt.meshInfo[0].vertices;
+            Text.textComponent.UpdateVertexData();
         }
     }
 }

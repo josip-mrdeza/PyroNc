@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Math;
 using Pyro.Math.Geometry;
+using Pyro.Nc.Exceptions;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
 using UnityEngine;
@@ -26,18 +27,39 @@ namespace Pyro.Nc.Parsing.GCommands
         //TODO this only defines the beginning of the circle, not it's center as i thought before.This needs fixing...
         protected async Task Execute(bool reverse, bool draw)
         {
+            //G2 I5 J5 X10 Y10
+            // I = X AXIS CENTER POINT OFFSET
+            // J = Y AXIS CENTER POINT OFFSET
+            // X = ENDPOINT X AXIS
+            // Y = ENDPOINT Y AXIS
+
             var parameters = (Parameters as GCommandParameters);
             var pos = Tool.Position;
             var trans = Tool.Values.TransPosition;
-            var altPos = new Vector3(pos.x + (float.IsNaN(parameters.I) ? 0 : parameters.I), 
-                                     pos.y, 
-                                     pos.z + (float.IsNaN(parameters.J) ? 0 : parameters.J)) + trans;
-            var diff = Vector3.Distance(pos, altPos);
-            var endPos = new Vector3(float.IsNaN(parameters.X) ? pos.x : parameters.X, 
-                                      pos.y, 
-                                      float.IsNaN(parameters.Z) ? pos.z : parameters.Z) + trans;
-            var arc = new Circle3D(diff, pos.ToVector3D(), endPos.ToVector3D());
-            await Tool.Traverse(arc, reverse, draw);
+            //var transPosition = pos + trans;
+            
+            Vector3 endPoint;
+            if (float.IsNaN(parameters.X) && float.IsNaN(parameters.Z))
+            {
+                endPoint = pos;
+            }
+            else
+            {
+                endPoint = new Vector3((parameters.X + trans.x).FixNan(pos.x), pos.y, (parameters.Z + trans.z).FixNan(pos.z));
+            }
+            
+            if (float.IsNaN(parameters.I) && float.IsNaN(parameters.J))
+            {
+                throw NotifyException.Create<ErrorInEndPointOfCircleException>(
+                    this, $"Cannot find arc center point from given values:" +
+                    $"{string.Join("", parameters.Values.Where(x => !float.IsNaN(x.Value)).Select(y => $"{y.Key}{y.Value}").ToArray())}" +
+                    $"\nTry defining the center point of arc with 'I' and 'J'.");
+            }
+
+            var centerPoint = pos + new Vector3(parameters.I.FixNan(), 0, parameters.J.FixNan());
+            var radius = Vector3.Distance(pos, centerPoint);
+            var arc = new Arc3D(radius, centerPoint, pos, endPoint, reverse);
+            await Tool.Traverse(arc, true);
             //Expire();
         }
     }

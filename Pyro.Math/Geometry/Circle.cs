@@ -6,9 +6,6 @@ namespace Pyro.Math.Geometry
     public class Circle : IPrimitive
     {
         public float Radius { get; }
-        public Vector2D Start { get; }
-        public Vector2D End { get; }
-
         public Vector2D[] Points { get; }
         public CircleSmoothness Smoothness { get; }
         public Shape GeometricalShape { get; }
@@ -17,8 +14,6 @@ namespace Pyro.Math.Geometry
         {
             Radius = radius;
             Points = Space2D.PlotCircle2D(radius, smoothness);
-            Start = Points[0];
-            End = Points[Points.Length - 1];
             Smoothness = smoothness;
             GeometricalShape = Shape.Circle;
         }

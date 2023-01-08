@@ -11,6 +11,7 @@ using Pyro.IO.Events;
 using Pyro.Math;
 using Pyro.Math.Geometry;
 using Pyro.Nc.Configuration.Managers;
+using Pyro.Nc.Exceptions;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Parsing.MCommands;
@@ -151,8 +152,8 @@ namespace Pyro.Nc.Parsing
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning($"{type}: An error has occured in Execute -> {e.Message}!");
-                    //PyroConsoleView.PushTextStatic($"{type}: An error has occured in Execute -> {e.Message}!");
+                    Globals.Console.Push($"{type}: An error has occured in Execute -> {e.Message}!");
+                    throw;
                 }
                 PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw}) - {Id}",
                                                "Finished execution!");
@@ -224,9 +225,8 @@ namespace Pyro.Nc.Parsing
         {
             var type = GetType().Name;
             var toDraw = draw.ToString();
-            PyroConsoleView.PushTextStatic($"{type}: Execute({toDraw})",
-                                           $"This method is not defined/overriden on the specific type of '{type}'!");
-            throw new System.NotImplementedException();
+            throw NotifyException.CreateNotifySystemException<NotImplementedException>(this, $"{type}: Execute({toDraw})" +
+                $"\nThis method is not defined/overriden on the specific type of '{type}'!");
         }
         /// <summary>
         /// A method defining what a <see cref="ICommand"/> inheriting <see cref="BaseCommand"/> should do when executed in TURN Mode.
@@ -255,9 +255,8 @@ namespace Pyro.Nc.Parsing
         public virtual void Plan()
         {
             var type = GetType().Name;
-            PyroConsoleView.PushTextStatic($"{type}: Plan()",
-                                           $"This method is not defined/overriden on the specific type of '{type}'!");
-            throw new System.NotImplementedException();
+            throw NotifyException.CreateNotifySystemException<NotImplementedException>(this, $"{type}: Plan()" +
+                $"\nThis method is not defined/overriden on the specific type of '{type}'!");
         }
         public float ResolveNan(float val, float defaultVal)
         {
@@ -314,6 +313,10 @@ namespace Pyro.Nc.Parsing
                         else if (value.Key == "Z")
                         {
                             Builder.Append("Y");
+                        }
+                        else
+                        {
+                            Builder.Append(value.Key);
                         }
 
                         Builder.Append(value.Value);

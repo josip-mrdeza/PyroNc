@@ -9,13 +9,13 @@ namespace Pyro.Nc.UI;
 
 public class ResetButton : MonoBehaviour
 {
-    internal static Button _buttonStatic;
+    public static Button Instance;
     private Button _button;
     private void Start()
     {
         _button = GetComponent<Button>();
-        _buttonStatic = _button;
-        _button.onClick.AddListener(() =>
+        Instance = _button;
+        _button.onClick.AddListener(async () =>
         {
             var tool = Globals.Tool;
             var controller = tool.Workpiece;
@@ -27,6 +27,9 @@ public class ResetButton : MonoBehaviour
 
             tool.Colors = Enumerable.Repeat(color, tool.Vertices.Count).ToList();
             controller.Current.colors = tool.Colors.GetInternalArray();
+            tool.Values.IsReset = true;
+            tool.Values.IsPaused = false;
+            await tool.EventSystem.FireAsync("ProgramEnd");
             //Globals.Tool.
         });
     }

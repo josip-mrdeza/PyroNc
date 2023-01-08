@@ -23,7 +23,7 @@ public class CYCLE81 : Cycle
             HoldAtBottom = true;
         }
     }
-
+    
     public bool HoldAtBottom { get; }
     
     public static string[] ParameterTexts = new[]

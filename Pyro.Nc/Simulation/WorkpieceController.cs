@@ -6,6 +6,7 @@ using EarClipperLib;
 using Pyro.IO;
 using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Serializable;
+using Pyro.Nc.UI;
 using Pyro.Nc.UI.UI_Screen;
 using UnityEngine;
 
@@ -16,6 +17,7 @@ namespace Pyro.Nc.Simulation
         public SerializableMesh StartingMesh;
         public Mesh Current;
         public MeshFilter Filter;
+        public WorkpieceView View;
 
         private void Awake()
         {
