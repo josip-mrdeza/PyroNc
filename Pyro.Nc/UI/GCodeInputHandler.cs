@@ -255,19 +255,19 @@ namespace Pyro.Nc.UI
                 {
                     var word = infos[i];
                     var str = word.GetWord();
-                    var isParameter = Regex.IsMatch(str, @"[xXyYzZiIjJ](\d*)|(\.\d*)");
+                    var isParameter = Regex.IsMatch(str, @"[xXyYzZiIjJ](\d+)|(\.\d*)");
                     if (isParameter)
                     {
                         SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(177, 3, 252, 200));
                         continue; 
                     }
-                    var isGCommand = Regex.IsMatch(str, @"(G|g)\d*");
+                    var isGCommand = Regex.IsMatch(str, @"(G|g)\d+");
                     if (isGCommand)
                     {
                         SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(52, 235, 152, 200));
                         continue;
                     }
-                    var isMCommand = Regex.IsMatch(str, @"(M|m)\d*");
+                    var isMCommand = Regex.IsMatch(str, @"(M|m)\d+");
                     if (isMCommand)
                     {
                         SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(255, 255, 0, 200));
