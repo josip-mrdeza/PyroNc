@@ -274,7 +274,7 @@ namespace Pyro.Nc.UI
                         continue;
                     }
 
-                    var isArbCommand = Regex.IsMatch(str, @"[^xXyYzZiIjJ]\d*");
+                    var isArbCommand = Regex.IsMatch(str, @"([^xXyYzZiIjJ \d])\d*");
                     if (isArbCommand)
                     {
                         SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(50, 120, 200, 200));
