@@ -14,10 +14,12 @@ public class LoadingScreenView : View
     public TextMeshProUGUI loadingDescriptor;
     public TextMeshProUGUI additionalDescriptor;
     public Transform ImageTr;
+    public static LoadingScreenView Instance;
     public float step = 10f;
     public override void Initialize()
     {
         base.Initialize();
+        Instance = this;
         SetText("Starting...");
         var manager = Globals.Initializer;
         manager.OnLoadedScript += OnLoadedScriptHandler;
@@ -52,12 +54,12 @@ public class LoadingScreenView : View
         SetText(str);
     }
 
-    private void SetText(string text)
+    public void SetText(string text)
     {
         loadingDescriptor.text = text;
     }
 
-    private void SetAdditionalText(string text)
+    public void SetAdditionalText(string text)
     {
         additionalDescriptor.text = text;
     }

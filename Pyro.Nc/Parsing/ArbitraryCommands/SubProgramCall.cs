@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Nc.Parsing.GCommands;
@@ -20,7 +21,12 @@ public class SubProgramCall : BaseCommand
     public override async Task Execute(bool draw)
     {
         Globals.Console.Push($"Sub program call: {Description}!");
-        var text = LocalRoaming.OpenOrCreate("PyroNc\\GCode").ReadFileAsText(Description);
+        var fn = Description;
+        if (!fn.EndsWith(".spf", StringComparison.InvariantCultureIgnoreCase))
+        {
+            fn += ".spf";
+        }
+        var text = LocalRoaming.OpenOrCreate("PyroNc\\GCode").ReadFileAsText(fn);
         await Globals.GCodeInputHandler.Call(text, false);
     }
 }

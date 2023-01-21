@@ -17,6 +17,7 @@ public class SessionController : ControllerBase
         Database = database;
         Random = random;
     }
+    
     [HttpGet("all/{key:int?}")]
     public IEnumerable<Session> GetAllSessions(int key = 0)
     {

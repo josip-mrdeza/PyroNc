@@ -17,15 +17,16 @@ using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.UI;
-using Pyro.Threading;
 using UnityEngine;
 using UnityEngine.Serialization;
+using Debug = UnityEngine.Debug;
 
 namespace Pyro.Nc.Simulation
 {
     public class MillTool3D : InitializerRoot, ITool
     {
         private Transform _transform;
+        public Dictionary<int, int[][]> VertexToTriangleMapping;
         public override void Initialize()
         {
             throw new NotImplementedException("The async version of this method is implemented and used.");
@@ -50,31 +51,11 @@ namespace Pyro.Nc.Simulation
             var color = new Color(1, 1, 1, 255f);
             Vertices = new List<Vector3>(Workpiece.Current.vertices);
             Triangles = new List<int>(Workpiece.Current.triangles);
+            VertexToTriangleMapping = new Dictionary<int, int[][]>(Vertices.Count);
             Workpiece.Current.MarkDynamic();
             Workpiece.Current.Optimize();
             Colors = Enumerable.Repeat(color, Vertices.Count).ToList();
             var tr = Cube.transform;
-            /*Task.Run(() =>
-            {
-                var maxRadius = Globals.ToolManager.Tools.Max(x => x.Radius);
-                var vertsAsSpan = Vertices.GetInternalArray().AsSpan();
-                var caughtBlocks = new List<int>();
-                var length = vertsAsSpan.Length;
-                for (var i = 0; i < length; i++)
-                {
-                    var vertex = PyroDispatcher.ExecuteOnMain(t => tr.TransformPoint(Vertices[t]), i);
-                    for (int j = 0; j < length; j++)
-                    {
-                        if (Vector3.Distance(vertex, vertsAsSpan[i]) <= maxRadius)
-                        {
-                            caughtBlocks.Add(i);
-                        }
-                    }
-                    Sim3D.CachedBlocks.Add(i, caughtBlocks.ToArray());
-                    caughtBlocks.Clear();
-                }
-                Globals.Console.Push($"Returned from thread {Thread.CurrentThread.ManagedThreadId.ToString()}, spawned in {nameof(MillTool3D)}.");
-            });*/
             ToolConfig = await this.ChangeTool(0);
             var bounds = Collider.bounds;
             var max = tr.TransformVector(bounds.max);
@@ -107,6 +88,66 @@ namespace Pyro.Nc.Simulation
             EventSystem.AddAsyncSubscriber("ProgramEnd", ResetSettings());
             EventSystem.AddAsyncSubscriber("RapidFeedError", ResolveRapidFeedCollision());
             Position = new Vector3(-50, 100, -50);
+            await Task.Run(() =>
+            {
+                RunCacheIndexing();
+            });
+        }
+
+        private void RunCacheIndexing()
+        {
+            var vertLength = Vertices.Count;
+            var trigLength = Triangles.Count;
+            var cache = LocalRoaming.OpenOrCreate("PyroNc\\Cache");
+            if (cache.Exists("CachedVertexMapping.map"))
+            {
+                VertexToTriangleMapping = cache.ReadFileAs<Dictionary<int, int[][]>>("CachedVertexMapping.map");
+                return;
+            }
+            Parallel.For((long)0, vertLength, new ParallelOptions(){MaxDegreeOfParallelism = 5},
+                         () =>
+                         {
+                             return new List<int[]>();
+                         },
+                         (i, _, list) =>
+                         {
+                             for (int t = 0; t < trigLength; t += 3)
+                             {
+                                 if (i == t || i == t + 1 || i == t + 2)
+                                 {
+                                     list.Add(new[]
+                                     {
+                                         t,
+                                         t + 1,
+                                         t + 2
+                                     });
+                                     PDispatcher.ExecuteOnMain(() =>
+                                     {
+                                         LoadingScreenView.Instance
+                                                          .SetAdditionalText($"{t}/{trigLength}");
+                                     });
+                                 }
+                             }
+
+                             VertexToTriangleMapping.Add((int)i, list.ToArray());
+                             PDispatcher.ExecuteOnMain(
+                                 () => LoadingScreenView.Instance.SetText(
+                                     $"Cached {list.Count.ToString()} triangles for vertex {i}"));
+                             list.Clear();
+
+                             return list;
+                         }, list =>
+                         {
+                         });
+            for (int i = 0; i < vertLength; i++)
+            {
+                if (!VertexToTriangleMapping.ContainsKey(i))
+                {
+                    VertexToTriangleMapping.Add(i, Array.Empty<int[]>());
+                }
+            }
+            Debug.Log($"Total cached: {VertexToTriangleMapping.Count}/{vertLength}");
+            cache.AddFile("CachedVertexMapping.map", VertexToTriangleMapping);
         }
 
         private Func<Task> ResolveRapidFeedCollision()

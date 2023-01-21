@@ -16,8 +16,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyro.IO.Mods", "Pyro.IO.Mod
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrConsole", "..\TritiumLibs\TrConsole\TrConsole.csproj", "{73407D27-58B5-4806-B28C-B72B1824BD69}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TrCore", "..\TritiumLibs\TrCore\TrCore.csproj", "{CB079C15-4A56-4883-AAA3-FA2215EDDEB9}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DuskDb.SHost", "DuskDb.SHost\DuskDb.SHost.csproj", "{1C3F3AAE-C039-41D7-AD60-0664F8AC69E6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DuskDb.Core", "DuskDb.Core\DuskDb.Core.csproj", "{6F0B989B-3637-4FBD-85F6-F07E57B8B56D}"
@@ -46,8 +44,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroLauncher.Api", "PyroLau
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MathTests", "MathTests\MathTests.csproj", "{57373173-88E4-4D85-973C-92946051B038}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Pyro.Nc.Cpp", "Pyro.Nc.Cpp\Pyro.Nc.Cpp.vcxproj", "{1A1397FD-F943-4BFC-93E1-C4923916D138}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vectors", "..\TestProjects\Vectors\Vectors.csproj", "{44589AC2-ED03-4369-A004-9335D1D5FF51}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroCompiler", "PyroCompiler\PyroCompiler.csproj", "{27747363-0958-440A-A780-0A16E6FB515E}"
@@ -61,6 +57,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroNetServerTester", "PyroNetServerTester\PyroNetServerTester.csproj", "{C284FA71-4EAD-4190-AB49-F85FA353BCB5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroCharting", "PyroCharting\PyroCharting.csproj", "{DF932DB3-1343-47A2-A6BC-EB328BC0F344}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenetikusViews", "BenetikusViews\BenetikusViews.csproj", "{071F70D4-3FF6-4DF8-9FD8-A5CC49266645}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -100,10 +98,6 @@ Global
 		{73407D27-58B5-4806-B28C-B72B1824BD69}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{73407D27-58B5-4806-B28C-B72B1824BD69}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{73407D27-58B5-4806-B28C-B72B1824BD69}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CB079C15-4A56-4883-AAA3-FA2215EDDEB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CB079C15-4A56-4883-AAA3-FA2215EDDEB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CB079C15-4A56-4883-AAA3-FA2215EDDEB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CB079C15-4A56-4883-AAA3-FA2215EDDEB9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1C3F3AAE-C039-41D7-AD60-0664F8AC69E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1C3F3AAE-C039-41D7-AD60-0664F8AC69E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C3F3AAE-C039-41D7-AD60-0664F8AC69E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -160,10 +154,6 @@ Global
 		{57373173-88E4-4D85-973C-92946051B038}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{57373173-88E4-4D85-973C-92946051B038}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{57373173-88E4-4D85-973C-92946051B038}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1A1397FD-F943-4BFC-93E1-C4923916D138}.Debug|Any CPU.ActiveCfg = Debug|Win32
-		{1A1397FD-F943-4BFC-93E1-C4923916D138}.Debug|Any CPU.Build.0 = Debug|Win32
-		{1A1397FD-F943-4BFC-93E1-C4923916D138}.Release|Any CPU.ActiveCfg = Release|Win32
-		{1A1397FD-F943-4BFC-93E1-C4923916D138}.Release|Any CPU.Build.0 = Release|Win32
 		{44589AC2-ED03-4369-A004-9335D1D5FF51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{44589AC2-ED03-4369-A004-9335D1D5FF51}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{44589AC2-ED03-4369-A004-9335D1D5FF51}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -192,5 +182,9 @@ Global
 		{DF932DB3-1343-47A2-A6BC-EB328BC0F344}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF932DB3-1343-47A2-A6BC-EB328BC0F344}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF932DB3-1343-47A2-A6BC-EB328BC0F344}.Release|Any CPU.Build.0 = Release|Any CPU
+		{071F70D4-3FF6-4DF8-9FD8-A5CC49266645}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{071F70D4-3FF6-4DF8-9FD8-A5CC49266645}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{071F70D4-3FF6-4DF8-9FD8-A5CC49266645}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{071F70D4-3FF6-4DF8-9FD8-A5CC49266645}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

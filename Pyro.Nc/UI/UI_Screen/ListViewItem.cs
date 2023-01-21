@@ -1,13 +1,17 @@
+using System.IO;
 using Pyro.IO;
 using Pyro.Nc.Configuration.Startup;
+using Pyro.Nc.Simulation;
+using Pyro.Nc.UI.Programs;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Pyro.Nc.UI.UI_Screen
 {
-    public class ListViewItem : InitializerRoot
+    public class ListViewItem : InitializerRoot, IPointerClickHandler 
     {
         public string Content
         {
@@ -23,6 +27,7 @@ namespace Pyro.Nc.UI.UI_Screen
         public TextMeshProUGUI DateName;
         public Toggle Enabled;
         public bool HasPanel = true;
+        public ListView Parent;
         public override void Initialize()
         {
             Button = gameObject.GetComponent<Button>();
@@ -68,6 +73,22 @@ namespace Pyro.Nc.UI.UI_Screen
                 color.g = 255 / 255f;
                 color.b = 255 / 255f;
                 Panel.color = color;
+            }
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData.button == PointerEventData.InputButton.Right)
+            {
+                PopupHandler.PopDoubleOption($"Do you really want to delete {Content}?", "No", "Yes", noHandler => {},
+                                             yesHandler =>
+                                             {
+                                                 Parent.list.Remove(this);
+                                                 Destroy(gameObject);
+                                                 LocalRoaming.OpenOrCreate("PyroNc\\GCode").Delete(Content);
+                                                 Globals.Loader.Load();
+                                                 Globals.Loader.ShowOnScreen();
+                                             });
             }
         }
     }

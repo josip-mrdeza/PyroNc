@@ -43,6 +43,7 @@ namespace Pyro.Nc.UI
         {
             base.Show();
             ViewHandler.Active = true;
+            CloseButton.Instance.Show();
             Focus();
         }
 
@@ -50,12 +51,18 @@ namespace Pyro.Nc.UI
         {
             base.Hide();
             ViewHandler.Active = false;
+            CloseButton.Instance.Hide();
         }
 
         public void Focus()
         {
             EventSystem.current.SetSelectedGameObject(Text.gameObject);
             Text.OnPointerClick(_data);
+        }
+
+        public void MarkDirty()
+        {
+            HasSaved = false;
         }
 
         public override void Initialize()
@@ -255,7 +262,7 @@ namespace Pyro.Nc.UI
                 {
                     var word = infos[i];
                     var str = word.GetWord();
-                    var isParameter = Regex.IsMatch(str, @"[xXyYzZiIjJ](\d+)|(\.\d*)");
+                    var isParameter = Regex.IsMatch(str, @"[xXyYzZiIjJ](\d+)|(\.\d+)");
                     if (isParameter)
                     {
                         SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(177, 3, 252, 200));
@@ -274,7 +281,7 @@ namespace Pyro.Nc.UI
                         continue;
                     }
 
-                    var isArbCommand = Regex.IsMatch(str, @"([^xXyYzZiIjJ \d])\d*");
+                    var isArbCommand = Regex.IsMatch(str, @"[^xXyYzZiIjJ]\d*");
                     if (isArbCommand)
                     {
                         SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(50, 120, 200, 200));

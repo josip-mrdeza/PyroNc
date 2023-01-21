@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CSharp;
 using Pyro.IO.Memory;
 using Pyro.Math;
-using Pyro.Threading;
 
 namespace Pyro.IO.Builder;
 
@@ -26,7 +25,6 @@ public static class CodeImport
         typeof(SharedMemory).Assembly.Location,
         typeof(Operations).Assembly.Location,
         _LoadedAssemblies.FirstOrDefault(a => a.GetName().Name == "Pyro.Nc")?.Location,
-        typeof(PyroDispatcher).Assembly.Location
     }.Where(x => x is not null).ToArray();
 
     private static readonly string[] _assemblyNames = _assemblyPaths.Select(x =>

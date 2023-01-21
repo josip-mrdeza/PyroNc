@@ -1,11 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Pyro.IO
@@ -16,14 +14,14 @@ namespace Pyro.IO
         public Dictionary<string, DirectoryInfo> Folders { get; private set; }
         public string Site { get; private set; }
         public DirectoryInfo Info { get; private set; }
+        
         private static readonly Dictionary<string, LocalRoaming> Roamings = new Dictionary<string, LocalRoaming>();
-
-        private static JsonSerializerOptions Options = new JsonSerializerOptions()
+        private static readonly JsonSerializerOptions Options = new JsonSerializerOptions()
         {
             PropertyNameCaseInsensitive = true,
             WriteIndented = true
         };
-        private byte[] _emptyBytes = Array.Empty<byte>();
+        private readonly byte[] _emptyBytes = Array.Empty<byte>();
 
         private LocalRoaming(string id)
         {

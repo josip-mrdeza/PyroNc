@@ -14,7 +14,7 @@ public class UnmanagedMemory<T> : IDisposable
         get => Marshal.PtrToStructure<T>(_pointer);
     }
     private IntPtr _pointer;
-    private bool _didInit;
+    private readonly bool _didInit;
     private bool _freedMemory;
     private long _size;
     private long _length;
@@ -112,7 +112,7 @@ public class UnmanagedMemory<T> : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private void InternalFreeMemory()
+    internal void InternalFreeMemory()
     {
         var ptr = Pointer;
         Marshal.FreeHGlobal(ptr);

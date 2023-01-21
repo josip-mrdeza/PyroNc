@@ -43,6 +43,7 @@ namespace Pyro.Nc.UI.UI_Screen
                 {
                     o = new GameObject(i.ToString(), Components)
                         .GetComponent<ListViewItem>();
+                    o.Parent = this;
                     RectTransform transform1 = o.transform as RectTransform;
                     transform1.SetParent(this.transform);
                     transform1.position = new Vector3(start, height);

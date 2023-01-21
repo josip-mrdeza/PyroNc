@@ -26,7 +26,7 @@ namespace Pyro.Nc.Configuration.Startup
                 var root = Scripts[i];
                 try
                 {
-                    await Task.Delay(50);
+                    //await Task.Delay(50);
                     individual.Restart();
                     await root.InitializeComplete();
                     individual.Stop();

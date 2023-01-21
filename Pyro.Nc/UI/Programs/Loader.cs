@@ -15,11 +15,17 @@ namespace Pyro.Nc.UI.Programs
     {
         public List<string> Files;
         public ListView Port;
-        public GCodeInputHandler InputHandler;
         public override void Initialize()
         {
             base.Initialize();
             Globals.Loader = this;
+            Load();
+            ShowOnScreen();
+        }
+
+        public override void Show()
+        {
+            base.Show();
             Load();
             ShowOnScreen();
         }
@@ -34,6 +40,14 @@ namespace Pyro.Nc.UI.Programs
             //var roaming = LocalRoaming.OpenOrCreate("PyroNc\\GCode");
             Port.Refresh(Files.Select(s => (object) s).ToList());
         }
-        
+
+        public override void UpdateView()
+        {
+            if (Input.GetMouseButtonDown(3))
+            {
+                var mousePos = (Vector2) Input.mousePosition;
+                
+            }
+        }
     }
 }

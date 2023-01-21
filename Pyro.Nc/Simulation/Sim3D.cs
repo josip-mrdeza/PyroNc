@@ -24,7 +24,6 @@ using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.UI;
 using Pyro.Nc.UI.Debug;
-using Pyro.Threading;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Path = Pyro.Nc.Pathing.Path;
@@ -197,11 +196,13 @@ namespace Pyro.Nc.Simulation
             var tr = tool.Cube.transform;
             
             var vertices = tool.Vertices;
+            var triangles = tool.Triangles;
             var trVT = tool.Temp.transform;
             var trV = trVT.position;
             var radius = tool.Values.Radius;
             List<CutInfo> infos = new List<CutInfo>();
-            for (int i = 0; i < vertices.Count; i++)
+            var verts = vertices.Count;
+            for (int i = 0; i < verts; i++)
             {
                 var vert = vertices[i];
                 var realVert = tr.TransformPoint(vert);
@@ -245,7 +246,6 @@ namespace Pyro.Nc.Simulation
                         vector3d = flag ? lineEquationResults.Result1 : lineEquationResults.Result2;
                     }
                     var actualVector = tr.InverseTransformPoint(new Vector3(vector3d.x, pos.y, vector3d.y));
-
                     tool.Colors[i] = tool.ToolConfig.ToolColor;
                     vertices[i] = actualVector;
                     //TODO check if the actualVector crosses any workpiece boundaries, which it currently does a lot, do this with the use of the workpiece controller of some sorts.

@@ -18,7 +18,7 @@ namespace Pyro.Nc.Simulation
 {
     public static class Globals
     {
-        private static readonly Func<object, bool> _isNetworkPresent = o =>
+        private static bool _isNetworkPresent =>
             Application.internetReachability != NetworkReachability.NotReachable;
         public static ITool Tool;
         public static GCodeInputHandler GCodeInputHandler;
@@ -41,7 +41,7 @@ namespace Pyro.Nc.Simulation
         public static Loader Loader;
         public static Localisation Localisation;
 
-        public static bool IsNetworkPresent = Pyro.Threading.PyroDispatcher.ExecuteOnMain(_isNetworkPresent, null);
+        public static bool IsNetworkPresent = PDispatcher.ExecuteOnMain<bool>(() => _isNetworkPresent);
         
         public static event Action<string> OnLog;
 
