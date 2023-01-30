@@ -12,7 +12,7 @@ public class ButtonOption : OptionBase
     private Button _button;
     private TextMeshProUGUI _text;
     
-    public static ButtonOption LoadPrefab()
+    public static ButtonOption LoadPrefab(OptionsMenuManager manager)
     {
         if (Prefab == null)
         {
@@ -20,7 +20,7 @@ public class ButtonOption : OptionBase
             Prefab.SetActive(false);
         }
 
-        var obj = Instantiate(Prefab, OptionsMenuManager.Instance.gameObject.transform);
+        var obj = Instantiate(Prefab, manager.transform);
         obj.SetActive(true);
         var button = obj.AddComponent<ButtonOption>();
         return button;

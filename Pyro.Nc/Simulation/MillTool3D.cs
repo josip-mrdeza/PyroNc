@@ -27,6 +27,7 @@ namespace Pyro.Nc.Simulation
     {
         private Transform _transform;
         public Dictionary<int, int[][]> VertexToTriangleMapping;
+        public LineRenderer Lr;
         public override void Initialize()
         {
             throw new NotImplementedException("The async version of this method is implemented and used.");
@@ -88,7 +89,8 @@ namespace Pyro.Nc.Simulation
             EventSystem.AddAsyncSubscriber("ProgramEnd", ResetSettings());
             EventSystem.AddAsyncSubscriber("RapidFeedError", ResolveRapidFeedCollision());
             Position = new Vector3(-50, 100, -50);
-            await Task.Run(() =>
+            LineRenderer = Lr;
+            await Task.Run(() =>    
             {
                 RunCacheIndexing();
             });
@@ -229,6 +231,7 @@ namespace Pyro.Nc.Simulation
 
         private void FixedUpdate()
         {
+            return;
             if (MovementType == -1 && Values.Current is
             {
                 Family: Group.GCommand
@@ -260,7 +263,16 @@ namespace Pyro.Nc.Simulation
         public GameObject Temp { get; set; }
         public sbyte MovementType { get; set; }
         public Rigidbody Self { get; set; }
-        public Vector3 Position {get => _transform.position; set => _transform.position = value; }
+        public Vector3 Position
+        {
+            get => _transform.position;
+            set
+            {
+                _transform.position = value;
+                OnPositionChanged?.Invoke(value);
+            }
+        }
+
         public ToolValues Values { get; set; }
         public PyroEventSystem EventSystem { get; set; }
         public WorkpieceController Workpiece { get; set; }
@@ -268,6 +280,8 @@ namespace Pyro.Nc.Simulation
         public List<int> Triangles { get; set; }
         public List<Color> Colors { get; set; }
         public MeshCollider Collider { get; set; }
+        public LineRenderer LineRenderer { get; set; }
+
         public ToolConfiguration ToolConfig
         {
             get => _toolConfig;
@@ -290,6 +304,36 @@ namespace Pyro.Nc.Simulation
         public float MaxY { get; set; }
         public float MaxZ { get; set; }
         public event Func<Task> OnConsumeStopCheck;
+        public event Action<Vector3> OnPositionChanged;
+        public event Action<Vector3> OnTransChanged;
+        public event Action<float> OnFeedRateChanged;
+        public event Action<float> OnSpindleSpeedChanged;
+        public event Action<ToolConfiguration> OnToolChanged;
+
+        public void InvokeOnPositionChanged(Vector3 v)
+        {
+            OnPositionChanged?.Invoke(v);
+        }
+        
+        public void InvokeOnTransChanged(Vector3 v)
+        {
+            OnTransChanged?.Invoke(v);
+        }
+
+        public void InvokeOnFeedRateChanged(float feed)
+        {
+            OnFeedRateChanged?.Invoke(feed);
+        }
+
+        public void InvokeOnSpindleSpeedChanged(float rpm)
+        {
+            OnSpindleSpeedChanged?.Invoke(rpm);
+        }
+
+        public void InvokeOnToolChanged(ToolConfiguration config)
+        {
+            OnToolChanged?.Invoke(config);
+        }
 
         public async Task InvokeOnConsumeStopCheck()
         {

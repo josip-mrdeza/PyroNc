@@ -25,15 +25,25 @@ public class CYCLE81 : Cycle
     }
     
     public bool HoldAtBottom { get; }
+
+    public static readonly string[] ParameterDescriptions = new[]
+    {
+       "Retraction plane absolute",
+       "Reference plane absolute",
+       "Safety distance",
+       "Drilling depth",
+       "Final drilling depth relative to reference plane",
+       "Dwell time at bottom"
+    };
     
-    public static string[] ParameterTexts = new[]
+    public static readonly string[] ParameterTexts = new[]
     {
         "RTP",
         "RFP",
         "SDIS",
         "DP",
         "DPR",
-        "DTP"
+        "DTB"
     };
     
     public override async Task Execute(bool draw)
@@ -71,7 +81,7 @@ public class CYCLE81 : Cycle
 
         if (HoldAtBottom)
         {
-            var dtp = Parameters.GetValue("DTP");
+            var dtp = Parameters.GetValue("DTB");
             await Task.Delay(TimeSpan.FromSeconds(dtp));
         }
         

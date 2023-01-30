@@ -15,7 +15,7 @@ namespace Pyro.Nc.Parsing.MCommands
     {
         public M00(ITool tool, ICommandParameters parameters) : base(tool, parameters)
         {
-            Tool = tool;
+            Tool = (MillTool3D) tool;
             Parameters = parameters;
         }
         public override string Description => Locals.M00;

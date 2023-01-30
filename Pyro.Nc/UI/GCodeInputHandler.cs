@@ -17,6 +17,7 @@ using Pyro.Nc.Simulation;
 using Pyro.Nc.UI.Programs;
 using Pyro.Nc.UI.UI_Screen;
 using TMPro;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -33,6 +34,7 @@ namespace Pyro.Nc.UI
         public TextMeshProUGUI LineNumber;
         public TextMeshProUGUI SuggestionDisplay;
         public Button Button;
+        public Button Simulation2DButton;
         private PointerEventData _data;
         private bool HasSaved;
         private string fileName;
@@ -69,6 +71,7 @@ namespace Pyro.Nc.UI
         {
             //Text.onValueChanged.AddListener(_ => ApplySuggestions());
             Button.onClick.AddListener(async () => await Call(Text.text, true));
+            Simulation2DButton.onClick.AddListener(async () => await Call(Text.text, true, true));
             _data = new PointerEventData(EventSystem.current);
             Globals.GCodeInputHandler = this;
             base.Initialize();
@@ -90,7 +93,7 @@ namespace Pyro.Nc.UI
             Globals.Loader.ShowOnScreen();
         }
 
-        public async Task Call(string text, bool reset)
+        public async Task Call(string text, bool reset, bool is2d = false)
         {
             //var currentCommand = Globals.Tool.Values.Current;
             if (Globals.Tool.Values.IsPaused)
@@ -103,9 +106,11 @@ namespace Pyro.Nc.UI
             if (reset)
             {
                 ResetButton.Instance.onClick.Invoke();
-                Globals.Comment.PushComment("3DView", Color.gray);
-                ViewHandler.ShowOne("3DView");
+                var str = is2d ? "Simulation View" : "3D View";
+                Globals.Comment.PushComment(str, Color.gray);
+                ViewHandler.ShowOne(is2d ? "2DSimView" : "3DView");
                 CommandHelper.PreviousModal = null;
+                Globals.Tool.LineRenderer.SetPositions(new NativeArray<Vector3>(Array.Empty<Vector3>(), Allocator.Persistent));
             }
             var variables = text.ToUpper(CultureInfo.InvariantCulture)
                                 .Split('\n')//lines
@@ -118,6 +123,7 @@ namespace Pyro.Nc.UI
             for (var i = 0; i < arr.Count; i++)
             {
                 var command = arr[i];
+                command.Is2DSimulation = is2d;
                 if (Globals.Tool.Values.IsReset)
                 {
                     return;
@@ -224,16 +230,6 @@ namespace Pyro.Nc.UI
             }
         }
 
-        public string Snip(int caretPos)
-        {
-            var result = GetLineAtCaret();
-            if (result != null)
-            {
-                return result;
-            }
-            throw new Exception($"GCode Snip exception, no line matched the caret's position. Caret pos: {caretPos}, Text len: {Text.text.Length}; sum = {0}");
-        }
-
         public override void UpdateView()
         {
             var lineNum = GetLineNumber();
@@ -262,26 +258,26 @@ namespace Pyro.Nc.UI
                 {
                     var word = infos[i];
                     var str = word.GetWord();
-                    var isParameter = Regex.IsMatch(str, @"[xXyYzZiIjJ](\d+)|(\.\d+)");
+                    var isParameter = Regex.IsMatch(str, @"[xXyYzZiIjJ]{1}(\d+)|(\.\d+)");
                     if (isParameter)
                     {
                         SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(177, 3, 252, 200));
                         continue; 
                     }
-                    var isGCommand = Regex.IsMatch(str, @"(G|g)\d+");
+                    var isGCommand = Regex.IsMatch(str, @"(G|g){1}\d+");
                     if (isGCommand)
                     {
                         SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(52, 235, 152, 200));
                         continue;
                     }
-                    var isMCommand = Regex.IsMatch(str, @"(M|m)\d+");
+                    var isMCommand = Regex.IsMatch(str, @"(M|m){1}\d+");
                     if (isMCommand)
                     {
                         SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(255, 255, 0, 200));
                         continue;
                     }
 
-                    var isArbCommand = Regex.IsMatch(str, @"[^xXyYzZiIjJ]\d*");
+                    var isArbCommand = Regex.IsMatch(str, @"([^\d \n]{2,}|[SsFfTtDd]{1})\d*");
                     if (isArbCommand)
                     {
                         SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(50, 120, 200, 200));

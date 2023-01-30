@@ -53,10 +53,9 @@ public class OptionBase : MonoBehaviour
     {
         _uiTransform.localPosition = position;
     }
-
     public virtual void Init(){}
     public enum Side
     {
-        Left, Right
+        Left, Middle, Right
     }
 }

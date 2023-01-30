@@ -26,15 +26,11 @@ namespace Pyro.Nc.UI
             {
                 Id = gameObject.name;
             }
-            Objects = new List<GameObject>();
-            for (int i = 0; i < gameObject.transform.childCount; i++)
-            {
-                Objects.Add(gameObject.transform.GetChild(i).gameObject);
-            }
+            RefreshChildObjects();
             ViewHandler.Add(this);
-            for (var i = 0; i < Buttons.Count; i++)
+            for (var i = 0; i < Buttons?.Count; i++)
             {
-                var button = Buttons[i];
+                var button = Buttons?[i];
                 var index = i;
                 button.onClick.AddListener(() => ShowAtIndex(index));
             }
@@ -44,6 +40,15 @@ namespace Pyro.Nc.UI
                 Hide(); 
             }
             Push($"Initialized View: {gameObject.name}", $"View has {Objects.Count} children.");
+        }
+
+        public void RefreshChildObjects()
+        {
+            Objects = new List<GameObject>();
+            for (int i = 0; i < gameObject.transform.childCount; i++)
+            {
+                Objects.Add(gameObject.transform.GetChild(i).gameObject);
+            }
         }
 
         public void Update()

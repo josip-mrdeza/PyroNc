@@ -29,7 +29,7 @@ namespace Pyro.Nc.Simulation
         public static async Task<ToolConfiguration> ChangeTool(this ITool tool, int index)
         {
             ThrowNoToolException(tool);
-            Setter ??= new ToolSetter(tool, new ArbitraryCommandParameters());
+            Setter = new ToolSetter(tool, new ArbitraryCommandParameters());
             Setter.Parameters.AddValue("value", index);
             await Setter.ExecuteFinal(true);
 

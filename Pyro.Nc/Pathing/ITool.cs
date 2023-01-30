@@ -41,6 +41,7 @@ namespace Pyro.Nc.Pathing
         /// </summary>
         public List<Color> Colors { get; set; }
         public MeshCollider Collider { get; set; }
+        public LineRenderer LineRenderer { get; set; }
         public ToolConfiguration ToolConfig { get;set; }
         public float MinX { get; }
         public float MinY { get; }
@@ -52,6 +53,11 @@ namespace Pyro.Nc.Pathing
         /// An event describing a Stop Check command event.
         /// </summary>
         public event Func<Task> OnConsumeStopCheck;
+        public event Action<Vector3> OnPositionChanged;
+        public event Action<Vector3> OnTransChanged;
+        public event Action<float> OnFeedRateChanged;
+        public event Action<float> OnSpindleSpeedChanged;
+        public event Action<ToolConfiguration> OnToolChanged;
         /// <summary>
         /// Invokes the <see cref="OnConsumeStopCheck"/> event.
         /// </summary>

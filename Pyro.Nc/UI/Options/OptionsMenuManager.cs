@@ -8,35 +8,46 @@ using UnityEngine.UI;
 namespace Pyro.Nc.UI.Options;
 
 public class OptionsMenuManager : View
-{
-    public static OptionsMenuManager Instance;
+{ 
     public List<OptionBase> LeftOptions;
+    public List<OptionBase> MiddleOptions;
     public List<OptionBase> RightOptions;
-    public Vector2 LeftPoint = new Vector2(-480, 440);
-    public Vector2 RightPoint = new Vector2(480, 440);
+    public Vector2 LeftPoint;
+    public Vector2 RightPoint;
 
     //public Button Button;
 
     public override void Initialize()
     {
         base.Initialize();
-        Instance = this;
         LeftOptions = new List<OptionBase>();
+        MiddleOptions = new List<OptionBase>();
         RightOptions = new List<OptionBase>();
+        var rectTr = gameObject.transform as RectTransform;
+        var rect = rectTr.sizeDelta;
+        LeftPoint = new Vector2(-rect.x / 2, rect.y);
+        RightPoint = new Vector2(rect.x / 2, rect.y);
         //Button.onClick.AddListener(Test);
     }
 
-    public void Test()
+    public void Refresh()
     {
-        List<string> options = Enumerable.Repeat(1, 10).Select(x => (x + 3).ToString()).ToList();
-        for (int i = 0; i < 10; i++)
+        var left = LeftOptions.Sum(x => x.Height) / 2;
+        foreach (var option in LeftOptions)
         {
-            // var opt = AddAsMenuOption<DropdownOption>($"Dropdown {i} ", 300, 50,
-            //                                                    i % 2 == 0 ? OptionBase.Side.Left
-            //                                                        : OptionBase.Side.Right, 100);
-            // opt.Init();
-            // opt.Source = options;
-            // Console.WriteLine(opt.name);
+            option.Position += new Vector2(0, left);
+        }
+
+        var middle = MiddleOptions.Sum(x => x.Height) / 2;
+        foreach (var option in MiddleOptions)
+        {
+            option.Position += new Vector2(0, middle);
+        }
+
+        var right = RightOptions.Sum(x => x.Height) / 2;
+        foreach (var option in RightOptions)
+        {
+            option.Position += new Vector2(0, right);
         }
     }
 }

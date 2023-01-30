@@ -33,6 +33,20 @@ namespace Pyro.Nc.Parsing.GCommands
             }
             await Tool.Traverse(ResolvePosition(), Parameters.LineSmoothness, draw);
         }
+
+        public override void Execute2D()
+        {
+            if (Tool.Values.FeedRate == 0)
+            {
+                throw new FeedRateNotDefinedException();
+            }
+            if (Tool.ToolConfig.Index == 0)
+            {
+                throw new ToolNotDefinedException();
+            }
+            Tool.Traverse2D(ResolvePosition(), Parameters.LineSmoothness);
+        }
+
         /// <summary>
         /// Resolves the position in which ever mode is set at the time. (Incremental / Absolute [Default])
         /// </summary>

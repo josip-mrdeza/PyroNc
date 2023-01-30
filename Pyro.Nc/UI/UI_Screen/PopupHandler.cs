@@ -89,7 +89,7 @@ namespace Pyro.Nc.UI.UI_Screen
 
         public void Open()
         {
-            ViewHandler.Active = true;
+            //ViewHandler.Active = true;
             if (!ActivePrefab.activeSelf)
             {
                 ActivePrefab.SetActive(true);

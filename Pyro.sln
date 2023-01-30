@@ -58,8 +58,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroNetServerTester", "Pyro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroCharting", "PyroCharting\PyroCharting.csproj", "{DF932DB3-1343-47A2-A6BC-EB328BC0F344}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BenetikusViews", "BenetikusViews\BenetikusViews.csproj", "{071F70D4-3FF6-4DF8-9FD8-A5CC49266645}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -182,9 +180,5 @@ Global
 		{DF932DB3-1343-47A2-A6BC-EB328BC0F344}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF932DB3-1343-47A2-A6BC-EB328BC0F344}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF932DB3-1343-47A2-A6BC-EB328BC0F344}.Release|Any CPU.Build.0 = Release|Any CPU
-		{071F70D4-3FF6-4DF8-9FD8-A5CC49266645}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{071F70D4-3FF6-4DF8-9FD8-A5CC49266645}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{071F70D4-3FF6-4DF8-9FD8-A5CC49266645}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{071F70D4-3FF6-4DF8-9FD8-A5CC49266645}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -20,5 +20,10 @@ namespace Pyro.Nc.Parsing.GCommands
         {
             await base.Execute(true, draw);
         }
+
+        public override void Execute2D()
+        {
+            base.Execute2D(true);
+        }
     }
 }

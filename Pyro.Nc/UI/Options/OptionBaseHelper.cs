@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Pyro.Nc.UI.Options;
 
@@ -10,12 +11,18 @@ public static class OptionBaseHelper
     
     public static T AddAsMenuOption<T>(this GameObject parent, string name, float width, float height, OptionBase.Side side, float additionalSpacing = float.NaN, float downwardShift = float.NaN) where T : OptionBase
     {
-        var manager = OptionsMenuManager.Instance;
+        var manager = parent.GetComponent<OptionsMenuManager>();
+        if (manager == null)
+        {
+            manager = parent.AddComponent<OptionsMenuManager>();
+            manager.name = $"manager_{Random.Range(0, int.MaxValue)}";
+            manager.Initialize();
+        }
         var method = typeof(T).GetMethod("LoadPrefab");
-        var comp = method.Invoke(null, EmptyObjects) as T;
+        var comp = method.Invoke(null, new object[]{manager}) as T;
         if (parent != null)
         {
-            comp.gameObject.transform.parent = parent.transform;
+            comp.gameObject.transform.SetParent(parent.transform, false);
         }
         var transform = comp.transform;
         var rectTr = (RectTransform) transform;
@@ -41,6 +48,16 @@ public static class OptionBaseHelper
             }
 
             manager.LeftOptions.Add(comp);
+        }
+        else if (side == OptionBase.Side.Middle)
+        {
+            target = new Vector2(0, 0);
+            if (manager.MiddleOptions.Count > 0)
+            {
+                target.y -= manager.MiddleOptions.Sum(x => x._height);
+            }
+
+            manager.MiddleOptions.Add(comp);
         }
         else
         {

@@ -25,6 +25,7 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
                 throw NotifyException.Create<FeedRateOverLimitException>(this, this, value, feedRate.UpperLimit);
             }
             feedRate.Set(value);
+            Tool.InvokeOnFeedRateChanged(value);
             return Task.CompletedTask;
         }
     }

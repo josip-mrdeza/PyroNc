@@ -19,7 +19,7 @@ public class FpsCounter : View
     public float longFps;
     public static float averageFps;
 
-    private void Update() 
+    public override void UpdateView() 
     {
         if (fpsText is null)
         {

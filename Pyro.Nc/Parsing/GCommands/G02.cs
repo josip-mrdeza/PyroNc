@@ -27,6 +27,21 @@ namespace Pyro.Nc.Parsing.GCommands
         //TODO this only defines the beginning of the circle, not it's center as i thought before.This needs fixing...
         protected async Task Execute(bool reverse, bool draw)
         {
+            var arc = GetArc3D(reverse);
+            await Tool.Traverse(arc, true);
+            //Expire();
+        }
+        public override void Execute2D()
+        {
+            Execute2D(false);
+        }
+
+        protected void Execute2D(bool reverse)
+        {
+            Tool.TraverseFinal2D(GetArc3D(reverse).Points.ToArray());
+        }
+        private Arc3D GetArc3D(bool reverse)
+        {
             //G2 I5 J5 X10 Y10
             // I = X AXIS CENTER POINT OFFSET
             // J = Y AXIS CENTER POINT OFFSET
@@ -36,8 +51,9 @@ namespace Pyro.Nc.Parsing.GCommands
             var parameters = (Parameters as GCommandParameters);
             var pos = Tool.Position;
             var trans = Tool.Values.TransPosition;
+
             //var transPosition = pos + trans;
-            
+
             Vector3 endPoint;
             if (float.IsNaN(parameters.X) && float.IsNaN(parameters.Z))
             {
@@ -47,7 +63,7 @@ namespace Pyro.Nc.Parsing.GCommands
             {
                 endPoint = new Vector3((parameters.X + trans.x).FixNan(pos.x), pos.y, (parameters.Z + trans.z).FixNan(pos.z));
             }
-            
+
             if (float.IsNaN(parameters.I) && float.IsNaN(parameters.J))
             {
                 throw NotifyException.Create<ErrorInEndPointOfCircleException>(
@@ -59,8 +75,8 @@ namespace Pyro.Nc.Parsing.GCommands
             var centerPoint = pos + new Vector3(parameters.I.FixNan(), 0, parameters.J.FixNan());
             var radius = Vector3.Distance(pos, centerPoint);
             var arc = new Arc3D(radius, centerPoint, pos, endPoint, reverse);
-            await Tool.Traverse(arc, true);
-            //Expire();
+
+            return arc;
         }
     }
 }

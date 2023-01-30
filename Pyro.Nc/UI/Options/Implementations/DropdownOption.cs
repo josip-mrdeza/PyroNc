@@ -32,7 +32,7 @@ public class DropdownOption : OptionBase
         }
     }
     
-    public static DropdownOption LoadPrefab()
+    public static DropdownOption LoadPrefab(OptionsMenuManager manager)
     {
         if (Prefab == null)
         {
@@ -40,7 +40,7 @@ public class DropdownOption : OptionBase
             Prefab.SetActive(false);
         }
 
-        var obj = Instantiate(Prefab, OptionsMenuManager.Instance.gameObject.transform);
+        var obj = Instantiate(Prefab, manager.transform);
         obj.SetActive(true);
         var dropdown = obj.AddComponent<DropdownOption>();
         return dropdown;

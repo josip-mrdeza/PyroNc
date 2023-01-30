@@ -18,6 +18,7 @@ using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
+using UnityEngine;
 using Debug = UnityEngine.Debug;
 
 namespace Pyro.Nc.Parsing
@@ -37,7 +38,7 @@ namespace Pyro.Nc.Parsing
         /// <param name="family">A family of commands.</param>
         public BaseCommand(ITool tool, ICommandParameters parameters, bool throwOnNull = false, Group family = Group.None)
         {
-            Tool = tool;
+            Tool = (MillTool3D) tool;
             Parameters = parameters;
             Family = family;
             Id = Guid.NewGuid();
@@ -54,7 +55,7 @@ namespace Pyro.Nc.Parsing
         /// <summary>
         /// The tool used.
         /// </summary>
-        public ITool Tool { get; set; }
+        public MillTool3D Tool { get; set; }
 
         public Group Family { get; set; }
 
@@ -77,6 +78,7 @@ namespace Pyro.Nc.Parsing
         /// Defines all parameters passed to the command from the parser (GCodeInputHandler->CommandHelper).
         /// </summary>
         public ICommandParameters Parameters { get; set; }
+        public bool Is2DSimulation { get; set; }
         /// <summary>
         /// Updates the tool's current command.
         /// </summary>
@@ -128,6 +130,23 @@ namespace Pyro.Nc.Parsing
                                                "Switched units to the imperial standard.");
             }
             //Cancel();
+            if (Is2DSimulation)
+            {
+                try
+                {
+                    Execute2D();
+                }
+                catch (Exception e)
+                {
+                    Globals.Console.Push($"{type}: An error has occured in Execute -> {e.Message}!");
+                    throw;
+                }
+                PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw}) - {Id}",
+                                               "Finished execution!");
+                Expire();
+
+                return;
+            }
             if (Tool.Values.IsMilling)
             {
                 List<string> msgs = new()
@@ -212,8 +231,16 @@ namespace Pyro.Nc.Parsing
         {
             Tool.Values.TokenSource = new CancellationTokenSource();
         }
-        
 
+        public void Mark2DSimulation()
+        {
+            Is2DSimulation = true;
+        }
+
+        public void Mark3DSimulation()
+        {
+            Is2DSimulation = false;
+        }
         /// <summary>
         /// A method defining what a <see cref="ICommand"/> inheriting <see cref="BaseCommand"/> should do when executed in MILL Mode.
         /// </summary>
@@ -237,6 +264,11 @@ namespace Pyro.Nc.Parsing
         /// <see cref="ExecuteTurning"/> or <see cref="Execute"/> method.This is not allowed.</exception>
         public virtual Task ExecuteTurning(bool draw) => Execute(draw);
 
+        public virtual void Execute2D()
+        {
+            Globals.Console.PushComment($"{this.GetType().Name} does not implement {nameof(Execute2D)}, using ordinary execute for 3d sim instead.", Color.yellow);
+        }
+
         /// <summary>
         /// A method that tells the <see cref="ITool"/> that the current command is expired and finished it's execution.
         /// </summary>
@@ -246,6 +278,7 @@ namespace Pyro.Nc.Parsing
         {
             Tool.Values.IsAllowed = true;
             Tool.Values.Current = null;
+            Mark3DSimulation();
         }
         /// <summary>
         /// A method that tells the <see cref="ITool"/> which path it should define for the current <see cref="ICommand"/>.
@@ -303,9 +336,9 @@ namespace Pyro.Nc.Parsing
                 Builder.Append(GetType().Name);
                 foreach (var value in Parameters.Values)
                 {
-                    Builder.Append(' ');
                     if (!Single.IsNaN(value.Value))
                     {
+                        Builder.Append(' ');
                         if (value.Key == "Y")
                         {
                             Builder.Append("Z");

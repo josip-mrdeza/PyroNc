@@ -26,13 +26,5 @@ namespace Pyro.Nc.UI.EasterEggs
             }
 
         }
-
-        private void Update()
-        {
-            // if (Input.GetKeyDown(KeyCode.H))
-            // {
-            //     ViewSwitcher.ShowAllExceptSelf(this);
-            // }
-        }
     }
 }

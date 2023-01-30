@@ -13,7 +13,7 @@ public class SliderOption : OptionBase
     public float minValue;
     public float maxValue;
 
-    public static SliderOption LoadPrefab()
+    public static SliderOption LoadPrefab(OptionsMenuManager manager)
     {
         if (Prefab == null)
         {
@@ -21,7 +21,7 @@ public class SliderOption : OptionBase
             Prefab.SetActive(false);
         }
 
-        var obj = Instantiate(Prefab, OptionsMenuManager.Instance.gameObject.transform);
+        var obj = Instantiate(Prefab, manager.transform);
         obj.SetActive(true);
         var slider = obj.AddComponent<SliderOption>();
         return slider;

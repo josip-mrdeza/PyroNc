@@ -37,7 +37,6 @@ namespace Pyro.Net
             }
 
             var content = await resp.Content.ReadAsStringAsync();
-
             return content.DeserializeUtf8JsonInto<T>();
         }
 

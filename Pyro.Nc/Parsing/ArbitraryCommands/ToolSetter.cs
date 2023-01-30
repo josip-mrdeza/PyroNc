@@ -48,6 +48,7 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
             Tool.ToolConfig = tool;
             Tool.Temp.transform.localPosition = new Vector3(0, Tool.ToolConfig.VerticalMargin);
             await Tool.EventSystem.FireAsync("ToolChange");
+            Tool.InvokeOnToolChanged(tool);
         }
     }
 }

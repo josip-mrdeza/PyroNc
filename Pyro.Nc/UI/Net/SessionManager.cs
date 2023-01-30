@@ -20,12 +20,12 @@ public class SessionManager : MonoBehaviour
         Globals.Console.Push(isGlobalOnline?"Found Global RaspberryPi Server running!":"No Global RaspberryPi Server running!");
         if (!isPiOnline && !isGlobalOnline)
         {
-            var msg = "No suitable internet address found, are you connected to the internet?";
-            Globals.Comment.PushComment(msg, Color.red);
+            //var msg = "No suitable internet address found, are you connected to the internet?";
+            //Globals.Comment.PushComment(msg, Color.red);
         }
         else
         {
-            Globals.Comment.PushComment($"Session manager connected to host: '{Address}'!", Color.green);
+            //Globals.Comment.PushComment($"Session manager connected to host: '{Address}'!", Color.green);
         }
         
     }
