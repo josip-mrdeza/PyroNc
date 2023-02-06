@@ -31,6 +31,7 @@ public class WorkpieceView : View
     {
         if (float.TryParse(s, out float x))
         {
+            Globals.Tool.MaxX = x;
             x *= 0.01f;
             var scale = Workpiece.localScale;
             Workpiece.localScale = new Vector3(x, scale.y, scale.z);
@@ -43,6 +44,7 @@ public class WorkpieceView : View
     {
         if (float.TryParse(s, out float z))
         {
+            Globals.Tool.MaxZ = z;
             z *= 0.01f;
             var scale = Workpiece.localScale;
             Workpiece.localScale = new Vector3(scale.x, scale.y, z);
@@ -55,6 +57,7 @@ public class WorkpieceView : View
     {
         if (float.TryParse(s, out float y))
         {
+            Globals.Tool.MaxY = y;
             y *= 0.01f;
             var scale = Workpiece.localScale;
             Workpiece.localScale = new Vector3(scale.x, y, scale.z);

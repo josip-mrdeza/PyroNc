@@ -10,6 +10,27 @@ namespace Pyro.Math
         public const float CubeRootPower = (1f / 3);
 
         [Pure]
+        public static bool IsWithinMargin(this float x, float number, float margin)
+        {
+            var diff = (x - number).Abs();
+
+            return diff < margin;
+        }
+
+        [Pure]
+        public static bool IsWithinMargin(this decimal x, decimal number, decimal margin)
+        {
+            var diff = (x - number).Abs();
+
+            return diff < margin;
+        }
+
+        [Pure]
+        public static decimal AsDecimal(this float f)
+        {
+            return (decimal)f;
+        }
+        [Pure]
         public static float Abs(this float x)
         {
             return (float) System.Math.Abs(x);
@@ -94,7 +115,7 @@ namespace Pyro.Math
         {
             return (float) System.Math.Tan(angle * DegreeToRadian);
         }
-        
+
         /// <returns>An angle representing the 'x' of sine.</returns>
         [Pure]
         public static float ArcSin(this float x)
@@ -113,6 +134,12 @@ namespace Pyro.Math
         public static float ArcTan(this float x)
         {
             return (float) System.Math.Atan(x);
+        }
+        
+        [Pure]
+        public static decimal ArcTan(this decimal num)
+        {
+            return (decimal) System.Math.Atan((double) num);
         }
         
         /// <returns>An angle representing the 'x' of sine.</returns>

@@ -56,17 +56,7 @@ namespace Pyro.Nc.Simulation
             Workpiece.Current.MarkDynamic();
             Workpiece.Current.Optimize();
             Colors = Enumerable.Repeat(color, Vertices.Count).ToList();
-            var tr = Cube.transform;
             ToolConfig = await this.ChangeTool(0);
-            var bounds = Collider.bounds;
-            var max = tr.TransformVector(bounds.max);
-            MaxX = max.x;
-            MaxY = max.y;
-            MaxZ = max.z;
-            var min = tr.TransformVector(bounds.min);
-            MinX = min.x;
-            MinY = min.y;
-            MinZ = min.z;
             MovementType = Globals.MethodManager.Get("Traverse").Index;
             Self = GetComponent<Rigidbody>();
             Self.maxAngularVelocity = Values.SpindleSpeed.UpperLimit;
@@ -90,10 +80,16 @@ namespace Pyro.Nc.Simulation
             EventSystem.AddAsyncSubscriber("RapidFeedError", ResolveRapidFeedCollision());
             Position = new Vector3(-50, 100, -50);
             LineRenderer = Lr;
-            await Task.Run(() =>    
+            await Task.Run(() =>
             {
+                for (int i = 0; i < Vertices.Count; i++)
+                {
+                    Sim3D.VertexTracker.Add(i, 0);
+                }
+                return;
                 RunCacheIndexing();
             });
+            
         }
 
         private void RunCacheIndexing()
@@ -140,6 +136,7 @@ namespace Pyro.Nc.Simulation
                              return list;
                          }, list =>
                          {
+                             
                          });
             for (int i = 0; i < vertLength; i++)
             {
@@ -170,6 +167,7 @@ namespace Pyro.Nc.Simulation
                 Values.SpindleSpeed.Set(0f);
                 Position = new Vector3(-50, 100, -50);
                 MCALL.ClearSubroutine();
+                DEF.ClearVariableMap();
                 return Task.CompletedTask;
             };
         }

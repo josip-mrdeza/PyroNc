@@ -1,5 +1,6 @@
 using System;
 using System.Globalization;
+using System.Security.Policy;
 
 namespace Pyro.Math.Geometry;
 
@@ -8,6 +9,8 @@ public struct Line2D
     public readonly Vector2D Start;
     public readonly Vector2D End;
     public readonly decimal K = 0;
+    public decimal Angle => GetAngle();
+    public decimal AngleRadian => GetAngleRadian();
     public readonly string ExplicitEquation;
     public readonly string ImplictEquation;
 
@@ -45,8 +48,71 @@ public struct Line2D
 
         char sign = K > 0 ? '-' : '+';
             
-        ExplicitEquation = $"y = {decimal.Round(K).ToString(CultureInfo.InvariantCulture)}x {sign.ToString(CultureInfo.InvariantCulture)}{System.Math.Abs(decimal.Round(K * (decimal) x1) - (decimal) y1).ToString(CultureInfo.InvariantCulture)}";
+        ExplicitEquation = $"y = {decimal.Round(K, 2).ToString(CultureInfo.InvariantCulture)}x {sign.ToString(CultureInfo.InvariantCulture)}{System.Math.Abs(decimal.Round(K * (decimal) x1, 2) - (decimal) y1).ToString(CultureInfo.InvariantCulture)}";
         ImplictEquation = null;
+    }
+
+    public Line2D(float degree)
+    {
+        K = degree.Tan().AsDecimal();
+        if (degree > 180)
+        {
+            K = -K;
+        }
+        Start = new Vector2D();
+        End = new Vector2D(degree.Cos(), degree.Sin());
+        
+        var x1 = End.x;
+        var y1 = End.y;
+        char sign = K > 0 ? '-' : '+';
+        ExplicitEquation = $"y = {decimal.Round(K, 2).ToString(CultureInfo.InvariantCulture)}x {sign.ToString(CultureInfo.InvariantCulture)}{System.Math.Abs(decimal.Round(K * (decimal) x1, 2) - (decimal) y1).ToString(CultureInfo.InvariantCulture)}";
+        ImplictEquation = null;
+    }
+
+    private decimal GetAngle()
+    {
+        var angle = GetAngleRadian() * (decimal) (180/System.Math.PI);
+        return angle;
+    }
+
+    private decimal GetAngleRadian()
+    {
+        var k = (float)K;
+        var angle = (double) k.ArcTan();
+        if (angle < 0)
+        {
+            //clockwise
+            angle -= System.Math.PI;
+            angle = -angle;     
+        }
+
+        return (decimal) angle;
+    }
+    /// <summary>
+    /// Pulls the line onto the next quarter.
+    /// </summary>
+    /// <returns></returns>
+    public Line2D ToEdgeAngleCast()
+    {
+        Line2D line2D = default;
+        var magnitude = ((Start.x - End.x).Squared() + (Start.y - End.y).Squared()).SquareRoot();
+        if (Angle is < 90 and > 0 or > 270)
+        {
+            line2D = new Line2D(Start, new Vector2D(Start.x - magnitude, Start.y));
+        }
+        else if (Angle.IsWithinMargin(90, 0.02m))
+        {
+            line2D = this;
+        }
+        else if (Angle.IsWithinMargin(270, 0.02m) || Angle is > 180 and < 270)
+        {
+            line2D = new Line2D(Start, new Vector2D(Start.x, Start.y + magnitude));
+        }
+        else if (Angle is > 90 and < 180)
+        {
+            line2D = new Line2D(Start, new Vector2D(Start.x + magnitude, Start.y));
+        }
+        return line2D;
     }
 
     public float GetY(decimal x)

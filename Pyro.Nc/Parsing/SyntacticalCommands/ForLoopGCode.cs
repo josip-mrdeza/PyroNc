@@ -27,13 +27,16 @@ public class ForLoopGCode : BaseCommand
     public List<BaseCommand> ContainedCommands { get; }
     public override async Task Execute(bool draw)
     {
+        SetVariableValue(StartIndex);
+        
         if (ContainedCommands.Count == 0)
         {
-            Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.GenericMessage, "[ForLoop] - For loop contained no valid commands."));
+            Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.GenericMessage, "[ForLoop] - For loop contained no executable commands."));
+            DeleteVariableValue();
             return;
         }
 
-        for (CurrentIndex = StartIndex; CurrentIndex < Iterations; CurrentIndex++)
+        for (CurrentIndex = StartIndex; CurrentIndex < Iterations; CurrentIndex++, SetVariableValue(CurrentIndex))
         {
             foreach (var command in ContainedCommands)
             {
@@ -47,5 +50,26 @@ public class ForLoopGCode : BaseCommand
                 }
             }
         }
+
+        DeleteVariableValue();
+    }
+
+    public void SetVariableValue(object value)
+    {
+        var varMap = CommandHelper.VariableMap;
+        if (varMap.ContainsKey(VariableName))
+        {
+            varMap[VariableName] = value;
+        }
+        else
+        {
+            varMap.Add(VariableName, value);
+        }
+    }
+
+    public void DeleteVariableValue()
+    {
+        var varMap = CommandHelper.VariableMap;
+        varMap.Remove(VariableName);
     }
 }

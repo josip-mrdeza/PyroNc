@@ -28,6 +28,7 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
             var viewer = Globals.ReferencePointHandler.Trans;
             viewer.Position = Tool.Values.TransPosition;
             viewer.IsDirty = true;
+            Tool.InvokeOnTransChanged(Tool.Values.TransPosition);
             return Task.CompletedTask;
         }
     }

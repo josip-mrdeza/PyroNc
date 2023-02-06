@@ -33,39 +33,6 @@ namespace Pyro.Nc.Exceptions
 
         public Exception Contained { get; }
 
-        public void Throw()
-        {
-            if (Contained != null)
-            {
-                throw Contained;
-            }
-            throw this;
-        }
-        
-        public static T Create<T>(object sender, string message, bool asWarning = false) where T: NotifyException
-        {
-            var ex = (NotifyException) Activator.CreateInstance(typeof(T), new object[]
-            {
-                message,
-                asWarning
-            });
-            //ex.Source = sender.GetType().ToString();
-            return ex as T;
-        }
-        
-        public static T Create<T>(object sender, bool asWarning = false) where T: NotifyException
-        {
-            var ex = (NotifyException) Activator.CreateInstance(typeof(T), new object[] {asWarning});
-            //ex.Source = sender.GetType().ToString(); 
-            return ex as T;
-        }
-        
-        public static T Create<T>(object sender, params object[] arr) where T: NotifyException
-        {
-            var ex = (NotifyException) Activator.CreateInstance(typeof(T), arr);
-            return ex as T;
-        }
-
         public static TSystemException CreateNotifySystemException<TSystemException>(object sender, string message, bool asWarning = false) where TSystemException : Exception, new()
         {
             var exception = new TSystemException();

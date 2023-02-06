@@ -70,6 +70,8 @@ namespace Pyro.Nc.Simulation
                 }.Concat(d.Keys).ToArray());
                 return d;
             });
+
+        public static readonly Dictionary<int, int> VertexTracker = new Dictionary<int, int>();
         /// <summary>
         /// Stalls the next action (ICommand) asynchronously until the previous one completes.
         /// </summary>
@@ -130,28 +132,41 @@ namespace Pyro.Nc.Simulation
         /// <param name="tool">The tool.</param>
         /// <param name="vertex">A point in 3D space.</param>
         /// <returns>Whether the vertex provided is within the mesh's bounds.</returns>
-        public static bool IsOkayToCutVertex(this ITool tool, Vector3 vertex)
+        public static Direction IsOkayToCutVertex(this ITool tool, Vector3 vertex)
         {
             var d = new Direction();
-            vertex = tool.Cube.transform.TransformVector(vertex);
-            if (vertex.x < tool.MinX || vertex.x > tool.MaxX)
+            //vertex = tool.Cube.transform.TransformVector(vertex);
+            if (vertex.x < tool.MinX)
             {
-                d.X = vertex.x.Abs();
+                d.X = -vertex.x.Abs();
             }
-            if (vertex.y < tool.MinY || vertex.y > tool.MaxY)
+            else if (vertex.x > tool.MaxX)
             {
-                d.Y = vertex.y.Abs();
+                d.X = vertex.x;
             }
-            if (vertex.z < tool.MinZ || vertex.z > tool.MaxZ)
+            //
+            if (vertex.y < tool.MinY)
             {
-                d.Z = vertex.z.Abs();
+                d.Y = -vertex.y;
+            }
+            else if (vertex.y > tool.MaxY)
+            {
+                d.Y = vertex.y;
+            }
+            //
+            if (vertex.z < tool.MinZ)
+            {
+                d.Z = -vertex.z;
+            }
+            else if (vertex.z > tool.MaxZ)
+            {
+                d.Z = vertex.z;
             }
 
-            var isOk = d.X == 0 && d.Y == 0 && d.Z == 0;
-            return isOk;
+            return d;
         }
         
-        
+        //TODO trialob ono za neke radiuse stavit koe su tocke u tom radiusu. i po tome onda radit sve ovo tob trialo bit puuno brze mozda?
         /// <summary>
         /// Checks if the tool has come in (radius) distance of some vertex in the <see cref="ITool.Cube"/>'s mesh, if it has then it attempts to 'cut' it.
         /// </summary>
@@ -196,14 +211,17 @@ namespace Pyro.Nc.Simulation
             var tr = tool.Cube.transform;
             
             var vertices = tool.Vertices;
-            var triangles = tool.Triangles;
             var trVT = tool.Temp.transform;
             var trV = trVT.position;
             var radius = tool.Values.Radius;
-            List<CutInfo> infos = new List<CutInfo>();
             var verts = vertices.Count;
             for (int i = 0; i < verts; i++)
             {
+                if (VertexTracker[i] > 2)
+                {
+                    //Globals.Console.Push($": {i} skipped");
+                    continue;
+                }
                 var vert = vertices[i];
                 var realVert = tr.TransformPoint(vert);
                 var distVertical = Space3D.Distance(trV.y, realVert.y);
@@ -224,9 +242,10 @@ namespace Pyro.Nc.Simulation
                         return new CutResult(stopwatch.ElapsedMilliseconds, verticesCut, true);
                     }
 
-                    infos.Add(new CutInfo(i, vert.y));
+                    //infos.Add(new CutInfo(i, vert.y));
                     var realVector2D = new Vector2D(realVert.x, realVert.z);
                     Line2D line = new Line2D(realVector2D, new Vector2D(pos.x, pos.z));
+                    //line = line.ToEdgeAngleCast();
                     var lineEquationResults = line.FindCircleEndPoint(radius, pos.x, pos.z);
                     if (lineEquationResults.ResultOfDiscriminant == Line2D.LineEquationResults.DiscriminantResult.Imaginary)
                     {
@@ -245,10 +264,44 @@ namespace Pyro.Nc.Simulation
                         bool flag = distance2 > distance1;
                         vector3d = flag ? lineEquationResults.Result1 : lineEquationResults.Result2;
                     }
-                    var actualVector = tr.InverseTransformPoint(new Vector3(vector3d.x, pos.y, vector3d.y));
+
+                    var v3 = new Vector3(vector3d.x, pos.y, vector3d.y);
+                    var di = tool.IsOkayToCutVertex(v3);
+                    if (!di.IsZeroed())
+                    {
+                        continue;
+                        if (di.X < 0)
+                        {
+                            v3.x = tool.MinX;
+                        }
+                        else if (di.X > 0)
+                        {
+                            v3.x = tool.MaxX;
+                        }
+
+                        if (di.Y < 0)
+                        {
+                            v3.y = tool.MinY;
+                        }
+                        else if (di.Y > 0)
+                        {
+                            v3.y = tool.MaxY;
+                        }
+                        
+                        if (di.Z < 0)
+                        {
+                            v3.z = tool.MinZ;
+                        }
+                        else if(di.Z > 0)
+                        {
+                            v3.z = tool.MaxZ;
+                        }
+                        //continue;
+                    }
+                    VertexTracker[i] += 1;
+                    var actualVector = tr.InverseTransformPoint(v3);
                     tool.Colors[i] = tool.ToolConfig.ToolColor;
                     vertices[i] = actualVector;
-                    //TODO check if the actualVector crosses any workpiece boundaries, which it currently does a lot, do this with the use of the workpiece controller of some sorts.
                     verticesCut++;
                 }
             }
@@ -310,13 +363,36 @@ namespace Pyro.Nc.Simulation
             var currentPosition = tool.Position;
             var last = points.Last();
             Dictionary<int, bool> dictVector = Enumerable.Range(0, tool.Vertices.Count).ToDictionary(k => k, _ => false);
+            for (int i = 0; i < VertexTracker.Count; i++)
+            {
+                VertexTracker[i] = 0;
+            }
+
+            double totalDistance = Vector3.Distance(currentPosition, points[0]);
             
+            for (int i = 1; i < points.Length - 1; i++)
+            {
+                totalDistance += Vector3.Distance(points[i], points[i + 1]);
+            }
             foreach (var point in points)
             {
                 if (tool.Values.IsReset)
                 {
                     return;
                 }
+
+                var distance = Vector3.Distance(point, currentPosition);
+                float msToTraverseReal;
+                if (tool.Values.IsImperial)
+                {
+                    msToTraverseReal = (distance * 60_000 * 25.4f) / (tool.Values.FeedRate);
+                }
+                else
+                {
+                    msToTraverseReal = (distance * 60_000) / tool.Values.FeedRate;
+                }
+                var totalTime = TimeSpan.FromMilliseconds(msToTraverseReal);
+                UI_3D.Instance.Time.Time += totalTime;
                 draw.DrawTranslation(currentPosition, point);
                 tool.Position = point;
                 // var cutResult = tool.CheckPositionForCut(Direction.FromVectors(currentPosition, point), throwIfCutIsDetected);
@@ -329,7 +405,7 @@ namespace Pyro.Nc.Simulation
                 {
                     throw new RapidFeedCollisionException(tool.Values.Current);
                 }
-                await FinishCurrentMove(toolValues);
+                await FinishCurrentMove(cr, totalDistance);
                 if (toolValues.TokenSource.IsCancellationRequested)
                 {
                     Globals.Console.Push($"Cancelled task - {toolValues.Current.Id}!");
@@ -426,9 +502,17 @@ namespace Pyro.Nc.Simulation
             }));
             await tool.Traverse(line, draw, logStats);
         }
-        internal static async Task FinishCurrentMove(ToolValues toolValues)
+        internal static async Task FinishCurrentMove(CutResult cutResult, double totalDistance)
         {
-            //await Task.Delay(toolValues.FastMoveTick);
+            var values = Globals.Tool.Values;
+            var feed = values.FeedRate;
+            var time = totalDistance / (feed * 60_000);
+            var remainder = TimeSpan.FromMilliseconds(time) - TimeSpan.FromMilliseconds(cutResult.TotalTime);
+            if (remainder > TimeSpan.Zero)
+            {
+                await Task.Delay(remainder);
+                Globals.Console.Push($"Waiting for remainer: {remainder.ToString()}!");
+            }
             await Task.Yield();
         }
         internal static void LogCutStatistics(bool logStats, CutResult cutResult, ref double averageTimeForCut, ref long totalCut)

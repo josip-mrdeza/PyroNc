@@ -16,6 +16,12 @@ namespace Pyro.Nc.Pathing
             Z = z;
         }
 
+        public bool IsZeroed()
+        {
+            return X is 0 && Y is 0 && Z is 0;
+        }
+        
+
         public static Direction FromVectors(Vector3 toolPosition, Vector3 newPosition)
         {
             var resultingVector = toolPosition - newPosition;    

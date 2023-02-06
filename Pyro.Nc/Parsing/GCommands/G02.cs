@@ -66,8 +66,8 @@ namespace Pyro.Nc.Parsing.GCommands
 
             if (float.IsNaN(parameters.I) && float.IsNaN(parameters.J))
             {
-                throw NotifyException.Create<ErrorInEndPointOfCircleException>(
-                    this, $"Cannot find arc center point from given values:" +
+                throw new ErrorInEndPointOfCircleException(
+                    $"Cannot find arc center point from given values:" +
                     $"{string.Join("", parameters.Values.Where(x => !float.IsNaN(x.Value)).Select(y => $"{y.Key}{y.Value}").ToArray())}" +
                     $"\nTry defining the center point of arc with 'I' and 'J'.");
             }

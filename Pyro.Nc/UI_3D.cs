@@ -15,7 +15,7 @@ public class UI_3D : InitializerRoot
     public ValueDisplayer Position;
     public ValueDisplayer Trans;
 
-    public ValueDisplayer Time;
+    public TimeValueDisplayer Time;
 
     private TimeSpan Previous;
 
@@ -29,7 +29,7 @@ public class UI_3D : InitializerRoot
         SpindleSpeed = tr.Find("SpindleSpeed_Display").GetComponent<ValueDisplayer>();
         Position = tr.Find("Position_Display").GetComponent<ValueDisplayer>();
         Trans = tr.Find("Trans_Display").GetComponent<ValueDisplayer>();
-        Time = tr.Find("Time_Display").GetComponent<ValueDisplayer>();
+        Time = tr.Find("Time_Display").GetComponent<TimeValueDisplayer>();
         Globals.Tool.OnPositionChanged += SetPositionDisplay;
         Globals.Tool.OnTransChanged += SetTransDisplay;
         Globals.Tool.OnFeedRateChanged += SetFeedDisplay;
@@ -66,6 +66,6 @@ public class UI_3D : InitializerRoot
 
     public void SetTimeDisplay(TimeSpan ts)
     {
-        Time.Value.text = ts.ToString();
+        Time.Time = ts;
     }
 }

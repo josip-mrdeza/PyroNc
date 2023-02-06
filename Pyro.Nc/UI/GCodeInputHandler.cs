@@ -110,7 +110,8 @@ namespace Pyro.Nc.UI
                 Globals.Comment.PushComment(str, Color.gray);
                 ViewHandler.ShowOne(is2d ? "2DSimView" : "3DView");
                 CommandHelper.PreviousModal = null;
-                Globals.Tool.LineRenderer.SetPositions(new NativeArray<Vector3>(Array.Empty<Vector3>(), Allocator.Persistent));
+                UI_3D.Instance.SetTimeDisplay(new TimeSpan());
+                //Globals.Tool.LineRenderer.SetPositions(new NativeArray<Vector3>(Array.Empty<Vector3>(), Allocator.Persistent));
             }
             var variables = text.ToUpper(CultureInfo.InvariantCulture)
                                 .Split('\n')//lines

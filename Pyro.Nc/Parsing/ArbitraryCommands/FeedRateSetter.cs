@@ -22,7 +22,7 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
             var feedRate = Tool.Values.FeedRate;
             if (feedRate.UpperLimit < value)
             {
-                throw NotifyException.Create<FeedRateOverLimitException>(this, this, value, feedRate.UpperLimit);
+                throw new FeedRateOverLimitException(this, value, feedRate.UpperLimit);
             }
             feedRate.Set(value);
             Tool.InvokeOnFeedRateChanged(value);

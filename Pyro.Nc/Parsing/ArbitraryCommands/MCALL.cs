@@ -50,8 +50,7 @@ public class MCALL : BaseCommand
                 else
                 {
                     Globals.Console.Push($"MCALL failure; Cause: No new subroutine or selected subroutine.");
-                    throw NotifyException.Create<NoSubroutineIDProvidedException>(
-                        this, "MCALL requires a subroutine id (name) to be provided in it's initial call.", true);
+                    throw new NoSubroutineIDProvidedException("MCALL requires a subroutine id (name) to be provided in it's initial call.", true);
                 }
                 break;
             }

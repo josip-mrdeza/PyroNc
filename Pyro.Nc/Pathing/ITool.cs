@@ -43,12 +43,12 @@ namespace Pyro.Nc.Pathing
         public MeshCollider Collider { get; set; }
         public LineRenderer LineRenderer { get; set; }
         public ToolConfiguration ToolConfig { get;set; }
-        public float MinX { get; }
-        public float MinY { get; }
-        public float MinZ { get; }
-        public float MaxX { get; }
-        public float MaxY { get; }
-        public float MaxZ { get; }
+        public float MinX { get; set; }
+        public float MinY { get; set; }
+        public float MinZ { get; set; }
+        public float MaxX { get; set; }
+        public float MaxY { get; set; }
+        public float MaxZ { get; set; }
         /// <summary>
         /// An event describing a Stop Check command event.
         /// </summary>

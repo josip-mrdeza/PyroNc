@@ -29,4 +29,9 @@ public class DEF : BaseCommand
             CommandHelper.VariableMap.Add(Name, Value);
         }
     }
+
+    public static void ClearVariableMap()
+    {
+        CommandHelper.VariableMap.Clear();
+    }
 }

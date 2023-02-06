@@ -4,7 +4,7 @@ namespace Pyro.Nc.Simulation
 {
     public struct CutResult
     {
-        public double TotalTime;
+        public double TotalTime; 
         public long TotalVerticesCut;
         public bool Threw;
 
