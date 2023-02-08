@@ -16,29 +16,31 @@ namespace Pyro.Net
         public string Url { get; private set; }
         public event EventHandler<NetworkEventArgs> OnEvent;
         public event EventHandler OnConnectedEvent;
+        public event EventHandler OnBeginConnectingEvent;
         
         private readonly byte[] _matchSequence;
         private readonly Task _eventTaskRefresher;
         private static HttpClient _httpClient;
         
-        public NetworkEvent(string matchSequence, string url = null)
+        public NetworkEvent(string eventId, string matchSequence)
         {
             _httpClient ??= new HttpClient(); 
             Subscribers = new Lazy<List<NetworkEventSubscriber>>();
             IsActive = true;
-            Url = url ?? $"https://pyronetserver.azurewebsites.net/events?id={Assembly.GetCallingAssembly().GetName().Name}";
+            var url = "https://pyronetserver.azurewebsites.net/events";
+            Url = $"{url}?id={eventId}";
             _matchSequence = matchSequence.Select(x => (byte)x).ToArray();
             _eventTaskRefresher = Task.Run(async () => await RefreshStream());
         }
 
         private async Task RefreshStream()
         {
-            byte[] buffer = new byte[_matchSequence.Length];
-            byte[] intBuffer = new byte[4];
             while (IsActive)
             {
                 try
                 {
+                    byte[] buffer = new byte[_matchSequence.Length];
+                    byte[] intBuffer = new byte[4];
                     if (EventStream != null)
                     {
                         var isBasic = EventStream.ReadByte() == 0;
@@ -53,15 +55,20 @@ namespace Pyro.Net
                         var read = await EventStream.ReadAsync(buffer, 0, buffer.Length);
                         if (read == _matchSequence.Length)
                         {
+                            bool ok = false;
                             for (int i = 0; i < read; i++)
                             {
-                                bool ok = buffer[i] == _matchSequence[i];
+                                ok = buffer[i] == _matchSequence[i];
                                 if (!ok)
                                 {
                                     break;
                                 }
                             }
 
+                            if (!ok)
+                            {
+                                continue;
+                            }
                             for (int i = 0; i < buffer.Length; i++)
                             {
                                 buffer[i] = 0;
@@ -90,8 +97,8 @@ namespace Pyro.Net
                     }
                     else
                     {
-                        EventStream?.Dispose();
                         EventStream = null;
+                        OnBeginConnectingEvent?.Invoke(this, EventArgs.Empty);
                         while (!await TryConnect())
                         {
                             // skip
@@ -105,16 +112,18 @@ namespace Pyro.Net
                     Console.WriteLine(e);
                     EventStream?.Dispose();
                     EventStream = null;
+                    OnBeginConnectingEvent?.Invoke(this, EventArgs.Empty);
                     while (!await TryConnect())
                     {
                         // skip
                         Console.WriteLine($"Failed to connect to event server, trying again in 100ms...[{Url}]");
                         await Task.Delay(100);
                     }
+                    //OnConnectedEvent?.Invoke(this, EventArgs.Empty);
                 }
                 finally
                 {
-                    //await Task.Delay(1);
+                    await Task.Delay(10);
                 }
             }
         }

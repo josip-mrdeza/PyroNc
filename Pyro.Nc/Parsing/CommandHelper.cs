@@ -129,174 +129,36 @@ namespace Pyro.Nc.Parsing
             return arrOfCommands;
         }
         
-        public static List<ICommand> CollectCommands(this List<string[]> arrOfCommands)
+        public static List<BaseCommand> CollectCommands(this List<string[]> arrOfCommands)
         {
-            arrOfCommands = arrOfCommands.Select(x => x.Where(y => !string.IsNullOrEmpty(y)).ToArray()).Where(z => z.Length > 0).ToList();
-            List<ICommand> commands = new List<ICommand>();
+            arrOfCommands = arrOfCommands.Select(x =>
+            {
+                return x.Where(y =>
+                {
+                    return !string.IsNullOrEmpty(y);
+                }).ToArray();
+            }).Where(z => z.Length > 0).ToList();
+            List<BaseCommand> commands = new List<BaseCommand>();
             string[] commandString = null;
             string id = null;
-            Exception exception = null;
+            Exception exception = null; 
             for (var index = 0; index < arrOfCommands.Count; index++)
             {
                 try
                 {
                     commandString = arrOfCommands[index];
                     id = commandString[0];
-                    if (ScrapComment(arrOfCommands, id, index, commands, out var list))
-                    {
-                        return list;
-                    }
-
+                    if (ScrapComment(arrOfCommands, id, index, commands, out var list)) { return list; }
                     id = id.ToUpperInvariant();
-                    if (ScrapNotation(id, commands) || ScrapToolChange(id, commands) ||
-                        ScrapSpindleSpeedSetter(id, commands) || ScrapFeedRateSetter(id, commands))
-                    {
-                        continue;
-                    }
-
-                    ICommand command;
-                    if (id.StartsWith("FOR"))
-                    {
-                        var reg = Regex.Matches(id, @"[\d]+");
-                        var reg2 = Regex.Match(id, @"[\w]+=");
-                        var r = reg.GetEnumerator();
-                        int i = 0;
-                        if (r.MoveNext())
-                        {
-                            int.TryParse(((Match) r.Current).Value, out i);
-                        }
-                        int iterations = 0;
-                        if (r.MoveNext())
-                        {
-                            int.TryParse(((Match) r.Current).Value, out iterations);
-                        }
-                        r.Reset();
-                        command = new ForLoopGCode(i, iterations, reg2.Value.Replace("=", ""));
-                        commands.Add(command);
-                        var loop = command as ForLoopGCode;
-                        if (VariableMap.ContainsKey(loop.VariableName))
-                        {
-                            VariableMap[loop.VariableName] = loop.StartIndex;
-                        }
-                        else
-                        {
-                            VariableMap.Add(loop.VariableName, i);
-                        }
-                        return commands;
-                    }
-                    if (id.StartsWith("ENDFOR"))
-                    {
-                        command = new EndForGCode();
-                        commands.Add(command);
-                        return commands;
-                    }
-                    command = Storage.TryGetCommand(id).Copy();
-                    if (command is null)
-                    {
-                        continue;
-                    }
-
-                    if (command is Cycle)
-                    {
-                        var fullString = string.Join("", arrOfCommands[arrOfCommands.FindIndex(x =>
-                                                                           x.FirstOrDefault(
-                                                                               y => y.ToUpperInvariant()
-                                                                                   .Contains("CYCLE")) != null)]);
-                        var actualCycle = ExtractCycle(fullString);
-
-                        commands.Add(actualCycle);
-                        continue;
-                    }
-
-                    if (command is MCALL mcall)
-                    {
-                        if (arrOfCommands.Count == 2)
-                        {
-                            var cmd = arrOfCommands[index + 1][0];
-                            if (Regex.IsMatch(cmd, @"(CYCLE)(\d+)"))
-                            {
-                                mcall.NextSubroutine = ExtractCycle(cmd);
-                            }
-                            else //GOTTA BE AN SPF
-                            {
-                                var spf = new SubProgramCall(mcall.Tool, mcall.Parameters);
-                                spf.Name = cmd;
-                                mcall.NextSubroutine = spf;
-                            }
-                        }
-
-                        commands.Add(mcall);
-                        return commands;
-                    }
-
-                    foreach (var key in command.Parameters.Values.Keys.ToArray())
-                    {
-                        command.Parameters.Values[key] = Single.NaN;
-                    }
-
-                    for (int i = 1; i < commandString.Length; i++)
-                    {
-                        var par = commandString[i];
-                        var reqStr = new string(par.Skip(1).ToArray());
-                        if (string.IsNullOrEmpty(reqStr))
-                        {
-                            continue;
-                        }
-
-                        var success = float.TryParse(reqStr, out var f);
-                        if (!success)
-                        {
-                            reqStr = reqStr.Replace("(", "").Replace(")", "");
-                            var nums = reqStr.LookForNumbers();
-                            var results = nums.Solve();
-                            f = (float) results[1].Value;
-                        }
-
-                        command.Parameters.Values[char.ToUpperInvariant(par[0]).ToString()] = f;
-                    }
-
-                    if (command is UnresolvedCommand unresolvedCommand)
-                    {
-                        for (int i = 0; i < commandString.Length; i++)
-                        {
-                            var par = commandString[i];
-                            var reqStr = new string(par.Skip(1).ToArray());
-                            if (string.IsNullOrEmpty(reqStr))
-                            {
-                                continue;
-                            }
-
-                            var success = float.TryParse(reqStr, out var f);
-                            if (!success)
-                            {
-                                reqStr = reqStr.Replace("(", "").Replace(")", "");
-                                var nums = reqStr.LookForNumbers();
-                                var results = nums.Solve();
-                                f = (float) results[1].Value;
-
-                                //Debug.Log($"Solver result: {f.ToString(CultureInfo.InvariantCulture)}");
-                            }
-
-                            command.Parameters.Values[char.ToUpperInvariant(par[0]).ToString()] = f;
-                        }
-
-                        var lastModal = PreviousModal;
-                        if (lastModal == null)
-                        {
-                            throw new NoModalCommandFoundException(command.Description);
-                        }
-
-                        command = lastModal.Copy();
-                        command.AdditionalInfo = "(Modal)";
-                        command.Parameters = unresolvedCommand.Parameters;
-                    }
-                    else
-                    {
-                        if (command.IsModal)
-                        {
-                            PreviousModal = (BaseCommand) command;
-                        }
-                    }
+                    if (ScrapNotation(id, commands) || ScrapToolChange(id, commands) || ScrapSpindleSpeedSetter(id, commands) || ScrapFeedRateSetter(id, commands)) { continue; }
+                    if (HandleForLoopCondition(id, commands, out list)) return list;
+                    var command = (BaseCommand) Storage.TryGetCommand(id).Copy();
+                    if (command is null) { continue; }
+                    if (GetCycle(arrOfCommands, command, commands)) continue;
+                    if (GetMCALL(arrOfCommands, command, index, commands, out list)) return list;
+                    ResetCommandParameters(command);
+                    PopulateCommandParameters(commandString, command);
+                    command = FinalizeCommand(command, commandString);
                     commands.Add(command);
                 }
                 catch (NullReferenceException e)
@@ -334,17 +196,203 @@ namespace Pyro.Nc.Parsing
                     }
                 }
             }
-
             Globals.Rules.Try(commands);
-
             if (exception is not null)
             {
                 throw exception;
             }
-            
             return commands;
         }
 
+        private static bool HandleForLoopCondition(string id, List<BaseCommand> commands, out List<BaseCommand> list)
+        {
+            if (id.StartsWith("FOR"))
+            {
+                var reg = Regex.Matches(id, @"[\d]+");
+                var reg2 = Regex.Match(id, @"[\w]+=");
+                var r = reg.GetEnumerator();
+                int i = 0;
+                if (r.MoveNext())
+                {
+                    int.TryParse(((Match)r.Current).Value, out i);
+                }
+
+                int iterations = 0;
+                if (r.MoveNext())
+                {
+                    int.TryParse(((Match)r.Current).Value, out iterations);
+                }
+
+                r.Reset();
+                var command = new ForLoopGCode(i, iterations, reg2.Value.Replace("=", ""));
+                commands.Add(command);
+                var loop = command;
+                if (VariableMap.ContainsKey(loop.VariableName))
+                {
+                    VariableMap[loop.VariableName] = loop.StartIndex;
+                }
+                else
+                {
+                    VariableMap.Add(loop.VariableName, i);
+                }
+
+                {
+                    list = commands;
+
+                    return true;
+                }
+            }
+
+            if (id.StartsWith("ENDFOR"))
+            {
+                var command = new EndForGCode();
+                commands.Add(command);
+                {
+                    list = commands;
+
+                    return true;
+                }
+            }
+
+            list = null;
+            return false;
+        }
+        private static BaseCommand FinalizeCommand(BaseCommand command, string[] commandString)
+        {
+            if (command is UnresolvedCommand unresolvedCommand)
+            {
+                command = FixUnresolvedCommand(commandString, command, unresolvedCommand);
+            }
+            else
+            {
+                SetModalCommand(command);
+            }
+
+            return command;
+        }
+        private static void SetModalCommand(BaseCommand command)
+        {
+            if (command.IsModal)
+            {
+                PreviousModal = (BaseCommand)command;
+            }
+        }
+        private static BaseCommand FixUnresolvedCommand(string[] commandString, BaseCommand command,
+            UnresolvedCommand unresolvedCommand)
+        {
+            for (int i = 0; i < commandString.Length; i++)
+            {
+                var par = commandString[i];
+                var reqStr = new string(par.Skip(1).ToArray());
+                if (string.IsNullOrEmpty(reqStr))
+                {
+                    continue;
+                }
+
+                var success = float.TryParse(reqStr, out var f);
+                if (!success)
+                {
+                    reqStr = reqStr.Replace("(", "").Replace(")", "");
+                    var nums = reqStr.LookForNumbers();
+                    var results = nums.Solve();
+                    f = (float)results[1].Value;
+
+                    //Debug.Log($"Solver result: {f.ToString(CultureInfo.InvariantCulture)}");
+                }
+
+                command.Parameters.Values[char.ToUpperInvariant(par[0]).ToString()] = f;
+            }
+
+            var lastModal = PreviousModal;
+            if (lastModal == null)
+            {
+                throw new NoModalCommandFoundException(command.Description);
+            }
+
+            command = (BaseCommand) lastModal.Copy();
+            command.AdditionalInfo = "(Modal)";
+            command.Parameters = unresolvedCommand.Parameters;
+
+            return command;
+        }
+        private static void PopulateCommandParameters(string[] commandString, BaseCommand command)
+        {
+            for (int i = 1; i < commandString.Length; i++)
+            {
+                var par = commandString[i];
+                var reqStr = new string(par.Skip(1).ToArray());
+                if (string.IsNullOrEmpty(reqStr))
+                {
+                    continue;
+                }
+
+                var success = float.TryParse(reqStr, out var f);
+                if (!success)
+                {
+                    reqStr = reqStr.Replace("(", "").Replace(")", "");
+                    var nums = reqStr.LookForNumbers();
+                    var results = nums.Solve();
+                    f = (float)results[1].Value;
+                }
+
+                command.Parameters.Values[char.ToUpperInvariant(par[0]).ToString()] = f;
+            }
+        }
+        private static void ResetCommandParameters(BaseCommand command)
+        {
+            foreach (var key in command.Parameters.Values.Keys.ToArray())
+            {
+                command.Parameters.Values[key] = Single.NaN;
+            }
+        }
+        private static bool GetMCALL(List<string[]> arrOfCommands, BaseCommand command, int index, List<BaseCommand> commands, out List<BaseCommand> list)
+        {
+            if (command is MCALL mcall)
+            {
+                if (arrOfCommands.Count == 2)
+                {
+                    var cmd = arrOfCommands[index + 1][0];
+                    if (Regex.IsMatch(cmd, @"(CYCLE)(\d+)"))
+                    {
+                        mcall.NextSubroutine = ExtractCycle(cmd);
+                    }
+                    else //GOTTA BE AN SPF
+                    {
+                        var spf = new SubProgramCall(mcall.Tool, mcall.Parameters);
+                        spf.Name = cmd;
+                        mcall.NextSubroutine = spf;
+                    }
+                }
+
+                commands.Add(mcall);
+                {
+                    list = commands;
+
+                    return true;
+                }
+            }
+
+            list = null;
+            return false;
+        }
+        private static bool GetCycle(List<string[]> arrOfCommands, BaseCommand command, List<BaseCommand> commands)
+        {
+            if (command is Cycle)
+            {
+                var fullString = string.Join("", arrOfCommands[arrOfCommands.FindIndex(x =>
+                                                                   x.FirstOrDefault(
+                                                                       y => y.ToUpperInvariant()
+                                                                             .Contains("CYCLE")) !=
+                                                                   null)]);
+                var actualCycle = ExtractCycle(fullString);
+
+                commands.Add(actualCycle);
+
+                return true;
+            }
+
+            return false;
+        }
         private static Cycle ExtractCycle(string fullString)
         {
             StringBuilder builder = new StringBuilder(fullString);
@@ -384,8 +432,7 @@ namespace Pyro.Nc.Parsing
 
             return actualCycle;
         }
-
-        private static bool ScrapSpindleSpeedSetter(string id, List<ICommand> commands)
+        private static bool ScrapSpindleSpeedSetter(string id, List<BaseCommand> commands)
         {
             if (id[0] is 'S' or 's')
             {
@@ -395,7 +442,7 @@ namespace Pyro.Nc.Parsing
                 {
                     return false;
                 } 
-                var command = Storage.FetchArbitraryCommand("S").Copy();
+                var command = (BaseCommand) Storage.FetchArbitraryCommand("S").Copy();
                 command.Parameters.AddValue("value", num);
                 commands.Add(command);
 
@@ -404,8 +451,7 @@ namespace Pyro.Nc.Parsing
 
             return false;
         }
-        
-        private static bool ScrapFeedRateSetter(string id, List<ICommand> commands)
+        private static bool ScrapFeedRateSetter(string id, List<BaseCommand> commands)
         {
             if (id[0] is 'F' or 'f')
             {
@@ -415,7 +461,7 @@ namespace Pyro.Nc.Parsing
                 {
                     return false;
                 } 
-                var command = Storage.FetchArbitraryCommand("F").Copy();
+                var command = (BaseCommand) Storage.FetchArbitraryCommand("F").Copy();
                 command.Parameters.AddValue("value", num);
                 commands.Add(command);
 
@@ -424,8 +470,7 @@ namespace Pyro.Nc.Parsing
 
             return false;
         }
-
-        private static bool ScrapToolChange(string id, List<ICommand> commands)
+        private static bool ScrapToolChange(string id, List<BaseCommand> commands)
         {
             if (id[0] is 'T' or 't')
             {
@@ -436,7 +481,7 @@ namespace Pyro.Nc.Parsing
                 {
                     return false;
                 }
-                var command = Storage.FetchArbitraryCommand("T").Copy();
+                var command = (BaseCommand) Storage.FetchArbitraryCommand("T").Copy();
                 command.Parameters.AddValue("value", num);
                 commands.Add(command);
                 return true;
@@ -444,9 +489,8 @@ namespace Pyro.Nc.Parsing
 
             return false;
         }
-
-        private static bool ScrapComment(List<string[]> arrOfCommands, string id, int index, List<ICommand> commands,
-            out List<ICommand> list)
+        private static bool ScrapComment(List<string[]> arrOfCommands, string id, int index, List<BaseCommand> commands,
+            out List<BaseCommand> list)
         {
             if (id.Contains(_cachedKvp!.Value.Key))
             {
@@ -466,8 +510,7 @@ namespace Pyro.Nc.Parsing
             list = null;
             return false;
         }
-
-        private static bool ScrapNotation(string id, List<ICommand> commands)
+        private static bool ScrapNotation(string id, List<BaseCommand> commands)
         {
             if (id[0] is 'N' or 'n')
             {
@@ -486,7 +529,6 @@ namespace Pyro.Nc.Parsing
 
             return false;
         }
-
-        internal static KeyValuePair<string, ICommand>? _cachedKvp;
+        internal static KeyValuePair<string, BaseCommand>? _cachedKvp;
     }
 }

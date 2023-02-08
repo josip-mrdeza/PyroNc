@@ -50,9 +50,21 @@ namespace Pyro.Net
             await Client.PostAsync(addr, new StringContent(""));
         }
         
+        public static async Task Post(string addr, string content)
+        {
+            await Client.PostAsync(addr, new StringContent(content));
+        }
+        
         public static async Task Put(string addr)
         {
             await Client.PutAsync(addr, new StringContent(""));
+        }
+
+        public static NetworkEvent ListenToEvent(string id, string password)
+        {
+            var ne = new NetworkEvent(id, password);
+
+            return ne;
         }
     }
 }

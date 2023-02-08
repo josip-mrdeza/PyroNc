@@ -217,7 +217,7 @@ namespace Pyro.Nc.Simulation
             var verts = vertices.Count;
             for (int i = 0; i < verts; i++)
             {
-                if (VertexTracker[i] > 2)
+                if (VertexTracker[i] >= 1)
                 {
                     //Globals.Console.Push($": {i} skipped");
                     continue;
@@ -269,7 +269,7 @@ namespace Pyro.Nc.Simulation
                     var di = tool.IsOkayToCutVertex(v3);
                     if (!di.IsZeroed())
                     {
-                        continue;
+                        //continue;
                         if (di.X < 0)
                         {
                             v3.x = tool.MinX;

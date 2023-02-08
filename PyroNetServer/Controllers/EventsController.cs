@@ -17,16 +17,15 @@ public class EventsController : ControllerBase
         if (!Writers.ContainsKey(id))
         {
             Writers.Add(id, new List<Stream>());
-            Writers[id].Add(Response.Body);
         }
-        else
-        {
-            Writers[id].Add(Response.Body);
-        }
+        Writers[id].Add(Response.Body);
         Response.HttpContext.RequestAborted.Register(() =>
         {
             Writers[id].Remove(Response.Body);
         });
+        Response.ContentType = "application/octet-stream";
+        await Response.BodyWriter.WriteAsync(new byte[]{0,0,0,0,0}, CancellationToken.None);
+        await Response.BodyWriter.FlushAsync();
         Response.HttpContext.RequestAborted.WaitHandle.WaitOne();
     }
 
@@ -34,8 +33,10 @@ public class EventsController : ControllerBase
     public async Task InvokeEvent([FromQuery] string id, [FromQuery] string sequence)
     {
         var buffer = Encoding.UTF8.GetBytes(sequence);
-        var writers = Writers[id];
-        Console.WriteLine($"Writers: {writers.Count}");
+        Writers.TryGetValue(id, out var writers);
+        var count = writers == null ? 0 : writers.Count(x => x.CanWrite);
+        Console.WriteLine($"Writers: {count}");
+        await HttpContext.Response.WriteAsync($"Id matches {count} writers.");
         foreach (var pipeWriter in writers)
         {
             try

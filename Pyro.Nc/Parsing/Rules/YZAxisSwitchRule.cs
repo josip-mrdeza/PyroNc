@@ -4,13 +4,13 @@ using static System.Single;
 
 namespace Pyro.Nc.Parsing.Rules
 {
-    public class YZAxisSwitchRule : Rule<List<ICommand>>
+    public class YZAxisSwitchRule : Rule<List<BaseCommand>>
     {
         public YZAxisSwitchRule(string name) : base(name)
         {
         }
 
-        public override void FixValidity(List<ICommand> value)
+        public override void FixValidity(List<BaseCommand> value)
         {
             foreach (var command in value)
             {

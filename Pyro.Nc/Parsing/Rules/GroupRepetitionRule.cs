@@ -5,7 +5,7 @@ using Pyro.Nc.Exceptions;
 
 namespace Pyro.Nc.Parsing.Rules
 {
-    public class GroupRepetitionRule : Rule<List<ICommand>>
+    public class GroupRepetitionRule : Rule<List<BaseCommand>>
     {
         private static readonly int[] Counter = new int[5];
         public GroupRepetitionRule(string name)
@@ -13,7 +13,7 @@ namespace Pyro.Nc.Parsing.Rules
         {
         }
 
-        public override bool CheckValidity(List<ICommand> list)
+        public override bool CheckValidity(List<BaseCommand> list)
         {
             for (int i = 0; i < Counter.Length; i++)
             {

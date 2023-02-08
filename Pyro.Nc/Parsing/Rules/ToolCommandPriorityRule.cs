@@ -5,13 +5,13 @@ using Pyro.Nc.Parsing.MCommands;
 
 namespace Pyro.Nc.Parsing.Rules
 {
-    public class ToolCommandPriorityRule : Rule<List<ICommand>>
+    public class ToolCommandPriorityRule : Rule<List<BaseCommand>>
     {
         public ToolCommandPriorityRule(string name) : base(name)
         {
         }
 
-        public override void FixValidity(List<ICommand> value)
+        public override void FixValidity(List<BaseCommand> value)
         {
             var sc = value.FirstOrDefault(c => c.IsMatch(typeof(ToolSetter)));
             if (sc is null)

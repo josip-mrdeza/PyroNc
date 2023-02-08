@@ -16,9 +16,9 @@ namespace Pyro.Nc.Parsing
             Exception = new Lazy<RuleParseException>(_exceptionGetter);
         }
 
-        public virtual bool CheckValidity(object value) => true;
-
-        public virtual void FixValidity(object value){}
+        // public virtual bool CheckValidity(object value) => true;
+        //
+        // public virtual void FixValidity(object value){}
     }
     
     public abstract class Rule<T> : Rule

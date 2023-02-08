@@ -1,7 +1,10 @@
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.UI;
 using Pyro.Nc.UI.UI_Screen;
+using Pyro.Net;
 using UnityEngine;
 
 namespace Pyro.Nc.Exceptions
@@ -17,6 +20,10 @@ namespace Pyro.Nc.Exceptions
             }
             Globals.Tool.EventSystem.FireAsync("ProgramEnd").GetAwaiter().GetResult();
             PopupHandler.PopText(message);
+            Task.Run(async () =>
+            {
+                await NetHelpers.Post("https://pyronetserver.azurewebsites.net/events/invoke?id=Exception&sequence=Pyro", $"Line {Globals.GCodeInputHandler.Line}-{message}");
+            });
         }
 
         public NotifyException(string message, Exception ex, bool asWarning = false)

@@ -7,7 +7,7 @@ namespace PyroNetServer.Controllers;
 [Route("files")]
 public class FileController : ControllerBase
 {
-    public string Folder = "GCode/";
+    public string Folder = "GCode\\";
     public static List<User> Users;
 
     public FileController()

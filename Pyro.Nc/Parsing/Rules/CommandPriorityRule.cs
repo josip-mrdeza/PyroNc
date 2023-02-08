@@ -8,7 +8,7 @@ using Pyro.Nc.Parsing.MCommands;
 
 namespace Pyro.Nc.Parsing.Rules
 {
-    public class CommandPriorityRule : Rule<List<ICommand>>
+    public class CommandPriorityRule : Rule<List<BaseCommand>>
     {
         private static readonly Type[] Types = new Type[]
         {
@@ -20,7 +20,7 @@ namespace Pyro.Nc.Parsing.Rules
         {
         }
 
-        public override void FixValidity(List<ICommand> list)
+        public override void FixValidity(List<BaseCommand> list)
         {
             var sc = list.FirstOrDefault(c => c.IsMatch(typeof(SpindleSpeedSetter)));
             if (sc is null)
