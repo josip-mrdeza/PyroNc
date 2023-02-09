@@ -15,6 +15,10 @@ namespace Pyro.Nc.Parsing.GCommands
         public override async Task Execute(bool draw)
         {
             Tool.ThrowNoToolException();
+            if(Tool.Values.FeedRate == 0)
+            {
+                throw new FeedRateNotDefinedException();
+            }
             if (Tool.Values.SpindleSpeed == 0)
             {
                 throw new SpindleSpeedNotDefinedException();
