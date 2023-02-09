@@ -23,27 +23,11 @@ namespace Pyro.Nc.Parsing.GCommands
         /// <inheritdoc />
         public override async Task Execute(bool draw)
         {
-            if (Tool.Values.FeedRate == 0)
-            {
-                throw new FeedRateNotDefinedException();
-            }
-            if (Tool.ToolConfig.Index == 0)
-            {
-                throw new ToolNotDefinedException();
-            }
             await Tool.Traverse(ResolvePosition(), Parameters.LineSmoothness, draw);
         }
 
         public override void Execute2D()
         {
-            if (Tool.Values.FeedRate == 0)
-            {
-                throw new FeedRateNotDefinedException();
-            }
-            if (Tool.ToolConfig.Index == 0)
-            {
-                throw new ToolNotDefinedException();
-            }
             Tool.Traverse2D(ResolvePosition(), Parameters.LineSmoothness);
         }
 
