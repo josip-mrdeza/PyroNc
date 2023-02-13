@@ -11,6 +11,7 @@ using Pyro.Math;
 using Pyro.Nc.Configuration;
 using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Configuration.Startup;
+using Pyro.Nc.Exceptions;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands;
@@ -26,8 +27,10 @@ namespace Pyro.Nc.Simulation
     public class MillTool3D : InitializerRoot, ITool
     {
         private Transform _transform;
-        public Dictionary<int, int[][]> VertexToTriangleMapping;
+        public Dictionary<int, int[][]> VertexToTriangleMapping { get; private set; }
+        public Dictionary<ValueTuple<Vector3, Vector3>, List<Algorithms.VertexMap>> VertexHashmap { get; private set; }
         public LineRenderer Lr;
+        public float increment;
         public override void Initialize()
         {
             throw new NotImplementedException("The async version of this method is implemented and used.");
@@ -55,8 +58,23 @@ namespace Pyro.Nc.Simulation
             VertexToTriangleMapping = new Dictionary<int, int[][]>(Vertices.Count);
             Workpiece.Current.MarkDynamic();
             Workpiece.Current.Optimize();
-            Colors = Enumerable.Repeat(color, Vertices.Count).ToList();
-            ToolConfig = await this.ChangeTool(0);
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            VertexHashmap = Workpiece.Current.GenerateVertexHashmap(increment);                                      
+            var num = VertexHashmap.Sum(x => x.Value.Count);
+            stopwatch.Stop();
+            Globals.Console.Push($"Vertex hashmap calculated in {stopwatch.Elapsed.TotalMilliseconds.Round(1)}ms [{num}v's]");
+            foreach (var vhv in VertexHashmap)
+            {
+                var val1 = vhv.Key.Item1;
+                var val2 = vhv.Key.Item2;
+                    
+                Debug.DrawLine(val1, new Vector3(val2.x, val1.y, val2.z), Color.red, 10000);
+                for (var i = 1; i < vhv.Value.Count; i++)
+                {
+                    Debug.DrawLine(vhv.Value[i-1].Vertex, vhv.Value[i].Vertex, Color.green, 10000);
+                }
+            }
+            ToolConfig = await this.ChangeTool(0);                          
             MovementType = Globals.MethodManager.Get("Traverse").Index;
             Self = GetComponent<Rigidbody>();
             Self.maxAngularVelocity = Values.SpindleSpeed.UpperLimit;
@@ -162,7 +180,7 @@ namespace Pyro.Nc.Simulation
         {
             return () =>
             {
-                Push("ProgramEnd->RESET SETTINGS");
+                //Push("ProgramEnd->RESET SETTINGS");
                 Values.FeedRate.Set(0f);
                 Values.SpindleSpeed.Set(0f);
                 Position = new Vector3(-50, 100, -50);
@@ -176,7 +194,7 @@ namespace Pyro.Nc.Simulation
         {
             return async () =>
             {
-                Push("ProgramEnd->CHANGE TOOL TO DEFAULT(0)");
+                //Push("ProgramEnd->CHANGE TOOL TO DEFAULT(0)");
                 this.Values.Current?.Expire();
                 await this.ChangeTool(0);
             };
@@ -186,7 +204,7 @@ namespace Pyro.Nc.Simulation
         {
             return async () =>
             {
-                Push("ProgramEnd->SET TO ABSOLUTE MODE");
+                //Push("ProgramEnd->SET TO ABSOLUTE MODE");
                 await copy5.Execute(false);
             };
         }
@@ -195,7 +213,7 @@ namespace Pyro.Nc.Simulation
         {
             return async () =>
             {
-                Push("ProgramEnd->RESET TEMPORARY REFERENCE POINT");
+                //Push("ProgramEnd->RESET TEMPORARY REFERENCE POINT");
                 await copy4.Execute(false);
             };
         }
@@ -204,7 +222,7 @@ namespace Pyro.Nc.Simulation
         {
             return async () =>
             {
-                Push("ProgramEnd->DISABLE (R) COMPENSATION");
+                //Push("ProgramEnd->DISABLE (R) COMPENSATION");
                 await copy3.Execute(false);
             };
         }
@@ -213,7 +231,7 @@ namespace Pyro.Nc.Simulation
         {
             return async () =>
             {
-                Push("ProgramEnd->STOP SPINDLE");
+                //Push("ProgramEnd->STOP SPINDLE");
                 await copy2.Execute(false);
             };
         }
@@ -222,7 +240,7 @@ namespace Pyro.Nc.Simulation
         {
             return async () =>
             {
-                Push("ProgramEnd->RESET TRANS");
+                //Push("ProgramEnd->RESET TRANS");
                 await copy.Execute(false);
             };
         }

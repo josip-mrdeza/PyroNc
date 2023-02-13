@@ -60,6 +60,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroCharting", "PyroChartin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroNotifier", "PyroNotifier\PyroNotifier.csproj", "{A00AAACA-B741-4027-B6D9-0AB5B8820266}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroLogger", "PyroLogger\PyroLogger.csproj", "{338C5DB3-716C-416C-8349-A0EBA85A2964}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyro.IO.Interop", "Pyro.IO.Interop\Pyro.IO.Interop.csproj", "{B9440682-EC1D-400B-9666-9C50B8DE7097}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -186,5 +190,13 @@ Global
 		{A00AAACA-B741-4027-B6D9-0AB5B8820266}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A00AAACA-B741-4027-B6D9-0AB5B8820266}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A00AAACA-B741-4027-B6D9-0AB5B8820266}.Release|Any CPU.Build.0 = Release|Any CPU
+		{338C5DB3-716C-416C-8349-A0EBA85A2964}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{338C5DB3-716C-416C-8349-A0EBA85A2964}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{338C5DB3-716C-416C-8349-A0EBA85A2964}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{338C5DB3-716C-416C-8349-A0EBA85A2964}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9440682-EC1D-400B-9666-9C50B8DE7097}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9440682-EC1D-400B-9666-9C50B8DE7097}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9440682-EC1D-400B-9666-9C50B8DE7097}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9440682-EC1D-400B-9666-9C50B8DE7097}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

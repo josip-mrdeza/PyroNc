@@ -22,6 +22,11 @@ namespace Pyro.Math
         {
             return new Vector3D(tuple.x, tuple.y, tuple.z);
         }
+        
+        public static Vector3D operator+(Vector3D v1, Vector3D v2)
+        {
+            return new Vector3D(v1.x + v2.x, v1.y + v2.y, v1.z + v2.z);
+        }
 
         public override string ToString() => $"({x}, {y}, {z})";
     }

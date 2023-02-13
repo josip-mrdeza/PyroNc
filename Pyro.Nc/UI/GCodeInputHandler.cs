@@ -36,6 +36,7 @@ namespace Pyro.Nc.UI
         public TextMeshProUGUI SuggestionDisplay;
         public Button Button;
         public Button Simulation2DButton;
+        public GCodePainter Painter;
         public int Line;
         private const string Address = "https://pyronetserver.azurewebsites.net/files";
         private PointerEventData _data;
@@ -270,20 +271,21 @@ namespace Pyro.Nc.UI
             
             ApplySuggestions();
             UpdateDisplaySize(len);
+            
             var infos = Text.textComponent.textInfo.wordInfo;
             for (int i = 0; i < infos.Length; i++)
             {
                 try
                 {
                     var word = infos[i];
-                    var str = word.GetWord();
-                    var isParameter = Regex.IsMatch(str, @"[xXyYzZiIjJ]{1}(\d+)|(\.\d+)");
+                    var str = word.GetWord().Replace("\n", " ");
+                    var isParameter = Regex.IsMatch(str, @"[xXyYzZiIjJ]{1}(((\-\d+)|(\d+))[,.]?\d*)");
                     if (isParameter)
                     {
                         SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(177, 3, 252, 200));
                         continue; 
                     }
-                    var isGCommand = Regex.IsMatch(str, @"(G|g){1}\d+");
+                    var isGCommand = Regex.IsMatch( str, @"(G|g){1}\d+");
                     if (isGCommand)
                     {
                         SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(52, 235, 152, 200));
@@ -371,7 +373,6 @@ namespace Pyro.Nc.UI
 
         public void SetCharacterColors(int startIndex, int endIndex, Color32 color)
         {
-            return;
             var txt = Text.textComponent.textInfo;
             var characters = txt.characterInfo;
             for (int i = startIndex; i < endIndex; i++)

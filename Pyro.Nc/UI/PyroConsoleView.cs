@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -24,12 +25,25 @@ namespace Pyro.Nc.UI
         public TextMeshProUGUI TextMesh;
         public StreamWriter Stream;
         public int Count;
+        public bool UseFileStream;
         private object _lock = new object();
         public override void Initialize()
         {
             UpdateGlobals();
-            var fileInfo = CreateFileStream();
-            PushEventCreation(fileInfo);
+            if (UseFileStream)
+            {
+                var fileInfo = CreateFileStream();
+                PushEventCreation(fileInfo);
+            }
+            else
+            {
+                var roaming = LocalRoaming.OpenOrCreate("PyroNc\\Logger");
+                var file = roaming.Files.FirstOrDefault(x => x.Value.Name == "PyroLogger.exe");
+                var psi = new ProcessStartInfo(file.Value.FullName);
+                Process.Start(psi);
+                Stream = new StreamWriter(roaming.AddFileNoLock("IF.intermediate", FileAccess.Write));
+                Push("Begun STD Stream on console.");
+            }
             PushCreation();
             base.Initialize();
         }
@@ -213,7 +227,7 @@ namespace Pyro.Nc.UI
                 builder.Append('\n');
             }
 
-            builder.AppendLine("<-------------");
+            //builder.AppendLine("<-------------");
             var str = builder.ToString();
             Globals.Console.PushText(str);
             Globals.InvokeOnLog(str);
@@ -221,6 +235,7 @@ namespace Pyro.Nc.UI
 
         public void DisposeStream()
         {
+            Stream.Close();
             Stream.Dispose();
             if (!Globals.IsNetworkPresent)
             {

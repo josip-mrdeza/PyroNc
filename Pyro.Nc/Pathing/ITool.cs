@@ -43,6 +43,8 @@ namespace Pyro.Nc.Pathing
         public MeshCollider Collider { get; set; }
         public LineRenderer LineRenderer { get; set; }
         public ToolConfiguration ToolConfig { get;set; }
+        public Dictionary<int, int[][]> VertexToTriangleMapping { get; }
+        public Dictionary<ValueTuple<Vector3, Vector3>, List<Algorithms.VertexMap>> VertexHashmap { get; }
         public float MinX { get; set; }
         public float MinY { get; set; }
         public float MinZ { get; set; }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -218,6 +219,22 @@ namespace Pyro.IO
             Files.Add(variableId, fn);
             File.Create(fn.FullName).Dispose();
             return fn;
+        }
+
+        public FileStream AddFileNoLock(string variableId, FileAccess access)
+        {
+            FileInfo info;
+            FileStream stream;
+            if (Files.ContainsKey(variableId))
+            {
+                info = Files[variableId];
+                stream = new FileStream(info.FullName, FileMode.OpenOrCreate, access, FileShare.ReadWrite);
+                return stream;
+            }
+            info = new FileInfo(Site + variableId);
+            stream = new FileStream(info.FullName, FileMode.OpenOrCreate, access, FileShare.ReadWrite);
+            Files.Add(variableId, info);
+            return stream;
         }
         
         public FileInfo AddFile(string variableId, byte[] data)

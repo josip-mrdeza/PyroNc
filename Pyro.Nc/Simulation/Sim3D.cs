@@ -214,7 +214,16 @@ namespace Pyro.Nc.Simulation
             var trVT = tool.Temp.transform;
             var trV = trVT.position;
             var radius = tool.Values.Radius;
-            var verts = vertices.Count;
+            var virtualMap = tool.VertexHashmap;
+            var vects = new List<Algorithms.VertexMap>();
+            foreach (var key in virtualMap.Keys)
+            {
+                if (key.IsInBox(pos))
+                {
+                    vects.AddRange(virtualMap[key]);
+                }
+            }
+            var verts = vects.Count;
             for (int i = 0; i < verts; i++)
             {
                 if (VertexTracker[i] >= 1)
@@ -222,17 +231,23 @@ namespace Pyro.Nc.Simulation
                     //Globals.Console.Push($": {i} skipped");
                     continue;
                 }
-                var vert = vertices[i];
+
+                var map = vects[i];
+                Globals.Console.Push($"Working at map: ({i}), {map.Index} in vertex array\n-- {map.Vertex.ToString()}");
+                var vert = vertices[map.Index];
                 var realVert = tr.TransformPoint(vert);
+                if (!tool.IsOkayToCutVertex(realVert).IsZeroed())
+                {
+                    stopwatch.Stop();
+                    verticesCut++;
+
+                    return new CutResult(stopwatch.ElapsedMilliseconds, verticesCut, true);
+                }
                 var distVertical = Space3D.Distance(trV.y, realVert.y);
                 var distHorizontal = Vector2.Distance(new Vector2(realVert.x, realVert.z), new Vector2(pos.x, pos.z));
                 if (distHorizontal <= tool.ToolConfig.Radius &&
                     distVertical <= tool.ToolConfig.VerticalMargin)
                 {
-                    if (dict[i])
-                    {
-                        //continue;
-                    }
                     dict[i] = true;
                     if (throwIfCut)
                     {
@@ -242,7 +257,6 @@ namespace Pyro.Nc.Simulation
                         return new CutResult(stopwatch.ElapsedMilliseconds, verticesCut, true);
                     }
 
-                    //infos.Add(new CutInfo(i, vert.y));
                     var realVector2D = new Vector2D(realVert.x, realVert.z);
                     Line2D line = new Line2D(realVector2D, new Vector2D(pos.x, pos.z));
                     //line = line.ToEdgeAngleCast();
@@ -309,6 +323,7 @@ namespace Pyro.Nc.Simulation
             mesh.vertices = vertices.GetInternalArray();
             mesh.colors = tool.Colors.GetInternalArray();
             mesh.triangles = tool.Triangles.GetInternalArray();
+            mesh.GenerateVertexHashmap((tool as MillTool3D).increment);
             stopwatch.Stop();
             return new CutResult(stopwatch.Elapsed.TotalMilliseconds, verticesCut);
         }
