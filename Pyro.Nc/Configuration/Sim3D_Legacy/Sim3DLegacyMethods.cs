@@ -6,6 +6,7 @@ using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
 using Pyro.Math;
+using Pyro.Nc.Simulation.Tools;
 using UnityEngine;
 using Physics = Pyro.Math.Physics;
 
@@ -14,17 +15,17 @@ namespace Pyro.Nc.Configuration.Sim3D_Legacy
     public static class Sim3DLegacyMethods
     {
         public static bool IsInPosition { get; set; }
-        public static async Task TraverseForceBased(this ITool tool, Vector3[] points, bool draw, bool logStats)
+        public static async Task TraverseForceBased(this ToolBase toolBase, Vector3[] points, bool draw, bool logStats)
         {
-            var toolValues = tool.Values;
+            /*var toolValues = toolBase.Values;
             double averageTimeForCut = 0;
             long totalCut = 0;
-            tool.SetupTranslation(points);
-            var currentPosition = tool.Position;
-            var rigidBody = (tool as MonoBehaviour).GetComponent<Rigidbody>();
+            toolBase.SetupTranslation(points);
+            var currentPosition = toolBase.Position;
+            var rigidBody = (toolBase as MonoBehaviour).GetComponent<Rigidbody>();
             var last = points.Last();
             var force = Physics.ForceRequiredToPush(currentPosition.ToVector3D(), last.ToVector3D(), rigidBody.mass,
-                                                    tool.Values.FeedRate);
+                                                    toolBase.Values.FeedRate);
             var magn = (currentPosition - last).RemoveNan().magnitude;
             var totalForce = (last - currentPosition).normalized.RemoveNan() * force;
             rigidBody.AddForce(totalForce, ForceMode.Force);
@@ -37,7 +38,7 @@ namespace Pyro.Nc.Configuration.Sim3D_Legacy
                     break;
                 }
                 await Task.Delay(TimeSpan.FromSeconds(Time.fixedDeltaTime));
-                var altPos = tool.Position;
+                var altPos = toolBase.Position;
                 //Debug.DrawLine(currentPosition, altPos, Color.red, 4);
                 currentPosition = altPos;
                 magn = (currentPosition - last).RemoveNan().magnitude;
@@ -46,13 +47,16 @@ namespace Pyro.Nc.Configuration.Sim3D_Legacy
             }
             if (toolValues.ExactStopCheck)
             {
-                await tool.InvokeOnConsumeStopCheck();
+                //await toolBase.InvokeOnConsumeStopCheck();
             }
             if (logStats)
             {
-                PyroConsoleView.PushTextStatic("Traverse finished!", $"Total vertices cut: {totalCut} ({((double) totalCut/tool.Vertices.Count).Round().ToString(CultureInfo.InvariantCulture)}%)",
-                                               $"Average time spent cutting: {averageTimeForCut.Round().ToString(CultureInfo.InvariantCulture)}ms");  
+                PyroConsoleView.PushTextStatic("Traverse finished!", $"Total vertices cut: {totalCut} ({((double) totalCut/toolBase.Vertices.Count).Round().ToString(CultureInfo.InvariantCulture)}%)",
+                                               $"Average time spent cutting: {averageTimeForCut.Round().ToString(CultureInfo.InvariantCulture)}ms");
+                  
             }
+            */
         }
+    
     }
 }

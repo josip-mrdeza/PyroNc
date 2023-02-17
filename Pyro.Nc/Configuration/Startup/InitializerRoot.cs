@@ -11,7 +11,7 @@ namespace Pyro.Nc.Configuration.Startup
 {
     public abstract class InitializerRoot : MonoBehaviour
     {
-        public bool IsInitialized;
+        protected bool IsInitialized;
         public virtual void Initialize()
         {
             
@@ -19,12 +19,12 @@ namespace Pyro.Nc.Configuration.Startup
 
         public virtual Task InitializeAsync()
         {
-            Initialize();
             return Task.CompletedTask;
         }
 
         public async Task InitializeComplete()
         {
+            Initialize();
             await InitializeAsync();
             var childrenCount = transform.childCount;
             if (childrenCount != 0)

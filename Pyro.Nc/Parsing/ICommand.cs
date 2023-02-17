@@ -16,7 +16,6 @@ namespace Pyro.Nc.Parsing
         public Guid Id { get; }
         public ICommandParameters Parameters { get; set; }
         public bool Is2DSimulation { get; set; }
-        public void UpdateCurrent();
         public Task Execute(bool draw);
         public Task ExecuteTurning(bool draw);
         public Task ExecuteFinal(bool draw, bool skipSetup = false);

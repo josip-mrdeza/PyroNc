@@ -1,12 +1,13 @@
 using System;
 using System.Threading.Tasks;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
     public class Notation : Comment
     {
-        public Notation(ITool tool, ArbitraryCommandParameters parameters) : base(tool, parameters)
+        public Notation(ToolBase toolBase, ArbitraryCommandParameters parameters) : base(toolBase, parameters)
         {
             
         }

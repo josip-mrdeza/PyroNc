@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Machines;
 using Pyro.Nc.UI;
 using Pyro.Nc.UI.UI_Screen;
 using Pyro.Net;
@@ -18,7 +19,8 @@ namespace Pyro.Nc.Exceptions
             {
                 return;
             }
-            Globals.Tool.EventSystem.FireAsync("ProgramEnd").GetAwaiter().GetResult();
+
+            MachineBase.CurrentMachine.EventSystem.PEvents.Fire(Locals.EventConstants.ProgramEnd);
             PopupHandler.PopText(message);
             Task.Run(async () =>
             {
@@ -34,7 +36,7 @@ namespace Pyro.Nc.Exceptions
             {
                 return;
             }
-            Globals.Tool.EventSystem.FireAsync("ProgramEnd").GetAwaiter().GetResult();
+            MachineBase.CurrentMachine.EventSystem.PEvents.Fire(Locals.EventConstants.ProgramEnd);
             PopupHandler.PopText(message);
         }
 

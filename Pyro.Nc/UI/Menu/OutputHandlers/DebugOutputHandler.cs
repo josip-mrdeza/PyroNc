@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Tools;
 using TMPro;
 
 namespace Pyro.Nc.UI.Menu.OutputHandlers
@@ -9,7 +10,7 @@ namespace Pyro.Nc.UI.Menu.OutputHandlers
     public class DebugOutputHandler : OutputHandler
     {
         public TMP_InputField InputField;
-        public Type ToolType = typeof(ITool);
+        public Type ToolType = typeof(ToolBase);
         private void Update()
         {
             var id = InputField.text;

@@ -42,6 +42,11 @@ namespace Pyro.Nc
             }
         }
 
+        public void SetUpperValue(float upper)
+        {
+            _upperLimit = upper;
+        }
+
         public float Get()
         {
             return Value;

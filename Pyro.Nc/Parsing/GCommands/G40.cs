@@ -1,11 +1,12 @@
 using System.Threading.Tasks;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Parsing.GCommands
 {
     public class G40 : BaseCommand
     {
-        public G40(ITool tool, ICommandParameters parameters) : base(tool, parameters)
+        public G40(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
         {
         }
 

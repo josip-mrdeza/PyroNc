@@ -1,11 +1,13 @@
 using System.Threading.Tasks;
+using Pyro.Nc.Configuration;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Parsing.GCommands
 {
     public sealed class G91 : BaseCommand
     {
-        public G91(ITool tool, ICommandParameters parameters) : base(tool, parameters)
+        public G91(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
         {
         }
 
@@ -13,8 +15,7 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override Task Execute(bool draw)
         {
-            Tool.Values.IsIncremental = true;
-            
+            Machine.SimControl.Movement = MovementType.Incremental;
             return Task.CompletedTask;
         }
     }

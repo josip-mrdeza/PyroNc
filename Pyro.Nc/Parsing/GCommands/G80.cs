@@ -4,12 +4,13 @@ using Pyro.IO;
 using Pyro.Math.Geometry;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Parsing.GCommands
 {
     public sealed class G80 : BaseCommand
     {
-        public G80(ITool tool, GCommandParameters parameters) : base(tool, parameters)
+        public G80(ToolBase toolBase, GCommandParameters parameters) : base(toolBase, parameters)
         {
         }
 
@@ -17,12 +18,12 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override async Task Execute(bool draw)
         {
-            if (Tool.Values.Current.GetType().Name is nameof(G81))
+            if (Machine.Runner.CurrentContext.GetType().Name is nameof(G81))
             {
-                Tool.Values.TokenSource.Cancel();
-                Tool.Values.TokenSource.Dispose();
-                Tool.Values.TokenSource = new CancellationTokenSource();
-                await Tool.Traverse(Tool.Position.Mutate(p =>
+                ToolBase.Values.TokenSource.Cancel();
+                ToolBase.Values.TokenSource.Dispose();
+                ToolBase.Values.TokenSource = new CancellationTokenSource();
+                await ToolBase.Traverse(ToolBase.Position.Mutate(p =>
                 {
                     p.y = 0;
 

@@ -1,12 +1,13 @@
 using System.Threading.Tasks;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
     public class Lims : BaseCommand
     {
-        public Lims(ITool tool, ICommandParameters parameters) : base(tool, parameters)
+        public Lims(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
         {
             
         }
@@ -14,9 +15,9 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
 
         public override Task Execute(bool draw)
         {
-            var toolValues = Tool.Values;
-            toolValues.SpindleSpeed.UpperLimit = Parameters.GetValue("value");
-            Tool.Self.maxAngularVelocity = toolValues.SpindleSpeed.UpperLimit;
+            var spindle = Machine.SpindleControl;
+            spindle.SpindleSpeed.SetUpperValue(Parameters.GetValue("value"));
+            //ToolBase.Self.maxAngularVelocity = toolValues.SpindleSpeed.UpperLimit;
 
             return Task.CompletedTask;
         }

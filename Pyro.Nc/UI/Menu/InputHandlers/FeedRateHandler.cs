@@ -10,7 +10,7 @@ namespace Pyro.Nc.UI.Menu.InputHandlers
         {
             if (CheckForInvalidTool()) return;
             if (string.IsNullOrEmpty(s)) return;
-            Limiter limiter = ToolValuesIdTypeInfo.GetValue(Tool.Values) as Limiter;
+            Limiter limiter = ToolValuesIdTypeInfo.GetValue(ToolBase.Values) as Limiter;
             limiter!.Set(float.Parse(s));
         }
     }

@@ -17,6 +17,7 @@ using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation.Workpiece;
 using Pyro.Nc.UI;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -24,16 +25,17 @@ using Debug = UnityEngine.Debug;
 
 namespace Pyro.Nc.Simulation
 {
-    public class MillTool3D : InitializerRoot, ITool
+    [Obsolete]
+    public class MillTool3D : InitializerRoot
     {
         private Transform _transform;
         public Dictionary<int, int[][]> VertexToTriangleMapping { get; private set; }
         public Dictionary<ValueTuple<Vector3, Vector3>, List<Algorithms.VertexMap>> VertexHashmap { get; private set; }
         public LineRenderer Lr;
         public float increment;
+
         public override void Initialize()
         {
-            throw new NotImplementedException("The async version of this method is implemented and used.");
         }
 
         public override async Task InitializeAsync()
@@ -47,19 +49,19 @@ namespace Pyro.Nc.Simulation
             var customAssemblyManager = new CustomAssemblyManager();
             await customAssemblyManager.InitAsync();
             Startup.Managers.Add(customAssemblyManager);
-            Values = this.GetDefaultsOrCreate();
-            Globals.Tool = this;
+            //Values = this.GetDefaultsOrCreate();
+            //Globals.Tool = this;
             Collider = Workpiece.GetComponent<MeshCollider>();
-            await Workpiece.InitializeAsync();
+            //await Workpiece.InitializeAsync();
             //Collider.sharedMesh = Workpiece.Current;
             var color = new Color(1, 1, 1, 255f);
-            Vertices = new List<Vector3>(Workpiece.Current.vertices);
-            Triangles = new List<int>(Workpiece.Current.triangles);
+            //Vertices = new List<Vector3>(Workpiece.Current.vertices);
+            //Triangles = new List<int>(Workpiece.Current.triangles);
             VertexToTriangleMapping = new Dictionary<int, int[][]>(Vertices.Count);
-            Workpiece.Current.MarkDynamic();
-            Workpiece.Current.Optimize();
+            //Workpiece.Current.MarkDynamic();
+            //Workpiece.Current.Optimize();
             Stopwatch stopwatch = Stopwatch.StartNew();
-            VertexHashmap = Workpiece.Current.GenerateVertexHashmap(increment);                                      
+            //VertexHashmap = Workpiece.Current.GenerateVertexHashmap(increment);                                      
             var num = VertexHashmap.Sum(x => x.Value.Count);
             stopwatch.Stop();
             Globals.Console.Push($"Vertex hashmap calculated in {stopwatch.Elapsed.TotalMilliseconds.Round(1)}ms [{num}v's]");
@@ -74,10 +76,10 @@ namespace Pyro.Nc.Simulation
                     Debug.DrawLine(vhv.Value[i-1].Vertex, vhv.Value[i].Vertex, Color.green, 10000);
                 }
             }
-            ToolConfig = await this.ChangeTool(0);                          
+            //ToolConfig = await this.ChangeTool(0);                          
             MovementType = Globals.MethodManager.Get("Traverse").Index;
             Self = GetComponent<Rigidbody>();
-            Self.maxAngularVelocity = Values.SpindleSpeed.UpperLimit;
+            //Self.maxAngularVelocity = Values.SpindleSpeed.UpperLimit;
             OnConsumeStopCheck += () =>
             {
                 Position = Values.CurrentPath.Points.Last();
@@ -171,8 +173,8 @@ namespace Pyro.Nc.Simulation
         {
             return async () =>
             {
-                await this.Pause();
-                PushComment("A rapid feed error has occured whilst using the command '{0}'".Format(Values.Current), Color.red);
+                //await this.Pause();
+                //PushComment("A rapid feed error has occured whilst using the command '{0}'".Format(Values.Current), Color.red);
             };
         }
 
@@ -181,8 +183,8 @@ namespace Pyro.Nc.Simulation
             return () =>
             {
                 //Push("ProgramEnd->RESET SETTINGS");
-                Values.FeedRate.Set(0f);
-                Values.SpindleSpeed.Set(0f);
+                //Values.FeedRate.Set(0f);
+                //Values.SpindleSpeed.Set(0f);
                 Position = new Vector3(-50, 100, -50);
                 MCALL.ClearSubroutine();
                 DEF.ClearVariableMap();
@@ -195,8 +197,8 @@ namespace Pyro.Nc.Simulation
             return async () =>
             {
                 //Push("ProgramEnd->CHANGE TOOL TO DEFAULT(0)");
-                this.Values.Current?.Expire();
-                await this.ChangeTool(0);
+                //this.Values.Current?.Expire();
+                //await this.ChangeTool(0);
             };
         }
 
@@ -248,7 +250,7 @@ namespace Pyro.Nc.Simulation
         private void FixedUpdate()
         {
             return;
-            if (MovementType == -1 && Values.Current is
+            /*if (MovementType == -1 && Values.Current is
             {
                 Family: Group.GCommand
             })
@@ -271,7 +273,7 @@ namespace Pyro.Nc.Simulation
                     _contained = false;
                     //Debug.Log($"Afterwards: {Self.velocity}");
                 }   
-            }
+            }  */
         }
 
         private bool _contained;
@@ -291,7 +293,7 @@ namespace Pyro.Nc.Simulation
 
         public ToolValues Values { get; set; }
         public PyroEventSystem EventSystem { get; set; }
-        public WorkpieceController Workpiece { get; set; }
+        public WorkpieceControl Workpiece { get; set; }
         public List<Vector3> Vertices { get; set; }
         public List<int> Triangles { get; set; }
         public List<Color> Colors { get; set; }

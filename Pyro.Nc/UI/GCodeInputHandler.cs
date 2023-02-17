@@ -77,7 +77,6 @@ namespace Pyro.Nc.UI
             //Text.onValueChanged.AddListener(_ => ApplySuggestions());
             Button.onClick.AddListener(async () => await Call(Text.text, true));
             Simulation2DButton.onClick.AddListener(async () => await Call(Text.text, true, true));
-            _data = new PointerEventData(EventSystem.current);
             Globals.GCodeInputHandler = this;
             base.Initialize();
             await NetHelpers.Post($"{Address}/register?userName=joki&password=xx3");
@@ -102,10 +101,9 @@ namespace Pyro.Nc.UI
 
         public async Task Call(string text, bool reset, bool is2d = false)
         {
-            //var currentCommand = Globals.Tool.Values.Current;
+            /*//var currentCommand = Globals.Tool.Values.Current;
             if (Globals.Tool.Values.IsPaused)
             {
-                await Globals.Tool.Resume();
                 PushComment("Resumed program", Color.gray);
                 return;
             }
@@ -126,7 +124,7 @@ namespace Pyro.Nc.UI
             var cmnds = variables.Select(x => x.CollectCommands());//.SelectMany(y => y);
             var arr = cmnds.ToList();
             var lines = arr;
-            Globals.Tool.Values.IsReset = false;
+            //Globals.Tool.Values.IsReset = false;
             for (int i = 0; i < arr.Count; i++)
             {
                 Line = i;
@@ -169,7 +167,7 @@ namespace Pyro.Nc.UI
                         return;
                     }
                 }
-            }
+            }*/
         }
 
         public void ApplySuggestions()

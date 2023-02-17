@@ -1,11 +1,13 @@
 using System.Threading.Tasks;
+using Pyro.Nc.Configuration;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Parsing.GCommands
 {
     public sealed class G71 : BaseCommand  
     {
-        public G71(ITool tool, ICommandParameters parameters) : base(tool, parameters)
+        public G71(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
         {
         }
 
@@ -13,7 +15,7 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override Task Execute(bool draw)
         {
-            Tool.Values.IsImperial = false;
+            Machine.SimControl.Unit = UnitType.Metric;
             return Task.CompletedTask;
         }
     }

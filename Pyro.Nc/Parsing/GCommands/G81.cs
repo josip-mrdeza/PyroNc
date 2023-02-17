@@ -4,6 +4,7 @@ using Pyro.Math.Geometry;
 using Pyro.Nc.Exceptions;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Tools;
 using UnityEngine;
 
 namespace Pyro.Nc.Parsing.GCommands
@@ -13,9 +14,9 @@ namespace Pyro.Nc.Parsing.GCommands
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="tool"></param>
+        /// <param name="toolBase"></param>
         /// <param name="parameters"></param>
-        public G81(ITool tool, GCommandParameters parameters) : base(tool, parameters)
+        public G81(ToolBase toolBase, GCommandParameters parameters) : base(toolBase, parameters)
         {
         }
 
@@ -28,9 +29,9 @@ namespace Pyro.Nc.Parsing.GCommands
                 throw new DrillParameterMismatchException(this);
             }
 
-            var pos = Tool.Position;
+            var pos = ToolBase.Position;
             pos.y = ((GCommandParameters)Parameters).Y;
-            await Tool.Traverse(pos, LineTranslationSmoothness.Rough, draw);
+            await ToolBase.Traverse(pos, LineTranslationSmoothness.Rough, draw);
         }
     }     
 }

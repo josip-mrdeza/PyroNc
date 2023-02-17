@@ -4,13 +4,14 @@ using Pyro.IO;
 using Pyro.Math;
 using Pyro.Math.Geometry;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation.Tools;
 using UnityEngine;
 
 namespace Pyro.Nc.Parsing.GCommands
 {
     public sealed class G03 : G02
     {
-        public G03(ITool tool, GCommandParameters parameters) : base(tool, parameters)
+        public G03(ToolBase toolBase, GCommandParameters parameters) : base(toolBase, parameters)
         {
         }
         

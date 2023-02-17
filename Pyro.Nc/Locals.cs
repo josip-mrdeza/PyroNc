@@ -56,5 +56,22 @@ namespace Pyro.Nc
         public const string M05 = "Spindle Stop";
         public const string M06 = "Tool Change";
         public const string M30 = "Program End";
+
+        public static class EventConstants
+        {
+            public const string ProgramEnd = "PrE";
+            public const string ProgramPause = "PrP";
+            public const string SimulationReset = "SR";
+            public const string ToolChange = "TC";
+            public const string SpindleSpeedChange = "SSC";
+            public const string FeedRateChange = "FRC";
+            public const string TransPositionChange = "TPC";
+            public const string PositionChange = "PC";
+        }
+
+        public static class IntConstants
+        {
+            public const int ControlWaitDelay = 50;
+        }
     }
 }

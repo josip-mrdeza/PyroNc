@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Parsing.MCommands
 {
@@ -13,13 +14,13 @@ namespace Pyro.Nc.Parsing.MCommands
     ///The current motion mode is set to feed(like G1).Coolant is turned off (like M9).
     public class M02 : BaseCommand
     {
-        public M02(ITool tool, ICommandParameters parameters) : base(tool, parameters)
+        public M02(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
         {
         }
 
         public override async Task Execute(bool draw)
         {
-            await Tool.EventSystem.FireAsync("ProgramEnd");
+            await Machine.EventSystem.PEvents.FireAsync("ProgramEnd");
         }
     }
 }

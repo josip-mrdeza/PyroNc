@@ -4,13 +4,14 @@ using Pyro.IO;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Tools;
 using Pyro.Nc.UI;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands;
 
 public class SubProgramCall : BaseCommand                                        
 {
-    public SubProgramCall(ITool tool, ICommandParameters parameters) : base(tool, parameters)
+    public SubProgramCall(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
     {
     }
 

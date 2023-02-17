@@ -10,6 +10,7 @@ using Pyro.IO;
 using Pyro.IO.Events;
 using Pyro.Math;
 using Pyro.Math.Geometry;
+using Pyro.Nc.Configuration;
 using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Exceptions;
 using Pyro.Nc.Parsing.ArbitraryCommands;
@@ -17,6 +18,8 @@ using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Machines;
+using Pyro.Nc.Simulation.Tools;
 using Pyro.Nc.UI;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
@@ -27,18 +30,18 @@ namespace Pyro.Nc.Parsing
     /// The base class for all ICommands
     /// </summary>
     [Serializable]   
-    public class BaseCommand : ICommand
+    public class BaseCommand : MachineComponent, ICommand
     {
         /// <summary>
         /// The base constructor.
         /// </summary>
-        /// <param name="tool">The tool used.</param>
+        /// <param name="toolBase">The tool used.</param>
         /// <param name="parameters">The parameters of the current ICommand.</param>
         /// <param name="throwOnNull">If the runtime should throw an error if the tool/parameters are null.</param>
         /// <param name="family">A family of commands.</param>
-        public BaseCommand(ITool tool, ICommandParameters parameters, bool throwOnNull = false, Group family = Group.None)
+        public BaseCommand(ToolBase toolBase, ICommandParameters parameters, bool throwOnNull = false, Group family = Group.None)
         {
-            Tool = (MillTool3D) tool;
+            ToolBase = toolBase;
             Parameters = parameters;
             Family = family;
             Id = Guid.NewGuid();
@@ -55,7 +58,7 @@ namespace Pyro.Nc.Parsing
         /// <summary>
         /// The tool used.
         /// </summary>
-        public MillTool3D Tool { get; set; }
+        public ToolBase ToolBase { get; set; }
 
         public Group Family { get; set; }
 
@@ -79,14 +82,6 @@ namespace Pyro.Nc.Parsing
         /// </summary>
         public ICommandParameters Parameters { get; set; }
         public bool Is2DSimulation { get; set; }
-        /// <summary>
-        /// Updates the tool's current command.
-        /// </summary>
-        public void UpdateCurrent()
-        {
-            Tool.Values.Current = this;
-            Tool.Values.IsAllowed = false;
-        }
 
         /// <summary>
         /// A final execution of the command, logging every step of the way and executing <see cref="ICommand.Execute"/> defined on the class inheriting <see cref="BaseCommand"/>.
@@ -101,17 +96,6 @@ namespace Pyro.Nc.Parsing
         {
             var type = GetType().Name;
             var toDraw = draw.ToString();
-            if (skipSetup)
-            {
-                goto afterSetup;
-            }
-            await Tool.WaitUntilActionIsValid();
-            if (Tool.Values.IsReset)
-            {
-                return;
-            }
-            UpdateCurrent();
-            afterSetup:
             if (InteropManager.RichPresence is not null)
             {
                 var clientType = InteropManager.RichPresence.GetType();
@@ -122,8 +106,7 @@ namespace Pyro.Nc.Parsing
                 var method = clientType.GetMethod("UpdateDetails");
                 method.Invoke(client, new object[]{$"{type}: '{Description}'"});
             }
-            //TODO pipe data into a console to show logs in the form of console text.
-            if (Tool.Values.IsImperial)
+            if (MachineBase.CurrentMachine.SimControl.Unit == UnitType.Imperial)
             {
                 Parameters.SwitchToImperial();
                 PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw}) - {Id}",
@@ -147,7 +130,7 @@ namespace Pyro.Nc.Parsing
 
                 return;
             }
-            if (Tool.Values.IsMilling)
+            if (MachineBase.CurrentMachine.CncType == MachineType.Mill)
             {
                 List<string> msgs = new()
                 {
@@ -224,12 +207,12 @@ namespace Pyro.Nc.Parsing
                                            "Cancellation Requested!",
                                            "Cancelling operation...");
             Expire();
-            Tool.Values.TokenSource.Cancel();
+            ToolBase.Values.TokenSource.Cancel();
         }
 
         public void Renew()
         {
-            Tool.Values.TokenSource = new CancellationTokenSource();
+            ToolBase.Values.TokenSource = new CancellationTokenSource();
         }
 
         public void Mark2DSimulation()
@@ -270,18 +253,17 @@ namespace Pyro.Nc.Parsing
         }
 
         /// <summary>
-        /// A method that tells the <see cref="ITool"/> that the current command is expired and finished it's execution.
+        /// A method that tells the <see cref="ToolBase"/> that the current command is expired and finished it's execution.
         /// </summary>
         /// <exception cref="NotImplementedException">This exception is thrown when the <see cref="ICommand"/> inheriting from <see cref="BaseCommand"/> does not implement it's own
         /// <see cref="Expire"/> method.This is not allowed.</exception>
         public void Expire()
         {
-            Tool.Values.IsAllowed = true;
-            Tool.Values.Current = null;
+            MachineBase.CurrentMachine.StateControl.FreeControl();
             Mark3DSimulation();
         }
         /// <summary>
-        /// A method that tells the <see cref="ITool"/> which path it should define for the current <see cref="ICommand"/>.
+        /// A method that tells the <see cref="ToolBase"/> which path it should define for the current <see cref="ICommand"/>.
         /// </summary>
         /// <exception cref="NotImplementedException">This exception is thrown when the <see cref="ICommand"/> inheriting from <see cref="BaseCommand"/> does not implement it's own
         /// <see cref="Plan"/> method.This is not allowed.</exception>
@@ -305,7 +287,7 @@ namespace Pyro.Nc.Parsing
         /// </summary>
         public ICommand Copy()
         {
-            var asyncSubs = Tool.EventSystem.AsyncSubscribers;
+            var asyncSubs = MachineBase.CurrentMachine.EventSystem.PEvents.AsyncSubscribers;
             foreach (var subs in asyncSubs)
             {
                 subs.Value.Remove(this);
@@ -321,7 +303,7 @@ namespace Pyro.Nc.Parsing
 
             var instance = Activator.CreateInstance(this.GetType(), new object[]
             {
-                Tool,
+                ToolBase,
                 parameters
             }) as ICommand;
             instance.Family = Family;

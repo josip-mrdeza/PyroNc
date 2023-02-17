@@ -10,59 +10,60 @@ using Pyro.Nc.Parsing;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Simulation
 {
     public static class ToolHelper
     {
         private static ToolSetter Setter;
-        public static ToolValues GetDefaultsOrCreate(this ITool tool)
+        public static ToolValues GetDefaultsOrCreate(this ToolBase toolBase)
         {
             return Globals.DefaultsManager.Values.Mutate(x =>
             {
-                x.Storage = ValueStorage.CreateFromFile(tool);
+                x.Storage = ValueStorage.CreateFromFile(toolBase);
                 x.TokenSource = new CancellationTokenSource();
                 return x;
-            }) ?? new ToolValues(tool);
+            }) ?? new ToolValues(toolBase);
         }
 
-        public static async Task<ToolConfiguration> ChangeTool(this ITool tool, int index)
+        public static async Task<ToolConfiguration> ChangeTool(this ToolBase toolBase, int index)
         {
-            ThrowNoToolException(tool);
-            Setter = new ToolSetter(tool, new ArbitraryCommandParameters());
+            ThrowNoToolException(toolBase);
+            Setter = new ToolSetter(toolBase, new ArbitraryCommandParameters());
             Setter.Parameters.AddValue("value", index);
             await Setter.ExecuteFinal(true);
 
-            return tool.ToolConfig;
+            return toolBase.ToolConfig;
         }
 
-        public static bool IsPresent(this ITool tool)
+        public static bool IsPresent(this ToolBase toolBase)
         {
-            ThrowNoToolException(tool);
+            ThrowNoToolException(toolBase);
 
-            return tool.ToolConfig.Index != 0;
+            return toolBase.ToolConfig.Index != 0;
         }
 
-        public static async Task Pause(this ITool tool)
+        public static async Task Pause(this ToolBase toolBase)
         {
-            ThrowNoToolException(tool);
+            ThrowNoToolException(toolBase);
 
-            tool.Values.IsPaused = true;    
-            await tool.EventSystem.FireAsync("ProgramPause");
+            //toolBase.Values.IsPaused = true;    
+            //await toolBase.EventSystem.FireAsync("ProgramPause");
         }
 
-        public static Task Resume(this ITool tool)
+        public static Task Resume(this ToolBase toolBase)
         {
-            ThrowNoToolException(tool);
+            ThrowNoToolException(toolBase);
 
-            tool.Values.IsPaused = false;
+            //toolBase.Values.IsPaused = false;
 
             return Task.CompletedTask;
         }
         
-        public static void ThrowNoToolException(this ITool tool)
+        public static void ThrowNoToolException(this ToolBase toolBase)
         {
-            if (tool is null)
+            if (toolBase is null)
             {
                 throw new NotifyException("ChangeTool: Parameter 'tool' is null!");
             }

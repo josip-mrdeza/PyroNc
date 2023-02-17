@@ -2,13 +2,14 @@ using System;
 using System.Threading.Tasks;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Tools;
 using UnityEngine;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
     public class Comment : BaseCommand
     {
-        public Comment(ITool tool, ArbitraryCommandParameters parameters) : base(tool, parameters)
+        public Comment(ToolBase toolBase, ArbitraryCommandParameters parameters) : base(toolBase, parameters)
         {
             
         }

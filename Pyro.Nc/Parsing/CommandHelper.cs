@@ -358,7 +358,7 @@ namespace Pyro.Nc.Parsing
                     }
                     else //GOTTA BE AN SPF
                     {
-                        var spf = new SubProgramCall(mcall.Tool, mcall.Parameters);
+                        var spf = new SubProgramCall(mcall.ToolBase, mcall.Parameters);
                         spf.Name = cmd;
                         mcall.NextSubroutine = spf;
                     }

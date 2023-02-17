@@ -2,24 +2,26 @@ using System.Threading.Tasks;
 using Pyro.Nc.Exceptions;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Tools;
 using UnityEngine;
 
 namespace Pyro.Nc.Parsing.GCommands
 {
     public class G01 : G00
     {
-        public G01(ITool tool, GCommandParameters parameters) : base(tool, parameters)
+        public G01(ToolBase toolBase, GCommandParameters parameters) : base(toolBase, parameters)
         {
         }
 
         public override async Task Execute(bool draw)
         {
-            Tool.ThrowNoToolException();
-            if(Tool.Values.FeedRate == 0)
+            ToolBase.ThrowNoToolException();
+            var spindle = Machine.SpindleControl;
+            if(spindle.FeedRate == 0)
             {
                 throw new FeedRateNotDefinedException();
             }
-            if (Tool.Values.SpindleSpeed == 0)
+            if (spindle.FeedRate == 0)
             {
                 throw new SpindleSpeedNotDefinedException();
             }

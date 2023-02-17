@@ -1,25 +1,26 @@
 using System.Threading.Tasks;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Parsing.GCommands
 {
     public sealed class G09 : BaseCommand
     {
-        public G09(ITool tool, GCommandParameters parameters) : base(tool, parameters)
+        public G09(ToolBase toolBase, GCommandParameters parameters) : base(toolBase, parameters)
         {
-            if (tool is null)
+            if (toolBase is null)
             {
                 return;
             }
-            Tool.OnConsumeStopCheck += Run;
+            //ToolBase.OnConsumeStopCheck += Run;
         }
 
         public override string Description => Locals.G09;
 
         public override async Task Execute(bool draw)
         {
-            Tool.Values.ExactStopCheck = false;
-            Tool.OnConsumeStopCheck -= Run;
+            ToolBase.Values.ExactStopCheck = false;
+            //ToolBase.OnConsumeStopCheck -= Run;
         }
         
         private async Task Run()

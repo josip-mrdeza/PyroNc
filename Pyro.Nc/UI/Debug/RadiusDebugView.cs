@@ -1,17 +1,18 @@
 using Pyro.IO;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.UI.Debug;
 
 public class RadiusDebugView : LineViewer
 {
-    private ITool Tool;
+    private ToolBase _toolBase;
     private string Name = "RadiusDebug.enabled";
     private void Start()
     {
         base.Init();
-        Tool = GetComponent<ITool>();
+        _toolBase = GetComponent<ToolBase>();
         var roaming = LocalRoaming.OpenOrCreate("PyroNc\\Configuration");
         if (roaming.Exists(Name))
         {
@@ -31,7 +32,7 @@ public class RadiusDebugView : LineViewer
             return;
         }
         IsDirty = true;
-        Radius = Tool.Values.Radius;
+        Radius = _toolBase.Values.Radius;
         base.Update();
     }
 }

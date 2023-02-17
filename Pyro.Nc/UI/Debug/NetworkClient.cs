@@ -37,7 +37,7 @@ public class NetworkClient : MonoBehaviour
 
         if (vct is not null)
         {
-            Globals.Tool.Vertices = new List<Vector3>(vct);
+            //Globals.Tool.Vertices = new List<Vector3>(vct);
         }
         
         Stopwatch.Restart();

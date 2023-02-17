@@ -50,7 +50,7 @@ public class NetworkServer : MonoBehaviour
         }
         else
         {
-            data = Encoding.UTF8.GetBytes(JsonUtility.ToJson(Globals.Tool.Vertices));
+            //data = Encoding.UTF8.GetBytes(JsonUtility.ToJson(Globals.Tool.Vertices));
         }
 
         await context.Response.OutputStream.WriteAsync(data, 0, data.Length);

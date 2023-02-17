@@ -1,11 +1,12 @@
 using System.Threading.Tasks;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Parsing.GCommands
 {
     public sealed class G64 : BaseCommand
     {
-        public G64(ITool tool, GCommandParameters parameters) : base(tool, parameters)
+        public G64(ToolBase toolBase, GCommandParameters parameters) : base(toolBase, parameters)
         {
         }
 
@@ -13,8 +14,8 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override async Task Execute(bool draw)
         {
-            await Tool.InvokeOnConsumeStopCheck();
-            Tool.Values.ExactStopCheck = false;
+            //await ToolBase.InvokeOnConsumeStopCheck();
+            ToolBase.Values.ExactStopCheck = false;
         }
     }
 }

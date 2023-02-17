@@ -4,16 +4,18 @@ using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Math;
 using Pyro.Math.Geometry;
+using Pyro.Nc.Configuration;
 using Pyro.Nc.Exceptions;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Tools;
 using UnityEngine;
 
 namespace Pyro.Nc.Parsing.GCommands
 {
     public class G00 : BaseCommand
     {
-        public G00(ITool tool, GCommandParameters parameters) : base(tool, parameters, false, Group.GCommand)
+        public G00(ToolBase toolBase, GCommandParameters parameters) : base(toolBase, parameters, false, Group.GCommand)
         {
         }
 
@@ -23,12 +25,12 @@ namespace Pyro.Nc.Parsing.GCommands
         /// <inheritdoc />
         public override async Task Execute(bool draw)
         {
-            await Tool.Traverse(ResolvePosition(), Parameters.LineSmoothness, draw);
+            await ToolBase.Traverse(ResolvePosition(), Parameters.LineSmoothness, draw);
         }
 
         public override void Execute2D()
         {
-            Tool.Traverse2D(ResolvePosition(), Parameters.LineSmoothness);
+            ToolBase.Traverse2D(ResolvePosition(), Parameters.LineSmoothness);
         }
 
         /// <summary>
@@ -41,22 +43,22 @@ namespace Pyro.Nc.Parsing.GCommands
         {
             var parameters = (Parameters as GCommandParameters);
             Vector3 point;
-            var trans = Tool.Values.TransPosition;
-            if (Tool.Values.IsIncremental)
+            var trans = ToolBase.Values.TransPosition;
+            if (Machine.SimControl.Movement == MovementType.Incremental)
             {
                 if ((ResolveNan(parameters.X, 0) == 0 && ResolveNan(parameters.Y, 0) == 0 && ResolveNan(parameters.Z, 0) == 0))
                 {
                     throw new LinearInterpolationParameterMismatchException(this);
                 }
 
-                var pos = Tool.Position;
+                var pos = ToolBase.Position;
                 point = new Vector3(pos.x + ResolveNan(parameters.X, 0),
                                     pos.y + ResolveNan(parameters.Y, 0), 
                                     pos.z + ResolveNan(parameters.Z, 0));
             }
             else
             {
-                var pos = Tool.Position;
+                var pos = ToolBase.Position;
                 point = new Vector3((parameters.X + trans.x).FixNan(pos.x),
                                     (parameters.Y + trans.y).FixNan(pos.y),
                                     (parameters.Z + trans.z).FixNan(pos.z));

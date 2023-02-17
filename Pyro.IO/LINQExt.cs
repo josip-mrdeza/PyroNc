@@ -1,17 +1,59 @@
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Pyro.IO
 {
     public static class LINQExt
     {
+        public static IEnumerable<float> Max<T>(this IEnumerable<T> source, params Func<T, float>[] functions)
+        {
+            using var e = source.GetEnumerator();
+            var shared = ArrayPool<float>.Shared;
+            var arr = shared.Rent(functions.Length);
+            var comparer = Comparer<float>.Default;
+            while (e.MoveNext())
+            {
+                T nextValue = e.Current;
+                for (var i = 0; i < functions.Length; i++)
+                {
+                    var func = functions[i];
+                    float nextKey = func(nextValue);
+                    var curKey = arr[i];
+                    if (comparer.Compare(nextKey, curKey) > 0)
+                    {
+                        arr[i] = nextKey;
+                    }
+                }
+            }
+
+            for (var i = 0; i < functions.Length; i++)
+            {
+                var val = arr[i];
+
+                yield return val;
+            }
+
+            shared.Return(arr);
+        }
+
         public static void Iterate(this IEnumerable enumerable)
         {
             var en = enumerable.GetEnumerator();
             while (en.MoveNext())
+            {
+                
+            }
+        }
+
+        public static async Task IterateAsync<T>(this IAsyncEnumerable<T> source)
+        {
+            var e = source.GetAsyncEnumerator();
+            while (await e.MoveNextAsync())
             {
                 
             }

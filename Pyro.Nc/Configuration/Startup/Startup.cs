@@ -17,6 +17,7 @@ namespace Pyro.Nc.Configuration.Startup
     public class Startup : InitializerRoot
     {
         public static List<IManager> Managers;
+
         public override async Task InitializeAsync()
         {
             gameObject.AddComponent<PDispatcher>();

@@ -6,13 +6,14 @@ using Pyro.Math.Geometry;
 using Pyro.Nc.Exceptions;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Tools;
 using UnityEngine;
 
 namespace Pyro.Nc.Parsing.GCommands
 {
     public class G02 : G01
     {
-        public G02(ITool tool, GCommandParameters parameters) : base(tool, parameters)
+        public G02(ToolBase toolBase, GCommandParameters parameters) : base(toolBase, parameters)
         {
         }
 
@@ -28,7 +29,7 @@ namespace Pyro.Nc.Parsing.GCommands
         protected async Task Execute(bool reverse, bool draw)
         {
             var arc = GetArc3D(reverse);
-            await Tool.Traverse(arc, true);
+            await ToolBase.Traverse(arc, true);
             //Expire();
         }
         public override void Execute2D()
@@ -38,7 +39,7 @@ namespace Pyro.Nc.Parsing.GCommands
 
         protected void Execute2D(bool reverse)
         {
-            Tool.TraverseFinal2D(GetArc3D(reverse).Points.ToArray());
+            ToolBase.TraverseFinal2D(GetArc3D(reverse).Points.ToArray());
         }
         private Arc3D GetArc3D(bool reverse)
         {
@@ -49,8 +50,8 @@ namespace Pyro.Nc.Parsing.GCommands
             // Y = ENDPOINT Y AXIS
 
             var parameters = (Parameters as GCommandParameters);
-            var pos = Tool.Position;
-            var trans = Tool.Values.TransPosition;
+            var pos = ToolBase.Position;
+            var trans = ToolBase.Values.TransPosition;
 
             //var transPosition = pos + trans;
 

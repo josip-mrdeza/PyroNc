@@ -8,11 +8,14 @@ using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation.Tools;
+using Pyro.Nc.Simulation.Workpiece;
 using Pyro.Nc.UI;
 using Pyro.Nc.UI.Programs;
 using Pyro.Nc.UI.UI_Screen;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
+using ToolBase = Pyro.Nc.Simulation.Tools.ToolBase;
 
 namespace Pyro.Nc.Simulation
 {
@@ -20,9 +23,9 @@ namespace Pyro.Nc.Simulation
     {
         private static bool _isNetworkPresent =>
             Application.internetReachability != NetworkReachability.NotReachable;
-        public static ITool Tool;
+        public static ToolBase Tool;
         public static GCodeInputHandler GCodeInputHandler;
-        public static WorkpieceController Workpiece;
+        public static WorkpieceControl Workpiece;
         public static ToolManager ToolManager;
         public static PyroConsoleView Console;
         public static CommentView Comment;

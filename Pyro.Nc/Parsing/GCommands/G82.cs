@@ -1,11 +1,12 @@
 using System.Threading.Tasks;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Parsing.GCommands
 {
     public sealed class G82 : G81
     {
-        public G82(ITool tool, GCommandParameters parameters) : base(tool, parameters)
+        public G82(ToolBase toolBase, GCommandParameters parameters) : base(toolBase, parameters)
         {
             if (parameters.Values.ContainsKey("P"))
             {

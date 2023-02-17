@@ -5,22 +5,23 @@ using Pyro.IO;
 using Pyro.Math;
 using Pyro.Math.Geometry;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation.Tools;
 using UnityEngine;
 
 namespace Pyro.Nc.Simulation;
 
 public static class Sim2D
 {
-    public static void Traverse2D(this ITool tool, Vector3 destination, LineTranslationSmoothness smoothness)
+    public static void Traverse2D(this ToolBase toolBase, Vector3 destination, LineTranslationSmoothness smoothness)
     {
-        var p1 = tool.Position.ToVector3D();
+        var p1 = toolBase.Position.ToVector3D();
         var p2 = destination.ToVector3D();
         var dist = Space3D.Distance(p1, p2);
         if (dist == 0)
         {
             return;
         }
-        var line = new Line3D(tool.Position.ToVector3D(), destination.ToVector3D(), dist.Mutate(d =>
+        var line = new Line3D(toolBase.Position.ToVector3D(), destination.ToVector3D(), dist.Mutate(d =>
         {
             if (d < 5)
             {
@@ -33,20 +34,20 @@ public static class Sim2D
 
             return (int) d;
         }));
-        tool.Traverse2D(line);
+        toolBase.Traverse2D(line);
     }
 
-    public static void Traverse2D(this ITool tool, Line3D line)
+    public static void Traverse2D(this ToolBase toolBase, Line3D line)
     {
-        tool.TraverseFinal2D(line.ToVector3s());
+        toolBase.TraverseFinal2D(line.ToVector3s());
     }
 
-    public static void TraverseFinal2D(this ITool tool, Vector3[] points)
+    public static void TraverseFinal2D(this ToolBase toolBase, Vector3[] points)
     {
-        tool.SetupTranslation(points);
-        var arr = new Vector3[tool.LineRenderer.positionCount];
-        tool.LineRenderer.GetPositions(arr);
+        /*toolBase.SetupTranslation(points);
+        var arr = new Vector3[toolBase.LineRenderer.positionCount];
+        toolBase.LineRenderer.GetPositions(arr);
         var nextArr = arr.Concat(points);
-        tool.LineRenderer.SetPositions(nextArr.ToArray());
+        toolBase.LineRenderer.SetPositions(nextArr.ToArray());*/
     }
 }

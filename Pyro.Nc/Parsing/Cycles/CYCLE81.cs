@@ -5,13 +5,14 @@ using Pyro.Nc.Exceptions;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation.Tools;
 using UnityEngine;
 
 namespace Pyro.Nc.Parsing.Cycles;
 
 public class CYCLE81 : Cycle
 {
-    public CYCLE81(ITool tool, ICommandParameters parameters, float[] splitParameters) : base(tool, parameters)
+    public CYCLE81(ToolBase toolBase, ICommandParameters parameters, float[] splitParameters) : base(toolBase, parameters)
     {
         for (int i = 0; i < splitParameters.Length; i++)
         {
@@ -58,9 +59,9 @@ public class CYCLE81 : Cycle
 
         var sdis = Parameters.GetValue("SDIS").Abs();
         
-        var currentPos = Tool.Position;
+        var currentPos = ToolBase.Position;
         currentPos.y = rfp + sdis;
-        var g0 = new G00(Tool, new GCommandParameters(currentPos));
+        var g0 = new G00(ToolBase, new GCommandParameters(currentPos));
         await g0.Execute(true);
 
         var dp = Parameters.GetValue("DP");
@@ -69,13 +70,13 @@ public class CYCLE81 : Cycle
         if (!float.IsNaN(dpr))
         {
             currentPos.y = rfp - dp.Abs();
-            var g1 = new G01(Tool, new GCommandParameters(currentPos));
+            var g1 = new G01(ToolBase, new GCommandParameters(currentPos));
             await g1.Execute(true); 
         }
         else if (!float.IsNaN(dp))
         {
             currentPos.y = dp;
-            var g1 = new G01(Tool, new GCommandParameters(currentPos));
+            var g1 = new G01(ToolBase, new GCommandParameters(currentPos));
             await g1.Execute(true);
         }
 

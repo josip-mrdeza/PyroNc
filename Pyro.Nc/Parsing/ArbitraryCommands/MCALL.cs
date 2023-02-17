@@ -4,12 +4,13 @@ using Pyro.Nc.Exceptions;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands;
 
 public class MCALL : BaseCommand
 {
-    public MCALL(ITool tool, ICommandParameters parameters) : base(tool, parameters)
+    public MCALL(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
     {
     }
 

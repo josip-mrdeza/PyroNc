@@ -10,6 +10,7 @@ using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Workpiece;
 using UnityEngine;
 using Path = Pyro.Nc.Pathing.Path;
 
@@ -27,7 +28,7 @@ namespace Pyro.Nc.Pathing
         public Vector3 Position { get; set; }
         public ToolValues Values { get; set; }
         public PyroEventSystem EventSystem { get; }
-        public WorkpieceController Workpiece { get; set; }
+        public WorkpieceControl Workpiece { get; set; }
         /// <summary>
         /// Stores the mesh's vertices.
         /// </summary>

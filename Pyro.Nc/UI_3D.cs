@@ -1,8 +1,10 @@
 using System;
 using System.Globalization;
 using Pyro.Math;
+using Pyro.Nc.Configuration;
 using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Machines;
 using Pyro.Nc.UI;
 using UnityEngine;
 
@@ -30,15 +32,16 @@ public class UI_3D : InitializerRoot
         Position = tr.Find("Position_Display").GetComponent<ValueDisplayer>();
         Trans = tr.Find("Trans_Display").GetComponent<ValueDisplayer>();
         Time = tr.Find("Time_Display").GetComponent<TimeValueDisplayer>();
-        Globals.Tool.OnPositionChanged += SetPositionDisplay;
-        Globals.Tool.OnTransChanged += SetTransDisplay;
-        Globals.Tool.OnFeedRateChanged += SetFeedDisplay;
-        Globals.Tool.OnSpindleSpeedChanged += SetSpindleDisplay;
+        var mach = MachineBase.CurrentMachine;
+        mach.EventSystem.OnPositionChanged += (_, pos)=> SetPositionDisplay(pos);
+        mach.EventSystem.OnTransChanged += (_, t) => SetTransDisplay(t);
+        mach.EventSystem.OnFeedRateChanged += (_, f) => SetFeedDisplay(f);
+        mach.EventSystem.OnSpindleSpeedChanged += (_, s) => SetSpindleDisplay(s);
     }
     
     public void SetPositionDisplay(Vector3 v)
     {
-        var valuet = Globals.Tool.Values.IsImperial ? "in" : "mm";
+        var valuet = MachineBase.CurrentMachine.SimControl.Unit == UnitType.Imperial ? "in" : "mm";
         Position.Value.text = 
             $"X = {v.x.Round().ToString(CultureInfo.InvariantCulture)}{valuet}" +
             $"\nY = {v.z.Round().ToString(CultureInfo.InvariantCulture)}{valuet}" +
@@ -47,7 +50,7 @@ public class UI_3D : InitializerRoot
     
     public void SetTransDisplay(Vector3 v)
     {
-        var valuet = Globals.Tool.Values.IsImperial ? "in" : "mm";
+        var valuet = MachineBase.CurrentMachine.SimControl.Unit == UnitType.Imperial ? "in" : "mm";
         Trans.Value.text = 
             $"X = {v.x.Round().ToString(CultureInfo.InvariantCulture)}{valuet}" +
             $"\nY = {v.z.Round().ToString(CultureInfo.InvariantCulture)}{valuet}" +
@@ -56,7 +59,7 @@ public class UI_3D : InitializerRoot
     
     public void SetFeedDisplay(float feed)
     {
-        FeedRate.Value.text = $"{feed.ToString(CultureInfo.InvariantCulture)} {(Globals.Tool.Values.IsImperial ? "in/min" : "mm/min")}";
+        FeedRate.Value.text = $"{feed.ToString(CultureInfo.InvariantCulture)} {(MachineBase.CurrentMachine.SimControl.Unit == UnitType.Imperial ? "in/min" : "mm/min")}";
     }
     
     public void SetSpindleDisplay(float rpm)

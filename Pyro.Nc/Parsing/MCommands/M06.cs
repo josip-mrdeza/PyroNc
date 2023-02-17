@@ -6,13 +6,14 @@ using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Tools;
 using UnityEngine;
 
 namespace Pyro.Nc.Parsing.MCommands
 {
     public class M06 : M00
     {
-        public M06(ITool tool, ICommandParameters parameters) : base(tool, parameters)
+        public M06(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
         {
         }
         public override string Description => Locals.M06;
@@ -39,12 +40,12 @@ namespace Pyro.Nc.Parsing.MCommands
             }
             
             var rpp = Globals.ReferencePointParser.ToolMountReferencePoint;
-            var g0ToToolSetPosition = Tool.Values.Storage.FetchGCommand("G00") as G00;
+            var g0ToToolSetPosition = ToolBase.Values.Storage.FetchGCommand("G00") as G00;
             g0ToToolSetPosition.Parameters = new GCommandParameters(rpp.x, rpp.y, rpp.z);
             Globals.Rules.Try(g0ToToolSetPosition);
             Expire();
             await g0ToToolSetPosition.ExecuteFinal(draw);
-            var toolSetter = new ToolSetter(Tool, new ArbitraryCommandParameters()
+            var toolSetter = new ToolSetter(ToolBase, new ArbitraryCommandParameters()
             {
                 Values = new Dictionary<string, float>()
                 {

@@ -5,13 +5,14 @@ using System.Threading.Tasks;
 using Pyro.Nc.Exceptions;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Tools;
 using UnityEngine;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
     public class ToolSetter : BaseCommand
     {
-        public ToolSetter(ITool tool, ArbitraryCommandParameters parameters) : base(tool, parameters)
+        public ToolSetter(ToolBase toolBase, ArbitraryCommandParameters parameters) : base(toolBase, parameters)
         {
             
         }
@@ -44,11 +45,8 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
             {
                 throw new ToolMissingException(value);
             }
-
-            Tool.ToolConfig = tool;
-            Tool.Temp.transform.localPosition = new Vector3(0, Tool.ToolConfig.VerticalMargin);
-            await Tool.EventSystem.FireAsync("ToolChange");
-            Tool.InvokeOnToolChanged(tool);
+            Machine.ChangeTool(tool);
+            //ToolBase.Temp.transform.localPosition = new Vector3(0, ToolBase.ToolConfig.VerticalMargin);
         }
     }
 }

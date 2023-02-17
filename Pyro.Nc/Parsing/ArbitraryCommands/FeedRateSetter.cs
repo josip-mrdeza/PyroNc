@@ -4,13 +4,15 @@ using Pyro.Math;
 using Pyro.Nc.Exceptions;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
     public class FeedRateSetter : BaseCommand
     {
-        public FeedRateSetter(ITool tool, ICommandParameters parameters) : base(tool, parameters)
+        public FeedRateSetter(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
         {
+            Machine.SpindleControl.FeedRate.SetUpperValue(350);
         }
 
         public override string Description => Locals.FeedRateSetter;
@@ -19,13 +21,12 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
         {
             var value = Parameters.GetValue("value");
 
-            var feedRate = Tool.Values.FeedRate;
+            var feedRate = Machine.SpindleControl.FeedRate;
             if (feedRate.UpperLimit < value)
             {
                 throw new FeedRateOverLimitException(this, value, feedRate.UpperLimit);
             }
-            feedRate.Set(value);
-            Tool.InvokeOnFeedRateChanged(value);
+            Machine.SetFeedRate(value);
             return Task.CompletedTask;
         }
     }

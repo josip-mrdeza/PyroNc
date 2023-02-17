@@ -5,6 +5,7 @@ using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Tools;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -22,17 +23,17 @@ namespace Pyro.Nc.UI.Menu
         public Type ToolValuesType;
         public PropertyInfo ToolValuesIdTypeInfo;
         public Type ToolValuesIdType;
-        public ITool Tool;
+        public ToolBase ToolBase;
         public override void Initialize()
         {
-            Tool = Globals.Tool;
+            ToolBase = Globals.Tool;
             DescriptionComponent ??= GetComponentInChildren<TextMeshProUGUI>();
             InputFieldComponent ??= GetComponentInChildren<TMP_InputField>();
             DescriptionComponent.text = Description ??= "Not-Defined";
             InputFieldComponent.text = DefaultValue;
             CheckForInvalidId();
             InitTypeInfos();
-            DefaultValue = (((Limiter) ToolValuesIdTypeInfo.GetValue(Tool.Values)).ToString());
+            DefaultValue = (((Limiter) ToolValuesIdTypeInfo.GetValue(ToolBase.Values)).ToString());
             InputFieldPlaceHolderText.text = DefaultValue;
             InputFieldComponent.onEndEdit.AddListener(OnEndEdit);
         }
@@ -45,7 +46,7 @@ namespace Pyro.Nc.UI.Menu
             {
                 if (ToolValuesIdType == typeof(float))
                 {
-                    ToolValuesIdTypeInfo.SetValue(Tool.Values, float.Parse(s)); 
+                    ToolValuesIdTypeInfo.SetValue(ToolBase.Values, float.Parse(s)); 
                 }
             }
             else
@@ -74,7 +75,7 @@ namespace Pyro.Nc.UI.Menu
         
         protected bool CheckForInvalidTool()
         {
-            if (Tool is null)
+            if (ToolBase is null)
             {
                 Globals.Console.PushText($"Could not write to property: {ToolValuesIdTypeInfo.Name} in ToolValues.\n" +
                                          $"    --Reason: Tool object is null!", LogType.Error);
