@@ -1,9 +1,13 @@
 using System.Globalization;
 using Pyro.IO;
+using Pyro.Math;
+using Pyro.Nc.Configuration;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.Simulation.Machines;
+using Pyro.Nc.Simulation.Workpiece;
 using Pyro.Nc.UI.Options;
 using Pyro.Nc.UI.UI_Screen;
+using TinyClient;
 using UnityEngine;
 
 namespace Pyro.Nc.UI;
@@ -15,17 +19,22 @@ public class WorkpieceView : View
     public InputReader Height;
     public Transform Workpiece;
 
+    [StoreAsJson]
+    public static Vector3D Scale { get; set; }
+
     public override void Initialize()
     {
         base.Initialize();
         MachineBase.CurrentMachine.Workpiece.View = this;
+        Vector3 scale;
+        scale = new Vector3(Scale.x, Scale.z, Scale.y);
+        Workpiece.localScale = scale / 100f;
         Length.OnChanged += OnLengthChanged;
         Width.OnChanged += OnWidthChanged;
         Height.OnChanged += OnHeightChanged;
-        var scale = Workpiece.localScale;
-        Length.Text = (scale.x * 100).ToString(CultureInfo.InvariantCulture);
-        Width.Text = (scale.y * 100).ToString(CultureInfo.InvariantCulture);
-        Height.Text = (scale.z * 100).ToString(CultureInfo.InvariantCulture);
+        Length.Text = (scale.x).ToString(CultureInfo.InvariantCulture);
+        Width.Text = (scale.z).ToString(CultureInfo.InvariantCulture);
+        Height.Text = (scale.y).ToString(CultureInfo.InvariantCulture);
     }
 
     private void OnLengthChanged(string s)
@@ -40,7 +49,8 @@ public class WorkpieceView : View
             Workpiece.localScale = new Vector3(x, scale.y, scale.z);
             var pos = Workpiece.position;
             Workpiece.position = new Vector3(x * 50, pos.y, pos.z);
-            workpiece.GenerateVertexBoxHashes(workpiece.step);
+            workpiece.GenerateVertexBoxHashes(WorkpieceControl.Step, HashmapGenerationReason.WorkpieceLengthChanged);
+            UpdateJsonScale(scale.x * 100, 0);
         }
     }
     
@@ -56,7 +66,8 @@ public class WorkpieceView : View
             Workpiece.localScale = new Vector3(scale.x, scale.y, z);
             var pos = Workpiece.position;
             Workpiece.position = new Vector3(pos.x, pos.y, z * 50);
-            workpiece.GenerateVertexBoxHashes(workpiece.step);
+            workpiece.GenerateVertexBoxHashes(WorkpieceControl.Step, HashmapGenerationReason.WorkpieceWidthChanged);
+            UpdateJsonScale(scale.z * 100, 2);
         }
     }
     
@@ -71,8 +82,39 @@ public class WorkpieceView : View
             var scale = Workpiece.localScale;
             Workpiece.localScale = new Vector3(scale.x, y, scale.z);
             var pos = Workpiece.position;
-            Workpiece.position = new Vector3(pos.x, y * 30, pos.z);
-            workpiece.GenerateVertexBoxHashes(workpiece.step);
+            Workpiece.position = new Vector3(pos.x, y * 50, pos.z);
+            workpiece.GenerateVertexBoxHashes(WorkpieceControl.Step, HashmapGenerationReason.WorkpieceHeightChanged);
+            UpdateJsonScale(scale.y * 100, 1);
         }
+    }
+
+    private void UpdateJsonScale(float val, int key)
+    {
+        switch (key)
+        {
+            case 0:
+            {
+                var sc = Scale;
+                sc.x = val;
+                Scale = sc;
+                break;
+            }
+            case 1:
+            {
+                var sc = Scale;
+                sc.z = val;
+                Scale = sc;
+                break;
+            }
+            case 2:
+            {
+                var sc = Scale;
+                sc.y = val;
+                Scale = sc;
+                break;
+            }
+        }
+        LocalRoaming roaming = LocalRoaming.OpenOrCreate("PyroNc\\Configuration\\Json");
+        roaming.ModifyFile("WorkpieceView.json", new []{new StoreJsonPart(nameof(Scale), Scale)});
     }
 }

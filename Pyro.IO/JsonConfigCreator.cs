@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 
 namespace Pyro.IO;
 
@@ -12,18 +15,21 @@ public static class JsonConfigCreator
     private const char ClosingBracket = '}';
     private const char Quote = '"';
     private const char Colon = ':';
-    public static IEnumerable<string> TraverseAssemblyAndCreateJsonFiles(this Assembly assembly, LocalRoaming roaming)
+    public static List<StoreAsJson> Stores;
+    public static void TraverseAssemblyAndCreateJsonFiles(this Assembly assembly, LocalRoaming roaming)
     {
         var types = assembly.GetTypes();
-        StringBuilder builder = new StringBuilder();
+        Stores = new List<StoreAsJson>();
         foreach (var type in types)
         {
-            var num = 0;
-            builder.Append('{');
+            if (type.IsInterface)
+            {
+                continue;
+            }
             var props = type.GetRuntimeProperties().Cast<MemberInfo>().ToArray();
             var fields = type.GetRuntimeFields().Cast<MemberInfo>();
             var members = props.Concat(fields).ToArray();
-            int proper = 0;
+            List<StoreJsonPart> parts = new List<StoreJsonPart>();
             for (var i = 0; i < members.Length; i++)
             {
                 var prop = members[i];
@@ -33,6 +39,8 @@ public static class JsonConfigCreator
                     continue;
                 }
 
+                attr.Parent = type;
+                Stores.Add(attr);
                 object propBaseValue;
                 if (prop is FieldInfo info)
                 {
@@ -43,48 +51,134 @@ public static class JsonConfigCreator
                     propBaseValue = Activator.CreateInstance((prop as PropertyInfo).PropertyType);
                 }
 
-                if (proper > 0)
+                parts.Add(new StoreJsonPart(attr.Name, propBaseValue));
+            }
+
+            if (parts.Count == 0)
+            {
+                continue;
+            }
+            var name = $"{type.Name}.json";
+            if (roaming.Exists(name))
+            {
+                var e = roaming.ReadFileAs<StoreJsonPart[]>(name);
+                if (e.Length < parts.Count)
                 {
-                    builder.Append(',');
-                }
-                builder.Append(Quote).Append(attr.Name).Append(Quote);
-                builder.Append(Colon);
-                if (attr.VariableType == typeof(String))
-                {
-                    builder.Append(Quote);
-                    builder.Append(propBaseValue);
-                    builder.Append(Quote);
+                    roaming.ModifyFile(name, parts);
                 }
                 else
                 {
-                    builder.Append(propBaseValue);
+                    for (int i = 0; i < e.Length; i++)
+                    {
+                        var q = e[i];
+                        var t = Type.GetType(q.TypeAsString);
+                        if (t.IsEnum)
+                        {
+                            var js = (JsonElement) q.Value;
+                            q.StringifiedValue = Enum.GetName(t, js.GetInt32());
+                        }
+                        else
+                        {
+                            q.StringifiedValue = q.Value.ToString();
+                        }
+                    }
+                    roaming.ModifyFile(name, e);
                 }
-
-                proper++;
-                num++;
             }
-
-            builder.Append(ClosingBracket);
-            if (num == 0)
+            else
             {
-                builder.Clear();
-                continue;
+                roaming.AddFile(name, parts);
             }
-            var str = builder.ToString();
-            roaming.ModifyFile($"{type.Name}.json", str);
-            yield return str;
-            builder.Clear();
+        }
+    }
+
+    public static void AssignJsonStoresToStaticInstances(Type globals, List<StoreAsJson> parts, LocalRoaming roaming, Action<string, string, object> onCompleteEach, Action<string> onFailed)
+    {
+        foreach (var store in parts)
+        {
+            try
+            {
+                var typeData = roaming.ReadFileAs<StoreJsonPart[]>($"{store.Parent.Name}.json");
+                var type = store.Parent;
+                var obj = typeData.FirstOrDefault(x => x.Name == store.Name);
+                Type t = Type.GetType(obj.TypeAsString);
+                var val = (JsonElement)obj.Value;
+                var o = val.Deserialize(t);
+                object field = type.GetMember(store.Name)[0];
+                if (field is FieldInfo fi)
+                {
+                    fi.SetValue(null, o);
+                    onCompleteEach?.Invoke(type.Name, fi.Name, o);
+                }
+                else
+                {
+                    var prop = (field as PropertyInfo);
+                    prop.SetValue(null, o);
+                    onCompleteEach?.Invoke(type.Name, prop.Name, o);
+                }
+            }
+            catch(IndexOutOfRangeException)
+            {
+                onFailed?.Invoke($"~[{store.Name}] - Potential Duplicate (Inherited Member)!~");
+            }
+            catch (Exception e)
+            {
+                onFailed?.Invoke($"~[{store.Name}, '{store.Parent.Name}'] - {e.Message}!~");
+            }
         }
     }
 }     
 
+[AttributeUsage(AttributeTargets.Property)]
 public class StoreAsJson : Attribute
 {
-    public StoreAsJson(string name, Type type)
+    public StoreAsJson([CallerMemberName] string name = "defaultName", Type type = null)
     {
         Name = name;
-        VariableType = type;
+        _type = type;
     }
     public string Name { get; }
-    public Type VariableType { get; }
+    public Type Parent { get; internal set; }
+    public Type VariableType
+    {
+        get
+        {
+            if (_type == null)
+            {
+                if (Parent is null)
+                {
+                    throw new ArgumentException("Parent type cannot be null!");
+                }
+                var temp = Parent.GetMember(Name, BindingFlags.Public | BindingFlags.NonPublic).FirstOrDefault();
+                if (temp is FieldInfo info)
+                {
+                    _type = info.FieldType;
+                }
+                else
+                {
+                    _type = (temp as PropertyInfo).PropertyType;
+                }
+            }
+
+            return _type;
+        }
+    }
+
+    private Type _type;
+}
+
+public class StoreJsonPart
+{
+    public string Name { get; set; }
+    public object Value { get; set; }
+    public string StringifiedValue { get; set; }
+    public string TypeAsString { get; set; }
+
+    public StoreJsonPart(string name, object value)
+    {
+        Name = name;
+        Value = value;
+        StringifiedValue = value.ToString();
+        TypeAsString = value.GetType().AssemblyQualifiedName;
+    }
 }

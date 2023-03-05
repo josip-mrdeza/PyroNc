@@ -12,7 +12,7 @@ public class EventsController : ControllerBase
     public static Dictionary<string, List<Stream>> Writers = new Dictionary<string, List<Stream>>();
 
     [HttpGet]
-    public async Task Id([FromQuery] string id)
+    public async Task Id([FromQuery] string id, CancellationToken token)
     {
         if (!Writers.ContainsKey(id))
         {
@@ -25,8 +25,8 @@ public class EventsController : ControllerBase
         });
         Response.ContentType = "application/octet-stream";
         await Response.BodyWriter.WriteAsync(new byte[]{0,0,0,0,0}, CancellationToken.None);
-        await Response.BodyWriter.FlushAsync();
-        Response.HttpContext.RequestAborted.WaitHandle.WaitOne();
+        await Response.BodyWriter.FlushAsync(token);
+        await Task.Delay(-1, token);
     }
 
     [HttpPost("invoke")]
@@ -78,6 +78,16 @@ public class EventsController : ControllerBase
             {
                 Console.WriteLine(e);
             }
+        }
+    }
+
+    [HttpPost("close")]
+    public void CloseConnection([FromQuery] string id)
+    {
+        var writers = Writers[id];
+        foreach (var writer in writers)
+        {
+            writer.Dispose();
         }
     }
 }

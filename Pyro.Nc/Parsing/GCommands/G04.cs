@@ -13,6 +13,7 @@ namespace Pyro.Nc.Parsing.GCommands
         }
 
         public override string Description => Locals.G04;
+        public override bool IsModal => true;
 
         public override async Task Execute(bool draw)
         {

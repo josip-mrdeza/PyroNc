@@ -10,12 +10,18 @@ namespace Pyro.Math
     {
         public enum Operation
         {
-            Default,
-            Addition, 
-            Subtraction,
-            Multiplication,
-            Division,
-            Factorization
+            Reserved = 0,
+            Addition = -1, 
+            Subtraction = -2,
+            Multiplication = 1,
+            Division = 2,
+            Factorization = 4,
+            Sin,
+            Cos,
+            Tan,
+            Ctg,
+            Modulo = 3,
+            Default
         }
         public struct SolverResult
         {
@@ -32,6 +38,16 @@ namespace Pyro.Math
             public double Value { get; set; }
             public string Id { get; set; }
             public Operation Op { get; set; }
+
+            public void ChangeOp(Operation o)
+            {
+                Op = o;
+            }
+
+            public void ChangeValue(double val)
+            {
+                Value = val;
+            }
 
             public static implicit operator SolverResult(double d)
             {
@@ -111,7 +127,7 @@ namespace Pyro.Math
             };
             for (int i = 0; i < builder.Length; i++)
             {
-                if (builder[i] is '-' or '+' or '=')
+                if (builder[i] is '-' or '+' or '=' or '*' or '/' or '%')
                 {
                     if (i != 0)
                     {
@@ -124,6 +140,7 @@ namespace Pyro.Math
                     }
                 }
             }
+
             if (!equation.Contains("="))
             {
                 if (!equation.ToLower().Contains("x"))
@@ -183,7 +200,11 @@ namespace Pyro.Math
             Operation currentOp = default;
             for (int i = 0; i < arr.Length; i++)
             {
-                var value = arr[i];
+                var value = arr[i].ToLowerInvariant();
+                if (string.IsNullOrEmpty(value))
+                {
+                    continue;
+                }
                 if (nextIsNegative)
                 {
                     if (CaseX(value, true, currentOp))
@@ -193,7 +214,7 @@ namespace Pyro.Math
                         continue;
                     }
 
-                    buffer.Add(-double.Parse(value));
+                    buffer.Add(new SolverResult(true, -double.Parse(value), Operation.Subtraction));
                     currentOp = Operation.Default;
                     nextIsNegative = false;
                 }
@@ -214,6 +235,31 @@ namespace Pyro.Math
                 {
                     currentOp = Operation.Division;
                 }
+                else if (value == "%")
+                {
+                    currentOp = Operation.Modulo;
+                }
+                else if (value.StartsWith("sin"))
+                {
+                    value = value.Remove(0, 3);
+                    buffer.Add(new SolverResult(true, float.Parse(value).Sin(), currentOp));
+                }
+                else if (value.StartsWith("cos"))
+                {
+                    value = value.Remove(0, 3);
+                    buffer.Add(new SolverResult(true, float.Parse(value).Cos(), currentOp));
+                }
+                else if (value.StartsWith("tan"))
+                {
+                    value = value.Remove(0, 3);
+                    buffer.Add(new SolverResult(true, float.Parse(value).Tan(), currentOp));
+                }
+                else if (value.StartsWith("ctg"))
+                { 
+                    value = value.Remove(0, 3);
+                    var f = float.Parse(value);
+                    buffer.Add(new SolverResult(true, f.Cos() / f.Sin(), currentOp));
+                }
                 else
                 {
                     if (CaseX(value, false, currentOp))
@@ -223,6 +269,7 @@ namespace Pyro.Math
 
                     if (value.EndsWith("!"))
                     {
+                        currentOp = Operation.Factorization;
                         value = value.Remove(value.Length - 1);
                         buffer.Add(new SolverResult(true, ((int) double.Parse(value)).Factorial(), currentOp));
                     }
@@ -256,12 +303,41 @@ namespace Pyro.Math
                     }
                 }
             }
-            
-            foreach (var result in results[1])
+            double lastHigherOrderOpResult = 1f;
+            for (var i = 0; i < results[1].Count; i++)
             {
+                var arr = results[1];
+                var result = arr[i];
                 if (result.IsNumber)
                 {
-                    rhs += result.Value;
+                    if (result.Op is Operation.Addition)
+                    {
+                        rhs = Addition(arr, ref lastHigherOrderOpResult, ref i, rhs, result);
+                    }
+                    else if (result.Op is Operation.Subtraction)
+                    {
+                        rhs = Subtraction(arr, ref lastHigherOrderOpResult, ref i, rhs, result);
+                    }
+                    else if (result.Op is Operation.Multiplication)
+                    {
+                        rhs = Multiplicate(arr, ref lastHigherOrderOpResult, result, ref i, ref rhs);
+                    }
+                    else if (result.Op is Operation.Division)
+                    {
+                        rhs = Division(arr, ref lastHigherOrderOpResult, result, ref i, rhs);
+                    }
+                    else if (result.Op is Operation.Modulo)
+                    {
+                        rhs = Modulo(arr, ref lastHigherOrderOpResult, result, ref i, rhs);
+                    }        
+                    else if (result.Op is Operation.Reserved)
+                    {
+                        
+                    }
+                    else
+                    {
+                        //rhs += result.Value;
+                    }
                 }
                 else
                 {
@@ -298,7 +374,113 @@ namespace Pyro.Math
             solved.Add(new SolverResult(true, rhs));
             return solved;
         }
-        
+
+        private static double Addition(List<SolverResult> results, ref double lastHigherOrderOp, ref int i, double rhs, SolverResult result)
+        {
+            bool higherOrder = results.Count - 1 >= i + 1 && results.IsNextHighOrder(i);
+            if (higherOrder)
+            {
+                i++;
+                Multiplicate(results, ref lastHigherOrderOp, results[i], ref i, ref rhs);
+                i--;
+                return rhs;
+            }
+
+            if (results.IsPreviousHighOrder(i))
+            {
+                rhs += result.Value;
+            }
+            else
+            {
+                rhs += result.Value;
+                rhs += results[i - 1].Value;
+            }
+            lastHigherOrderOp = 1f;
+            return rhs;
+        }
+
+        private static double Subtraction(List<SolverResult> results, ref double lastHigherOrderOp, ref int i, double rhs, SolverResult result)
+        {
+            if (!(results.Count -1 > i + 1))
+            {
+                return rhs;
+            }
+
+            rhs += results[i + 1].Value;
+            rhs += result.Value;
+            lastHigherOrderOp = 1f;
+            i++;
+            return rhs;
+            
+        }
+
+        private static double Modulo(List<SolverResult> results, ref double lastHigherOrderOp, SolverResult result, ref int i, double rhs)
+        {
+            double res;
+            if (lastHigherOrderOp == 1d)
+            {
+                res = result.Value % results[i + 1].Value;
+                result.Value = res;
+            }
+            else
+            {
+                res = result.Value % lastHigherOrderOp;
+                result.Value = res;
+            }
+
+            rhs += res;
+            lastHigherOrderOp = res;
+            i++;
+            return rhs;
+        }
+
+        private static double Division(List<SolverResult> results, ref double lastHigherOrderOp, SolverResult result, ref int i, double rhs)
+        {
+            double res;
+            if (lastHigherOrderOp == 1d)
+            {
+                res = results[i - 1].Value / result.Value;
+                result.Value = res;
+            }
+            else
+            {
+                res = lastHigherOrderOp / result.Value;
+                result.Value = res;
+            }
+
+            rhs += res;
+            lastHigherOrderOp = res;
+            i++;
+            return rhs;
+        }
+
+        private static double Multiplicate(List<SolverResult> results, ref double lastHigherOrderOp, SolverResult result, ref int i,
+            ref double rhs)
+        {
+            double res;
+            if (lastHigherOrderOp == 1d)
+            {
+                res = result.Value * results[i - 1].Value;
+                var sr = results[i - 1];
+                sr.Value = res;
+                results[i - 1] = sr;
+            }
+            else
+            {
+                res = result.Value * lastHigherOrderOp;
+            }
+            lastHigherOrderOp = res;
+            if (results.IsNextOp(i, Operation.Multiplication))
+            {
+                i++;
+                Multiplicate(results, ref lastHigherOrderOp, results[i], ref i, ref rhs);
+                i++;
+                return rhs;
+            }
+            rhs += res;
+            return rhs;
+        }
+
         public static List<SolverResult> SolveFor(this List<SolverResult>[] results, List<SolverResult> missingVariables)
         {
             List<SolverResult> solved = new List<SolverResult>();
@@ -342,10 +524,14 @@ namespace Pyro.Math
                     }
                 }
             }
-            
-            foreach (var kvp in dict)
+
+            for (int i = 0; i < dict.Count; i++)
             {
-                dict[kvp.Key] = kvp.Value + dictMissing[kvp.Key];
+                var kvp = dict.ElementAt(i);
+                if (dictMissing.TryGetValue(kvp.Key, out var val))
+                {
+                    dict[kvp.Key] = kvp.Value * val;
+                }
             }
 
             foreach (var kvp in dict)
@@ -358,13 +544,17 @@ namespace Pyro.Math
                         rhs = -rhs;
                         x = -x;
                     }
-
+                    if (rhs == 0 && missingVariables.Exists(y => y.Id == kvp.Key))
+                    {
+                        solved.Add(new SolverResult(true, x, id: kvp.Key));
+                        continue;
+                    }
                     if (System.Math.Abs(x - 1) > 0.000001d)
                     {
                         rhs /= x;
                         x = 1;
                     }
-
+                    
                     solved.Add(new SolverResult(false, x, id: kvp.Key));
                 }
                 else
@@ -374,7 +564,10 @@ namespace Pyro.Math
             }
 
             solved.Add(new SolverResult(true, rhs));
-            return solved;
+            return Solve(new []{new List<SolverResult>()
+            {
+                new SolverResult(false, 1, default, "x")
+            }, solved});
         }
 
         public static List<SolverResult> MergeWith(this List<SolverResult>[] results, List<SolverResult>[] otherResults)
@@ -399,6 +592,88 @@ namespace Pyro.Math
             }
 
             return result;
+        }
+
+        public static bool IsNextOp(this List<SolverResult> list, int currentIndex, Operation op)
+        {
+            if (!list.IsNextAvailable(currentIndex))
+            {
+                return false;
+            }
+
+            var next = list[currentIndex + 1];
+
+            return next.Op == op;
+        }
+
+        public static bool IsPreviousOp(this List<SolverResult> list, int currentIndex, Operation op)
+        {
+            if (!list.IsPreviousAvailable(currentIndex))
+            {
+                return false;
+            }
+
+            var previous = list[currentIndex - 1];
+
+            return previous.Op == op;
+        }
+
+        public static bool IsPreviousHighOrder(this List<SolverResult> list, int currentIndex)
+        {
+            if (!list.IsPreviousAvailable(currentIndex))
+            {
+                return false;
+            }
+
+            var previous = list[currentIndex - 1];
+
+            return (int)previous.Op >= 0;
+        }
+
+        public static bool IsNextHighOrder(this List<SolverResult> list, int currentIndex)
+        {
+            if (!list.IsNextAvailable(currentIndex))
+            {
+                return false;
+            }
+
+            var previous = list[currentIndex + 1];
+
+            return (int) previous.Op >= 0;
+        }
+
+        public static bool IsNextAvailable(this List<SolverResult> list, int currentIndex)
+        {
+            return list.Count - 1 >= currentIndex + 1;
+        }
+
+        public static bool IsPreviousAvailable(this List<SolverResult> list, int currentIndex)
+        {
+            return currentIndex - 1 >= 0;
+        }
+
+        public static char GetOperatorSymbol(this Operation operation)
+        {
+            return operation switch
+            {
+                Operation.Addition       => '+',
+                Operation.Subtraction    => '-',
+                Operation.Multiplication => '*',
+                Operation.Division       => '/', 
+                Operation.Modulo         => '%',
+                Operation.Factorization  => '!',
+                _                        => '+'
+            };
+        }
+
+        public static char GetOperatorSymbol(this int op)
+        {
+            return ((Operation)op).GetOperatorSymbol();
+        }
+        
+        public static char GetOperatorSymbol(this byte op)
+        {
+            return ((Operation)(int) op).GetOperatorSymbol();
         }
     }
 }

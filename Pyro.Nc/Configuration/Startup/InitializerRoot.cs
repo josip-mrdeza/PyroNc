@@ -60,8 +60,7 @@ namespace Pyro.Nc.Configuration.Startup
             {
                 PyroConsoleView.PushTextStatic(arr);
             }
-
-            if (Globals.Comment is not null)
+            else if (Globals.Comment is not null)
             {
                 PyroConsoleView.PushTextStatic(arr);
                 var textMeshProUGUI = Globals.Comment.Objects[1].GetComponent<TextMeshProUGUI>();

@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
+using Pyro.Threading;
 
 namespace Pyro.Net
 {
@@ -13,24 +15,36 @@ namespace Pyro.Net
         public Lazy<List<NetworkEventSubscriber>> Subscribers { get; }
         public Stream EventStream { get; private set;}
         public bool IsActive { get; private set; }
-        public string Url { get; private set; }
+        public string Url { get; }
+        public string Id { get; }
+        public string Sequence { get; }
         public event EventHandler<NetworkEventArgs> OnEvent;
         public event EventHandler OnConnectedEvent;
         public event EventHandler OnBeginConnectingEvent;
-        
+        public readonly ConcurrentQueue<Action> Queue;
+        public readonly ConcurrentQueue<Func<Task>> AsyncQueue;
         private readonly byte[] _matchSequence;
         private readonly Task _eventTaskRefresher;
-        private static HttpClient _httpClient;
+        private readonly HttpClient _httpClient;
+        private readonly bool _executeOnMainThread;
         
-        public NetworkEvent(string eventId, string matchSequence)
+        public NetworkEvent(string eventId, string matchSequence, bool executeEventsOnMainThread = false)
         {
-            _httpClient ??= new HttpClient(); 
+            _httpClient = new HttpClient(); 
             Subscribers = new Lazy<List<NetworkEventSubscriber>>();
             IsActive = true;
             var url = "https://pyronetserver.azurewebsites.net/events";
             Url = $"{url}?id={eventId}";
+            Id = eventId;
+            Sequence = matchSequence;
+            _executeOnMainThread = executeEventsOnMainThread;
             _matchSequence = matchSequence.Select(x => (byte)x).ToArray();
             _eventTaskRefresher = Task.Run(async () => await RefreshStream());
+            if (executeEventsOnMainThread)
+            {
+                Queue = new ConcurrentQueue<Action>();
+                AsyncQueue = new ConcurrentQueue<Func<Task>>();
+            }
         }
 
         private async Task RefreshStream()
@@ -76,21 +90,49 @@ namespace Pyro.Net
 
                             if (data != null)
                             {
-                                OnEvent?.Invoke(this,new NetworkEventArgs(data));
+                                if (_executeOnMainThread)
+                                {
+                                    Queue.Enqueue(() => OnEvent?.Invoke(this, new NetworkEventArgs(data)));
+                                }
+                                else
+                                {
+                                    OnEvent?.Invoke(this,new NetworkEventArgs(data));
+                                }
                             }
                             else
                             {
-                                OnEvent?.Invoke(this, new NetworkEventArgs(Array.Empty<byte>()));
+                                if (_executeOnMainThread)
+                                {
+                                    Queue.Enqueue(() => OnEvent?.Invoke(this, new NetworkEventArgs(Array.Empty<byte>())));
+                                }
+                                else
+                                {
+                                    OnEvent?.Invoke(this,new NetworkEventArgs(Array.Empty<byte>()));
+                                }
                             }
                             foreach (var subscriber in Subscribers.Value)
                             {
                                 if (subscriber.IsAsync)
                                 {
-                                    await subscriber.OnEventAsync();
+                                    if (_executeOnMainThread)
+                                    {
+                                        AsyncQueue.Enqueue(subscriber.OnEventAsync);
+                                    }
+                                    else
+                                    {
+                                        await subscriber.OnEventAsync();
+                                    }
                                 }
                                 else
                                 {
-                                    subscriber.OnEvent();
+                                    if (_executeOnMainThread)
+                                    {
+                                        Queue.Enqueue(subscriber.OnEvent);
+                                    }
+                                    else
+                                    {
+                                        subscriber.OnEvent();
+                                    }
                                 }
                             }
                         }
@@ -98,7 +140,14 @@ namespace Pyro.Net
                     else
                     {
                         EventStream = null;
-                        OnBeginConnectingEvent?.Invoke(this, EventArgs.Empty);
+                        if (_executeOnMainThread)
+                        {
+                            Queue.Enqueue(() => OnBeginConnectingEvent?.Invoke(this, EventArgs.Empty));
+                        }
+                        else
+                        {
+                            OnBeginConnectingEvent?.Invoke(this, EventArgs.Empty);
+                        }
                         while (!await TryConnect())
                         {
                             // skip
@@ -106,13 +155,23 @@ namespace Pyro.Net
                             await Task.Delay(100);
                         }
                     }
+                    
+
+                    await Task.Delay(5);
                 }
                 catch (Exception e)
                 {
                     Console.WriteLine(e);
                     EventStream?.Dispose();
                     EventStream = null;
-                    OnBeginConnectingEvent?.Invoke(this, EventArgs.Empty);
+                    if (_executeOnMainThread)
+                    {
+                        Queue.Enqueue(() => OnBeginConnectingEvent?.Invoke(this, EventArgs.Empty));
+                    }
+                    else
+                    {
+                        OnBeginConnectingEvent?.Invoke(this, EventArgs.Empty);
+                    }                  
                     while (!await TryConnect())
                     {
                         // skip
@@ -126,9 +185,11 @@ namespace Pyro.Net
                     await Task.Delay(10);
                 }
             }
+            Dispose();
+            await KillEvent(Id);
         }
 
-        private async Task<bool> TryConnect(bool closeAfter = false)
+        private async Task<bool> TryConnect()
         {
             try
             {
@@ -138,7 +199,14 @@ namespace Pyro.Net
             {
                 return false;
             }
-            OnConnectedEvent?.Invoke(this, EventArgs.Empty);
+            if (_executeOnMainThread)
+            {
+                Queue.Enqueue(() => OnConnectedEvent?.Invoke(this, EventArgs.Empty));
+            }
+            else
+            {
+                OnConnectedEvent?.Invoke(this, EventArgs.Empty);
+            }
             return true;
         }
 
@@ -147,6 +215,23 @@ namespace Pyro.Net
             _eventTaskRefresher?.Dispose();
             EventStream?.Dispose();
             IsActive = false;
+        }
+
+        public static NetworkEvent ListenToEvent(string id, string password)
+        {
+            var ne = new NetworkEvent(id, password);
+
+            return ne;
+        }
+
+        public static async Task InvokeEvent(string id, string password, string content)
+        {
+            await NetHelpers.Post($"https://pyronetserver.azurewebsites.net/events/invoke?id={id}&sequence={password}", content);
+        }
+
+        public static async Task KillEvent(string id)
+        {
+            await NetHelpers.Post($"https://pyronetserver.azurewebsites.net/events/close?id={id}");
         }
     }
 }

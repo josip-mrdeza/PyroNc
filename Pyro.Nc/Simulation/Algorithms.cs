@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Pyro.Math;
 using Pyro.Math.Geometry;
+using Pyro.Nc.Simulation.Machines;
+using Pyro.Nc.Simulation.Workpiece;
 using UnityEngine;
 
 namespace Pyro.Nc.Simulation;
@@ -26,84 +29,25 @@ public static class Algorithms
 
         return isXOk && isYOk && isZOk;
     }
-    public static Dictionary<ValueTuple<Vector3, Vector3>, List<VertexMap>> GenerateVertexHashmap(this Mesh mesh, float increment)
-    {
-        Dictionary<ValueTuple<Vector3, Vector3>, List<VertexMap >> dict = new();
-        var tr = Globals.Workpiece.transform;
-        var vertList = mesh.vertices.Select(y => tr.TransformPoint(y)).ToArray();
-        return GenerateVertexHashmapCoreFunction(increment, vertList, dict);
-    }
 
-    public static Dictionary<ValueTuple<Vector3, Vector3>, List<VertexMap>> GenerateVertexHashmapLocalSpace(
-        this Mesh mesh, float increment)
+    public static VertexHashMapGenerationTestOutput TestVertexHashMapGeneration(int iterations, float step)
     {
-        Dictionary<ValueTuple<Vector3, Vector3>, List<VertexMap>> dict = new();
-        var vertList = mesh.vertices;
-        return GenerateVertexHashmapCoreFunction(increment, vertList, dict);
-    }
-
-    private static Dictionary<(Vector3, Vector3), List<VertexMap>> GenerateVertexHashmapCoreFunction(float increment, Vector3[] vertList, Dictionary<(Vector3, Vector3), List<VertexMap>> dict)
-    {
-        var maxX = vertList.Max(x => x.x);
-        var maxZ = vertList.Max(z => z.z);
-        var maxY = vertList.Max(y => y.y);
-        var xCount = (int)System.Math.Ceiling(maxX / increment);
-        var zCount = (int)System.Math.Ceiling(maxZ / increment);
-        var yCount = (int)System.Math.Ceiling(maxY / increment);
-        for (var i = 0; i < vertList.Length; i++)
+        Stopwatch stopwatch = Stopwatch.StartNew();
+        int boxes = 0;
+        int ranges = 0;
+        double ms = 0;
+        for (int i = 0; i < iterations; i++)
         {
-            var vert = vertList[i];
-            var vertMap = new VertexMap(vert, i);
-            for (int x = 0; x < xCount; x++)
-            {
-                var xMin = x * increment;
-                var xMax = (x + 1) * increment;
-                bool isOk = vert.x >= xMin && vert.x <= xMax;
-                if (!isOk)
-                {
-                    continue;
-                }
-
-                for (int z = 0; z < zCount; z++)
-                {
-                    var zMin = z * increment;
-                    var zMax = (z + 1) * increment;
-                    isOk = vert.z >= zMin && vert.z <= zMax;
-                    if (!isOk)
-                    {
-                        continue;
-                    }
-
-                    for (int y = 0; y < yCount; y++)
-                    {
-                        var yMin = y * increment;
-                        var yMax = (y + 1) * increment;
-                        isOk = vert.y >= yMin && vert.y <= yMax;
-                        if (!isOk)
-                        {
-                            continue;
-                        }
-
-                        var minVec = new Vector3(xMin, yMin, zMin);
-                        var maxVec = new Vector3(xMax, yMax, zMax);
-                        var tuple = new ValueTuple<Vector3, Vector3>(minVec, maxVec);
-                        if (dict.ContainsKey(tuple))
-                        {
-                            dict[tuple].Add(vertMap);
-                        }
-                        else
-                        {
-                            dict.Add(tuple, new List<VertexMap>()
-                            {
-                                vertMap
-                            });
-                        }
-                    }
-                }
-            }
+            MachineBase.CurrentMachine.Workpiece.GenerateVertexBoxHashes(step, HashmapGenerationReason.Test);
+            stopwatch.Stop();
+            ms = (ms + stopwatch.Elapsed.TotalMilliseconds) / 2;
+            ranges = (ranges + MachineBase.CurrentMachine.Workpiece.VertexBoxHash.Count) / 2;
+            boxes = (boxes + MachineBase.CurrentMachine.Workpiece.VertexBoxHash.Sum(x => x.Value.Count)) / 2;
+            stopwatch.Restart();
         }
+        stopwatch.Stop();
 
-        return dict;
+        return new VertexHashMapGenerationTestOutput(iterations, ranges, boxes, step, (float)ms);
     }
 
     public struct VertexMap
@@ -115,6 +59,24 @@ public static class Algorithms
         {
             Vertex = vertex;
             Index = index;
+        }
+    }
+    
+    public class VertexHashMapGenerationTestOutput
+    {
+        public int Iterations { get; set; }
+        public int BoxesCreated { get; set; }
+        public int RangesCreated { get; set; }
+        public float Step { get; set; }
+        public float AverageMsPerOperation { get; set; }
+
+        public VertexHashMapGenerationTestOutput(int iterations, int rangesCreated, int boxesCreated, float step, float averageMsPerOperation)
+        {
+            Iterations = iterations;
+            RangesCreated = rangesCreated;
+            BoxesCreated = boxesCreated;
+            Step = step;
+            AverageMsPerOperation = averageMsPerOperation;
         }
     }
 }  

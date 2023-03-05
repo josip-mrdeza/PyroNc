@@ -36,13 +36,16 @@ namespace Pyro.Nc.Configuration.Startup
             rules.AddRule(new YZAxisSwitchRule("YZASS")); //lmao
             rules.AddRule(new UnknownParameterRule("UPR"));
             stopwatch.Stop();
-            Push(Globals.Localisation.Find(Localisation.MapKey.StartupComplete, stopwatch.Elapsed.TotalMilliseconds.Round().ToString()));
+            //Push(Globals.Localisation.Find(Localisation.MapKey.StartupComplete, stopwatch.Elapsed.TotalMilliseconds.Round().ToString()));
         }
 
         public async Task InitializeManagers()
         {
             LocalRoaming roaming = LocalRoaming.OpenOrCreate("PyroNc\\Configuration");
             await CreateManagersFromMemory(roaming);
+            var customAssemblyManager = new CustomAssemblyManager();
+            await customAssemblyManager.InitAsync();
+            Startup.Managers.Add(customAssemblyManager);
         }
 
         private async Task CreateManagersFromMemory(LocalRoaming roaming)
@@ -75,7 +78,7 @@ namespace Pyro.Nc.Configuration.Startup
                     {
                         Push(Globals.Localisation.Find(Localisation.MapKey.GenericHandledError, e.ToString()));
                     }
-                    Push(Globals.Localisation.Find(Localisation.MapKey.StartupCreateManagersFromMemoryCompleted, type.FullName, stopwatch.Elapsed.TotalMilliseconds.Round().ToString()));
+                    //Push(Globals.Localisation.Find(Localisation.MapKey.StartupCreateManagersFromMemoryCompleted, type.FullName, stopwatch.Elapsed.TotalMilliseconds.Round().ToString()));
                     stopwatch.Stop();
                     Managers.Add(manager);
                     managersTypes.Add(type.FullName);

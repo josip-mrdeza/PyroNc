@@ -65,7 +65,7 @@ namespace Pyro.Nc.Parsing
         /// <summary>
         /// The command's unique description.
         /// </summary>
-        public virtual string Description { get; }
+        public virtual string Description { get; internal set; }
         
         /// <summary>
         /// Defines whether the command can be stored as modular, meaning is it reusable.
@@ -82,6 +82,8 @@ namespace Pyro.Nc.Parsing
         /// </summary>
         public ICommandParameters Parameters { get; set; }
         public bool Is2DSimulation { get; set; }
+
+        public int Line { get; set; } = -1;
 
         /// <summary>
         /// A final execution of the command, logging every step of the way and executing <see cref="ICommand.Execute"/> defined on the class inheriting <see cref="BaseCommand"/>.
@@ -104,13 +106,12 @@ namespace Pyro.Nc.Parsing
             
                 clientType = client.GetType();
                 var method = clientType.GetMethod("UpdateDetails");
-                method.Invoke(client, new object[]{$"{type}: '{Description}'"});
+                method.Invoke(client, new object[]{$"[{type}]: '{Description}'"});
             }
             if (MachineBase.CurrentMachine.SimControl.Unit == UnitType.Imperial)
             {
                 Parameters.SwitchToImperial();
-                PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw}) - {Id}",
-                                               "Switched units to the imperial standard.");
+                PyroConsoleView.PushTextStatic($"[{type}]:", "Switched units to the imperial standard.");
             }
             //Cancel();
             if (Is2DSimulation)
@@ -121,24 +122,21 @@ namespace Pyro.Nc.Parsing
                 }
                 catch (Exception e)
                 {
-                    Globals.Console.Push($"{type}: An error has occured in Execute -> {e.Message}!");
+                    Globals.Console.Push($"~[{type}]: An error has occured in Execute -> {e.Message}!~");
                     throw;
                 }
-                PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw}) - {Id}",
-                                               "Finished execution!");
+                PyroConsoleView.PushTextStatic($"[{type}]:", "Finished execution!");
                 Expire();
 
                 return;
             }
-            if (MachineBase.CurrentMachine.CncType == MachineType.Mill)
+            if (MachineBase.CurrentMachine.CncType == MachineType.Mill || MachineBase.CurrentMachine.CncType == MachineType.Undefined)
             {
                 List<string> msgs = new()
                 {
-                    $"{type}: ExecuteFinal({toDraw}) - {Id}",
-                    $"CircleSmoothness: {Parameters.CircleSmoothness}",
-                    $"LineSmoothness: {Parameters.LineSmoothness}",
+                    $"{type} - {Description}"
                 };
-                msgs.AddRange(Parameters.Values.Select(x => x.ToString()));
+                msgs.AddRange(Parameters.Values.Where(y => !float.IsNaN(y.Value)).Select(x => x.ToString()));
                 msgs.Add("Executing in Mill mode...");
                 PyroConsoleView.PushTextStatic(msgs.ToArray());
                 if (skipSetup)
@@ -164,12 +162,10 @@ namespace Pyro.Nc.Parsing
             {
                 List<string> msgs = new()
                 {
-                    $"{type}: ExecuteFinal({toDraw}) - {Id}",
-                    $"CircleSmoothness: {Parameters.CircleSmoothness}",
-                    $"LineSmoothness: {Parameters.LineSmoothness}",
-                    string.Join(",\n", Parameters.Values),
-                    "Executing in Turn mode..."
+                    $"{type} - {Description}"
                 };
+                msgs.AddRange(Parameters.Values.Where(y => !float.IsNaN(y.Value)).Select(x => x.ToString()));
+                msgs.Add("Executing in Turn mode...");
                 PyroConsoleView.PushTextStatic(msgs.ToArray());
                 if(Parameters.GetValue("Y") != 0)
                 {
@@ -195,8 +191,7 @@ namespace Pyro.Nc.Parsing
                     Debug.LogWarning($"{type}: An error has occured in ExecuteTurning -> {e.Message}!");
                     //PyroConsoleView.PushTextStatic($"{type}: An error has occured in ExecuteTurning -> {e.Message}!");
                 }
-                PyroConsoleView.PushTextStatic($"{type}: ExecuteFinal({toDraw}) - {Id}",
-                                               "Finished execution!");
+                PyroConsoleView.PushTextStatic($"{type} - {Description} - Finished");
             }
             Expire();
         }
@@ -348,14 +343,14 @@ namespace Pyro.Nc.Parsing
 
         public static BaseCommand Create(Type typeOfCommand, ICommandParameters optionalParameters = null)
         {
-            var command = Activator.CreateInstance(typeOfCommand, optionalParameters);
+            var command = Activator.CreateInstance(typeOfCommand, Globals.Tool, optionalParameters);
 
             return command as BaseCommand;
         }
 
         public static T Create<T>(ICommandParameters optionalParameters = null)
         {
-            var command = Activator.CreateInstance(typeof(T), optionalParameters);
+            var command = Activator.CreateInstance(typeof(T), Globals.Tool, optionalParameters);
 
             return (T) command;
         }

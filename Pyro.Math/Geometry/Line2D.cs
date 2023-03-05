@@ -8,9 +8,9 @@ public struct Line2D
 {
     public readonly Vector2D Start;
     public readonly Vector2D End;
-    public readonly decimal K = 0;
-    public decimal Angle => GetAngle();
-    public decimal AngleRadian => GetAngleRadian();
+    public readonly float K = 0;
+    public float Angle => GetAngle();
+    public float AngleRadian => GetAngleRadian();
     public readonly string ExplicitEquation;
     public readonly string ImplictEquation;
 
@@ -35,8 +35,8 @@ public struct Line2D
         var x2 = p2.x;
         var y2 = p2.y;
 
-        var f1 = (decimal) (y2 - y1);
-        var f2 = (decimal) (x2 - x1);
+        var f1 = (float) (y2 - y1);
+        var f2 = (float) (x2 - x1);
         if (f2 == 0)
         {
             K = 0;
@@ -48,13 +48,13 @@ public struct Line2D
 
         char sign = K > 0 ? '-' : '+';
             
-        ExplicitEquation = $"y = {decimal.Round(K, 2).ToString(CultureInfo.InvariantCulture)}x {sign.ToString(CultureInfo.InvariantCulture)}{System.Math.Abs(decimal.Round(K * (decimal) x1, 2) - (decimal) y1).ToString(CultureInfo.InvariantCulture)}";
+        ExplicitEquation = $"y = {K.Round().ToString(CultureInfo.InvariantCulture)}x {sign.ToString(CultureInfo.InvariantCulture)}{System.Math.Abs((K * (float) x1).Round() - (float) y1).ToString(CultureInfo.InvariantCulture)}";
         ImplictEquation = null;
     }
 
     public Line2D(float degree)
     {
-        K = degree.Tan().AsDecimal();
+        K = degree.Tan();
         if (degree > 180)
         {
             K = -K;
@@ -65,17 +65,17 @@ public struct Line2D
         var x1 = End.x;
         var y1 = End.y;
         char sign = K > 0 ? '-' : '+';
-        ExplicitEquation = $"y = {decimal.Round(K, 2).ToString(CultureInfo.InvariantCulture)}x {sign.ToString(CultureInfo.InvariantCulture)}{System.Math.Abs(decimal.Round(K * (decimal) x1, 2) - (decimal) y1).ToString(CultureInfo.InvariantCulture)}";
+        ExplicitEquation = $"y = {K.Round().ToString(CultureInfo.InvariantCulture)}x {sign.ToString(CultureInfo.InvariantCulture)}{System.Math.Abs((K * x1).Round() - (float) y1).ToString(CultureInfo.InvariantCulture)}";
         ImplictEquation = null;
     }
 
-    private decimal GetAngle()
+    private float GetAngle()
     {
-        var angle = GetAngleRadian() * (decimal) (180/System.Math.PI);
+        var angle = GetAngleRadian() * (float) (180/System.Math.PI);
         return angle;
     }
 
-    private decimal GetAngleRadian()
+    private float GetAngleRadian()
     {
         var k = (float)K;
         var angle = (double) k.ArcTan();
@@ -86,7 +86,7 @@ public struct Line2D
             angle = -angle;     
         }
 
-        return (decimal) angle;
+        return (float) angle;
     }
     /// <summary>
     /// Pulls the line onto the next quarter.
@@ -100,11 +100,11 @@ public struct Line2D
         {
             line2D = new Line2D(Start, new Vector2D(Start.x - magnitude, Start.y));
         }
-        else if (Angle.IsWithinMargin(90, 0.02m))
+        else if (Angle.IsWithinMargin(90, 0.02f))
         {
             line2D = this;
         }
-        else if (Angle.IsWithinMargin(270, 0.02m) || Angle is > 180 and < 270)
+        else if (Angle.IsWithinMargin(270, 0.02f) || Angle is > 180 and < 270)
         {
             line2D = new Line2D(Start, new Vector2D(Start.x, Start.y + magnitude));
         }
@@ -115,9 +115,9 @@ public struct Line2D
         return line2D;
     }
 
-    public float GetY(decimal x)
+    public float GetY(float x)
     {
-        return (float) (K * x - (K * (decimal) Start.x - (decimal) Start.y));
+        return (float) (K * x - (K * (float) Start.x - (float) Start.y));
     }
     
     
@@ -126,19 +126,19 @@ public struct Line2D
         //(x-p)^2 + (y-q)^2 = radius^2
         //(x-p)^2 + (Kx-C-q)^2 = radius^2
         //(x^2 - 2(x*p) + p^2) + ((Kx)^2 - 2(Kx*(C-q)) + (C-q)^2 - radius^2 = 0
-        var xSq = 0m;
-        var x = 0m;
-        var num = 0m;
-        var c = -(K * (decimal) Start.x - (decimal) Start.y);
+        var xSq = 0f;
+        var x = 0f;
+        var num = 0f;
+        var c = -(K * (float) Start.x - (float) Start.y);
         
         
         xSq += 1;
-        x -= 2m * (decimal) p;
-        num +=  ((decimal) p).Squared() - ((decimal) radius).Squared();
+        x -= 2f * (float) p;
+        num +=  ((float) p).Squared() - ((float) radius).Squared();
 
         xSq += K.Squared();
-        x += 2m * K * (c - (decimal) q);
-        num += (c - (decimal) q).Squared();
+        x += 2f * K * (c - (float) q);
+        num += (c - q).Squared();
 
         var a = xSq;
         var b = x;

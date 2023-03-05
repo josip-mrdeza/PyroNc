@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Machines;
 using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Parsing.MCommands
@@ -20,7 +22,10 @@ namespace Pyro.Nc.Parsing.MCommands
 
         public override async Task Execute(bool draw)
         {
-            await Machine.EventSystem.PEvents.FireAsync("ProgramEnd");
+            var machine = MachineBase.CurrentMachine;
+            machine.ChangeTool(0);
+            machine.ToolControl.SelectedTool.Position = Globals.ReferencePointParser.BeginPoint;
+            machine.StateControl.ResetControl();
         }
     }
 }

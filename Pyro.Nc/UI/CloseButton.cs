@@ -10,7 +10,7 @@ public class CloseButton : View
 {
     public static CloseButton Instance;
     public Button _button;
-    private void Start()
+    public void Awake()
     {
         base.Initialize();
         Instance = this;

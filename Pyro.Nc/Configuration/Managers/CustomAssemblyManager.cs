@@ -42,7 +42,7 @@ public class CustomAssemblyManager : IManager
         catch (Exception e)
         {
             Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.CustomAssemblyManagerFailed, 
-                                                           $"Path={path}", e));
+                                                           $"Path={path}", e.Message));
             Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.GenericHandledError, 
                                                            "Cannot find compiler path, skipping manager..."));
             return;
@@ -52,9 +52,9 @@ public class CustomAssemblyManager : IManager
             if (!compilerFolder.Exists(file.Name))
             {
                 compilerFolder.AddFile(file.Name, File.ReadAllBytes(file.FullName));
-                Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.CustomAssemblyManagerAddMissingFile, 
-                                                               file.Name, 
-                                                               compilerFolder.Site));
+                // Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.CustomAssemblyManagerAddMissingFile, 
+                //                                                file.Name, 
+                //                                                compilerFolder.Site));
             }
         }
         LocalRoaming roaming2 = LocalRoaming.OpenOrCreate("PyroNc\\Compiler\\References");

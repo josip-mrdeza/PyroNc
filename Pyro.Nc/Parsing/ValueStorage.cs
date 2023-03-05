@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Nc.Configuration.Managers;
@@ -153,10 +154,10 @@ namespace Pyro.Nc.Parsing
 
         public static ValueStorage CreateFromFile(ToolBase toolBase)
         {                         
-            if (CommandHelper.Storage is not null)
-            {
-                return CommandHelper.Storage;
-            }
+            // if (CommandHelper.Storage is not null)
+            // {
+            //     return CommandHelper.Storage;
+            // }
             ValueStorage strg = new ValueStorage();
             CommandHelper.Storage = strg;
             strg.CreateLocalLowDir();
@@ -217,9 +218,8 @@ namespace Pyro.Nc.Parsing
                     }
                     catch (Exception e)
                     {
-                        Globals.Console.Push("An error has occured whilst adding commands to the database:",
-                            $"Value to add: \"{str}\"");
-                        Globals.Console.Push($"Descriptive look: {e}");
+                        Globals.Console.Push("An error has occured whilst adding commands to the database:", e.Message);
+                        //Globals.Console.Push($"Descriptive look: {e}");
                     }
                 }
             }
@@ -243,9 +243,7 @@ namespace Pyro.Nc.Parsing
             }
             catch (Exception e)
             {
-                PyroConsoleView.PushTextStatic("An exception has occured in ValueStorage::CreateGCommand", e.Message,
-                                               $"typeFullName: {typeFullName}",
-                                               $"Type: IsNull[{(type == null).ToString()}]");
+                PyroConsoleView.PushTextStatic($"[{nameof(CreateGCommand)}]", e.Message);
                 return new UnresolvedCommand(toolBase, new ArbitraryCommandParameters());
             }
 
@@ -266,9 +264,7 @@ namespace Pyro.Nc.Parsing
             }
             catch (Exception e)
             {
-                PyroConsoleView.PushTextStatic("An exception has occured in ValueStorage::CreateMCommand", e.Message,
-                                               $"typeFullName: {typeFullName}", 
-                                               $"Type: {type}");
+                PyroConsoleView.PushTextStatic($"[{nameof(CreateMCommand)}]", e.Message);
                 return new UnresolvedCommand(toolBase, new ArbitraryCommandParameters());
             }
 
@@ -277,7 +273,7 @@ namespace Pyro.Nc.Parsing
 
         private static BaseCommand CreateOtherCommand(ToolBase toolBase, string typePrefixA, string v, char spaceSeparator)
         {
-            BaseCommand instance;
+            BaseCommand instance = null;
             string typeFullName = null;
             Type type = null;
             try
@@ -290,9 +286,7 @@ namespace Pyro.Nc.Parsing
             }
             catch (Exception e)
             {
-                PyroConsoleView.PushTextStatic("An exception has occured in ValueStorage::CreateOtherCommand", e.Message,
-                                               $"typeFullName: {typeFullName}", 
-                                               $"Type: {type}");             
+                PyroConsoleView.PushTextStatic($"[{nameof(CreateOtherCommand)}]", e.Message);
                 return new UnresolvedCommand(toolBase, new ArbitraryCommandParameters());
             }
 

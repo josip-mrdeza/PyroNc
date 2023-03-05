@@ -21,9 +21,10 @@ namespace Pyro.Nc.Parsing.MCommands
         }
         public override string Description => Locals.M00;
 
-        public override async Task Execute(bool draw)
+        public override Task Execute(bool draw)
         {
-            await ToolBase.Pause();
+            Machine.Pause();
+            return Task.CompletedTask;
         }
     }
 }

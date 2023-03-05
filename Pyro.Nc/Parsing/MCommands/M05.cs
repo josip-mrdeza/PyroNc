@@ -16,8 +16,7 @@ namespace Pyro.Nc.Parsing.MCommands
 
         public override Task Execute(bool draw)
         {
-            //ToolBase.Self.angularVelocity = Vector3.zero;
-
+            Machine.SetSpindleSpeed(0);
             return Task.CompletedTask;
         }
     }

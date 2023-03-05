@@ -18,11 +18,8 @@ namespace Pyro.Nc.Parsing.MCommands
         public bool IsNegative { get; protected set; }
         public override Task Execute(bool draw)
         {
-            if (!ToolBase.IsPresent())
-            {
-                throw new ToolNotDefinedException();
-            }
-            //ToolBase.Self.angularVelocity = new Vector3(0, 1, 0) * ((IsNegative ? -1 : 1) * ToolBase.Values.SpindleSpeed * 0.10472f);
+            ToolBase.ThrowNoToolException();
+            Machine.SetSpindleSpeed((IsNegative ? -1 : 1) * Machine.SpindleControl.SpindleSpeed);
             return Task.CompletedTask;
         }
     }

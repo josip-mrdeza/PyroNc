@@ -18,9 +18,17 @@ public class MachineEventSystem : MachineComponent
     {
         PEvents = new PyroEventSystem();
     }
+
+    public void SystemReset()
+    {
+        var begin = Globals.ReferencePointParser.BeginPoint;
+        Machine.ToolControl.SelectedTool.Position = begin;
+    }
     public void ToolChanged()
     {
-        OnToolChanged?.Invoke(null, Machine.ToolControl.SelectedTool.ToolConfig);
+        var tc = Machine.ToolControl.SelectedTool.ToolConfig;
+        Machine.ToolControl.SelectedTool.CutterCenterPosition = new Vector3(0, tc.VerticalMargin, 0);
+        OnToolChanged?.Invoke(this, tc);
         PEvents.Fire(Locals.EventConstants.ToolChange);
     }
 

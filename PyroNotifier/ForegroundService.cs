@@ -16,7 +16,7 @@ namespace PyroNotifier{
         public override StartCommandResult OnStartCommand(Intent intent, StartCommandFlags flags, int startId)
         {
             Notifier = new AndroidNotifier();
-            Event = NetHelpers.ListenToEvent(EventId, EventPassword);
+            Event = NetworkEvent.ListenToEvent(EventId, EventPassword);
             Event.OnBeginConnectingEvent += (sender, args) =>
             {
                 Notifier.SendNotification("Connecting...", "{}");

@@ -38,7 +38,7 @@ namespace Pyro.Nc.Configuration.Managers
             {
                 if (!roaming.Exists(kvp.Key))
                 {
-                    PyroConsoleView.PushTextStatic($"File '{kvp.Key}' does not exist in path '{roaming.Site}', adding from consts...");
+                    //PyroConsoleView.PushTextStatic($"File '{kvp.Key}' does not exist in path '{roaming.Site}', adding from consts...");
                     roaming.AddFile(kvp.Key, kvp.Value);
                 }
             }
@@ -48,7 +48,7 @@ namespace Pyro.Nc.Configuration.Managers
             {
                 if (!roaming.Exists(kvp.Key))
                 {
-                    PyroConsoleView.PushTextStatic($"File '{kvp.Key}' does not exist in path '{roaming.Site}', adding from consts...");
+                    //PyroConsoleView.PushTextStatic($"File '{kvp.Key}' does not exist in path '{roaming.Site}', adding from consts...");
                     roaming.AddFile(kvp.Key, kvp.Value);
                 }
             }

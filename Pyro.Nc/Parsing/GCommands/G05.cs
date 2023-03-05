@@ -9,6 +9,6 @@ namespace Pyro.Nc.Parsing.GCommands
         {
         }
 
-        public override string Description => Locals.G05;
+        public override string Description => Locals.G05 + "\nNot yet implemented!";
     }
 }

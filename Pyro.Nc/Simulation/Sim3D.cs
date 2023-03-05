@@ -26,6 +26,7 @@ using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation.Machines;
 using Pyro.Nc.Simulation.Tools;
+using Pyro.Nc.Simulation.Workpiece;
 using Pyro.Nc.UI;
 using Pyro.Nc.UI.Debug;
 using UnityEngine;
@@ -36,46 +37,6 @@ namespace Pyro.Nc.Simulation
 {
     public static class Sim3D
     {
-        public static readonly Dictionary<int, int[]> CachedBlocks =
-            new Dictionary<int, int[]>(MachineBase.CurrentMachine.Workpiece.Vertices.Count);
-
-        private static readonly Dictionary<string, MethodInfo> CachedMethods = new Dictionary<string, MethodInfo>().Do(
-            d =>
-            {
-                if (CustomAssemblyManager.Self is null)
-                {
-                    throw new NotSupportedException("CustomAssemblyManager was null when SIM3D was trying to access it!");
-                }
-                var asses = CustomAssemblyManager.Self.ImportedAssemblies;
-                foreach (var assembly in asses)
-                {
-                    foreach (var type in assembly.GetTypes())
-                    {
-                        foreach (var method in type.GetMethods())
-                        {
-                            try
-                            {
-                                if (method.GetCustomAttribute<CustomMethodAttribute>() != null)
-                                {
-                                    d.Add(method.Name, method);
-                                }
-                            }
-                            catch
-                            {
-                                Globals.Console.Push($"Failed to add '{method.Name}' to the dictionary, Key Already exists!");
-                            }
-                        }
-                    }
-                }
-                
-                Globals.Console.Push(new string[]
-                {
-                    $"Added {d.Count.ToString()} methods to the cached dictionary.\n    Methods:"
-                }.Concat(d.Keys).ToArray());
-                return d;
-            });
-
-        public static readonly Dictionary<int, int> VertexTracker = new Dictionary<int, int>();
         /// <summary>
         /// Sets the tool's current destination and path.
         /// </summary>
@@ -103,39 +64,78 @@ namespace Pyro.Nc.Simulation
         /// <param name="toolBase">The tool.</param>
         /// <param name="vertex">A point in 3D space.</param>
         /// <returns>Whether the vertex provided is within the mesh's bounds.</returns>
-        public static Direction IsOkayToCutVertex(this ToolBase toolBase, Vector3 vertex)
+        public static Direction IsOkayToCutVertexDirection(this Vector3 vertex)
         {
-            /*var d = new Direction();
+            var d = new Direction();
+            var workpiece = MachineBase.CurrentMachine.Workpiece;
+            var min = workpiece.MinValues;
+            var max = workpiece.MaxValues;
             //vertex = tool.Cube.transform.TransformVector(vertex);
-            if (vertex.x < toolBase.MinX)
+            if (vertex.x < min.x)
             {
-                d.X = -vertex.x.Abs();
+                d.X = -vertex.x;
             }
-            else if (vertex.x > toolBase.MaxX)
+            else if (vertex.x > max.x)
             {
                 d.X = vertex.x;
             }
             //
-            if (vertex.y < toolBase.MinY)
+            if (vertex.y < min.y)
             {
                 d.Y = -vertex.y;
             }
-            else if (vertex.y > toolBase.MaxY)
+            else if (vertex.y > max.y)
             {
                 d.Y = vertex.y;
             }
             //
-            if (vertex.z < toolBase.MinZ)
+            if (vertex.z < min.z)
             {
                 d.Z = -vertex.z;
             }
-            else if (vertex.z > toolBase.MaxZ)
+            else if (vertex.z > max.z)
             {
                 d.Z = vertex.z;
             }
 
-            return d;*/
-            return default;
+            return d;
+        }
+
+        public static bool IsOkayToCutVertex(this Vector3 vertex)
+        {
+            var d = new Direction();
+            var workpiece = MachineBase.CurrentMachine.Workpiece;
+            var min = workpiece.MinValues;
+            var max = workpiece.MaxValues;
+            //vertex = tool.Cube.transform.TransformVector(vertex);
+            if (vertex.x < min.x - 0.2f)
+            {
+                d.X = -vertex.x;
+            }
+            else if (vertex.x > max.x + 0.2f)
+            {
+                d.X = vertex.x;
+            }
+            //
+            if (vertex.y < min.y - 0.2f)
+            {
+                d.Y = -vertex.y;
+            }
+            else if (vertex.y > max.y + 0.2f)
+            {
+                d.Y = vertex.y;
+            }
+            //
+            if (vertex.z < min.z - 0.2f)
+            {
+                d.Z = -vertex.z;
+            }
+            else if (vertex.z > max.z + 0.2f)
+            {
+                d.Z = vertex.z;
+            }
+
+            return d.X == 0 && d.Y == 0 && d.Z == 0;
         }
         
         //TODO trialob ono za neke radiuse stavit koe su tocke u tom radiusu. i po tome onda radit sve ovo tob trialo bit puuno brze mozda?
@@ -318,18 +318,6 @@ namespace Pyro.Nc.Simulation
                     await toolBase.Traverse(points, draw, logStats);
                     break;
                 }
-
-                default:
-                {
-                    if (!CachedMethods.ContainsKey("Traverse"))
-                    {
-                        throw new MissingMethodException("This method has not been re-implemented yet.");
-                    }
-
-                    Task awaitableTask = CachedMethods["Traverse"].Invoke(null, new object[]{toolBase, points, draw, logStats}).CastInto<Task>();
-                    await awaitableTask;
-                    break;
-                }
             }
         }
         
@@ -343,77 +331,76 @@ namespace Pyro.Nc.Simulation
         [CustomMethod(nameof(Traverse))]
         public static async Task Traverse(this ToolBase toolBase, Vector3[] points, bool draw, bool logStats = true)
         {
-            /*var machine = MachineBase.CurrentMachine;
-            var toolValues = toolBase.Values;
-            var throwIfCutIsDetected = machine.Runner.CurrentContext.GetType() == typeof(G00);
-            double averageTimeForCut = 0;
-            long totalCut = 0;
-            toolBase.SetupTranslation(points);
-            var currentPosition = toolBase.Values.Position;
-            var last = points.Last();
-            Dictionary<int, bool> dictVector = Enumerable.Range(0, toolBase.Vertices.Count).ToDictionary(k => k, _ => false);
-            for (int i = 0; i < VertexTracker.Count; i++)
+            var isCutting = MachineBase.CurrentMachine.Runner.CurrentContext is G01;
+            var dict = await Task.Run(async () => await ToolBase.CompileLineHashCut(points));
+            toolBase.Renderer.positionCount = points.Length;
+            for (var i = 0; i < points.Length; i++)
             {
-                VertexTracker[i] = 0;
-            }
-
-            double totalDistance = Vector3.Distance(currentPosition, points[0]);
-            
-            for (int i = 1; i < points.Length - 1; i++)
-            {
-                totalDistance += Vector3.Distance(points[i], points[i + 1]);
-            }
-            foreach (var point in points)
-            {
-                if (machine.StateControl.State == MachineState.Resetting)
+                if (MachineBase.CurrentMachine.StateControl.IsResetting)
                 {
                     return;
                 }
-
-                var distance = Vector3.Distance(point, currentPosition);
-                float msToTraverseReal;
-                if (machine.SimControl.Unit == UnitType.Imperial)
-                {
-                    msToTraverseReal = (distance * 60_000 * 25.4f) / (machine.SpindleControl.FeedRate);
-                }
-                else
-                {
-                    msToTraverseReal = (distance * 60_000) / machine.SpindleControl.FeedRate;
-                }
-                var totalTime = TimeSpan.FromMilliseconds(msToTraverseReal);
-                UI_3D.Instance.Time.Time += totalTime;
-                draw.DrawTranslation(currentPosition, point);
+                var point = points[i];
                 toolBase.Position = point;
-                var cr = toolBase.CheckPositionForCut(dictVector, Direction.FromVectors(currentPosition, point), throwIfCutIsDetected);
-                averageTimeForCut = cr.TotalTime / cr.TotalVerticesCut;
-                totalCut = cr.TotalVerticesCut;
-                currentPosition = point;
-                if (cr.Threw)
+                toolBase.Renderer.SetPositions(points);
+                if (isCutting)
                 {
-                    throw new RapidFeedCollisionException(machine.Runner.CurrentContext);
+                    if (MachineBase.CuttingType == CutType.Legacy)
+                    {
+                        toolBase.CutLegacy();
+                    }
+                    else if (MachineBase.CuttingType == CutType.LineHash)
+                    {
+                        toolBase.LineHashCut(dict, point);   //works wonders
+                    }
+                    else
+                    {
+                        //toolBase.Cut(boxes, maxMapping);
+                    }
+                    MachineBase.CurrentMachine.Workpiece.UpdateVertices();
                 }
-                await FinishCurrentMove(cr, totalDistance);
-                if (toolValues.TokenSource.IsCancellationRequested)
+                await Task.Yield();
+            }
+            
+            if (MachineBase.CuttingType == CutType.VertexBoxHash)
+            {
+                MachineBase.CurrentMachine.Workpiece.GenerateVertexBoxHashes(WorkpieceControl.Step,
+                                                                             HashmapGenerationReason.UpdatedVertices);
+            }
+            else
+            {
+                //Remesh();
+            }
+        }
+
+        public static void Remesh()
+        {
+            var workpiece = MachineBase.CurrentMachine.Workpiece;
+            var verts = workpiece.Vertices;
+            List<int> triangles = new List<int>();
+            for (int i = 0;; i++)
+            {
+                var fv = i * 2;
+                var lv = i * 2 + 3;
+                var maxV = verts.Count - 1;
+                
+                if (fv <= maxV && lv <= maxV)
                 {
-                    Globals.Console.Push($"Cancelled task - {machine.Runner.CurrentContext.Id}!");
-                    break;
+                    triangles.Add(i * 2);
+                    triangles.Add(i * 2 + 1);
+                    triangles.Add(i * 2 + 2);
+                
+                    triangles.Add(i * 2 + 2);
+                    triangles.Add(i * 2 + 1);
+                    triangles.Add(i * 2 + 3);
                 }
 
-                if (currentPosition == last)
+                if (i > 100_000_000)
                 {
                     break;
                 }
             }
-            if (toolValues.ExactStopCheck)
-            {
-                //await toolBase.InvokeOnConsumeStopCheck();
-            }
-            if (logStats)
-            {
-                PyroConsoleView.PushTextStatic("Traverse finished!", $"Total vertices cut: {totalCut} ({(((double) totalCut / toolBase.Vertices.Count) * 100).Round().ToString(CultureInfo.InvariantCulture)}%)",
-                                               $"Average time spent cutting: {averageTimeForCut.Round().ToString(CultureInfo.InvariantCulture)}ms");
-            }
-            */
+            //workpiece.Triangles = triangles.ToArray();
         }
         /// <summary>
         /// Attempts to traverse the along the path defined by a <see cref="Line3D"/>.

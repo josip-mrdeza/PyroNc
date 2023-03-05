@@ -135,23 +135,23 @@ public class Localisation
         },
         {
             MapKey.GCodeFault,
-            "Error in GetSuggestions: line -> \"{0}\""
+            "Error: \"{0}\""
         },
         {
             MapKey.GCodeFaultOrUndeclared,
-            "Error in GetSuggestions: line -> \"{0}\""
+            "Error: \"{0}\"~"
         },
         {
              MapKey.GenericError, 
-             "Generic (Handled?) error: {0}!"
+             "~Generic (Handled?) error: {0}~!"
         },
         {
             MapKey.GenericUnhandledError, 
-            "Unhandled error: {0}!"
+            "~Unhandled error: {0}~!"
         },
         {
             MapKey.GenericHandledError,
-            "Handled error: {0}!"
+            "~[{0}]Handled error: {1}~!"
         },
         {
             MapKey.GCodeNameProgram,
@@ -159,7 +159,7 @@ public class Localisation
         },
         {
             MapKey.CustomAssemblyManagerFailed,
-            "[CustomAssemblyManager] - An error has occured: INFO({0}), {1}!"
+            "~[CustomAssemblyManager] - An error has occured: INFO({0}), {1}~!"
         },
         {
             MapKey.GenericMessage,

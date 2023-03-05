@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Pyro.IO;
@@ -14,6 +15,7 @@ using Pyro.Nc.Parsing;
 using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Parsing.SyntacticalCommands;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Machines;
 using Pyro.Nc.UI.Programs;
 using Pyro.Nc.UI.UI_Screen;
 using Pyro.Net;
@@ -64,7 +66,18 @@ namespace Pyro.Nc.UI
         public void Focus()
         {
             EventSystem.current.SetSelectedGameObject(Text.gameObject);
-            Text.OnPointerClick(_data);
+            Text.OnPointerClick(new PointerEventData(EventSystem.current));
+        }
+
+        public void SelectText(int lineIndex)
+        {
+            var lines = Text.textComponent.textInfo.lineInfo;
+            var line = lines[lineIndex];
+            Text.caretPosition = line.firstCharacterIndex;
+            Text.selectionAnchorPosition = line.firstCharacterIndex;
+            Text.selectionFocusPosition = line.lastVisibleCharacterIndex;
+            Text.OnUpdateSelected(new BaseEventData(EventSystem.current));
+            Text.ForceLabelUpdate();
         }
 
         public void MarkDirty()
@@ -78,9 +91,9 @@ namespace Pyro.Nc.UI
             Button.onClick.AddListener(async () => await Call(Text.text, true));
             Simulation2DButton.onClick.AddListener(async () => await Call(Text.text, true, true));
             Globals.GCodeInputHandler = this;
-            base.Initialize();
+            //base.Initialize();
             await NetHelpers.Post($"{Address}/register?userName=joki&password=xx3");
-
+            InvokeRepeating(nameof(UpdateViewV2), 0, 0.1f);
             //PopupHandler.PopInputOption("Name your program:", "Ok", Option);
         }
 
@@ -92,8 +105,9 @@ namespace Pyro.Nc.UI
             }
 
             var local = LocalRoaming.OpenOrCreate("PyroNc\\GCode");
-            local.ModifyFile(ph.Text, Text.text);
-            fileName = ph.Text;
+            var txt = ph.PrefabInputs[0].text;
+            local.ModifyFile(txt, Text.text);
+            fileName = txt;
             HasSaved = true;
             Globals.Loader.Load();
             Globals.Loader.ShowOnScreen();
@@ -101,23 +115,6 @@ namespace Pyro.Nc.UI
 
         public async Task Call(string text, bool reset, bool is2d = false)
         {
-            /*//var currentCommand = Globals.Tool.Values.Current;
-            if (Globals.Tool.Values.IsPaused)
-            {
-                PushComment("Resumed program", Color.gray);
-                return;
-            }
-
-            if (reset)
-            {
-                ResetButton.Instance.onClick.Invoke();
-                var str = is2d ? "Simulation View" : "3D View";
-                Globals.Comment.PushComment(str, Color.gray);
-                ViewHandler.ShowOne(is2d ? "2DSimView" : "3DView");
-                CommandHelper.PreviousModal = null;
-                UI_3D.Instance.SetTimeDisplay(new TimeSpan());
-                //Globals.Tool.LineRenderer.SetPositions(new NativeArray<Vector3>(Array.Empty<Vector3>(), Allocator.Persistent));
-            }
             var variables = text.ToUpper(CultureInfo.InvariantCulture)
                                 .Split('\n')                                      //lines
                                 .Select(x => x.Trim().ToUpper().FindVariables()); //line commands
@@ -129,13 +126,11 @@ namespace Pyro.Nc.UI
             {
                 Line = i;
                 var line = lines[i];
-                foreach (var command in line)
+                for (var index = 0; index < line.Count; index++)
                 {
+                    var command = line[index];
+                    command.Line = i;
                     command.Is2DSimulation = is2d;
-                    if (Globals.Tool.Values.IsReset)
-                    {
-                        return;
-                    }
 
                     if (command is ForLoopGCode loop)
                     {
@@ -143,31 +138,36 @@ namespace Pyro.Nc.UI
                         {
                             throw new ForLoopNoEndException();
                         }
-                        
-                        for (int j = i+1; j < lines.Count; j++)
+
+                        for (int j = i + 1; j < lines.Count; j++)
                         {
                             var lineNested = lines[j];
                             if (lineNested.Exists(x => x.GetType() == typeof(EndForGCode)))
                             {
                                 break;
                             }
-                            
+
                             lines.Remove(lineNested);
                             loop.ContainedCommands.AddRange(lineNested);
                             j--;
                         }
-                        
-                        await command.ExecuteFinal(true, true);
-                        continue; 
+
+                        //await command.ExecuteFinal(true, true);
+                        MachineBase.CurrentMachine.Runner.Queue.Enqueue(command);
+
+                        continue;
                     }
-                    
-                    await Globals.Tool.UseCommand(command, true);
+
+                    MachineBase.CurrentMachine.Runner.Queue.Enqueue(command);
                     if (command is M02 or M30)
                     {
-                        return;
+                        break;
                     }
                 }
-            }*/
+            }
+
+            await MachineBase.CurrentMachine.Runner.ExecuteAll();
+            Hide();
         }
 
         public void ApplySuggestions()
@@ -178,11 +178,13 @@ namespace Pyro.Nc.UI
             // {
             //     return;
             // }
-            var suggestions = GetSuggestions(Text.text).ToArray();
+            var str = Text.text;
+            string[] suggestions = null;
+            suggestions = GetSuggestions(str).ToArray();
             if (suggestions.Length == 0)
             {
                 suggestions = new string[]
-                {   
+                {
                     Globals.Localisation.Find(Localisation.MapKey.GCodeNoCommandsFound)
                 };
             }
@@ -206,7 +208,7 @@ namespace Pyro.Nc.UI
             len = length > 0 ? length : 1;
             var rtr1 = (Display.transform as RectTransform);
             var rtr2 = SuggestionDisplay.transform as RectTransform;
-            var size = rtr1.sizeDelta = new Vector2(500, 50 * length * 1.25f);
+            var size = rtr1.sizeDelta = new Vector2(500, 50 * length * 1.5f);
             rtr2.sizeDelta = rtr1.sizeDelta;
             LeftTop = new Vector2(-size.x / 2, size.y / 2);
         }
@@ -231,18 +233,21 @@ namespace Pyro.Nc.UI
             }
             catch (Exception e)
             {
-                 Push(Globals.Localisation.Find(Localisation.MapKey.GCodeFault, 
+                 /*Push(Globals.Localisation.Find(Localisation.MapKey.GCodeFault, 
                                                 GetLineAtCaret()), Globals.Localisation.Find(Localisation.MapKey.GenericError, 
-                                                e)
-                      );
-                 return new []{Globals.Localisation.Find(Localisation.MapKey.GCodeFaultOrUndeclared)
-                     + e.Message};
+                                                e.Message)
+                      ); */
+                 return new []{$"GCODE Error - {e.Message}"};
             }
         }
 
-        public override void UpdateView()
+        public void UpdateViewV2()
         {
-            var lineNum = GetLineNumber();
+            if (!IsActive)
+            {
+                return;
+            }
+            var lineNum = GetLineNumber() + 1;
             LineNumber.text = $"Line: {lineNum.ToString()} | {Text.caretPosition.ToString()}";
             if (Input.GetKey(KeyCode.LeftControl) && Input.GetKey(KeyCode.S))
             {
@@ -269,7 +274,19 @@ namespace Pyro.Nc.UI
             
             ApplySuggestions();
             UpdateDisplaySize(len);
-            
+        }
+
+        public override void UpdateView()
+        {
+            ApplyColors();
+        }
+
+        private void ApplyColors()
+        {
+            if (Text.text.Length > 400)
+            {
+                return;
+            }
             var infos = Text.textComponent.textInfo.wordInfo;
             for (int i = 0; i < infos.Length; i++)
             {
@@ -280,26 +297,36 @@ namespace Pyro.Nc.UI
                     var isParameter = Regex.IsMatch(str, @"[xXyYzZiIjJ]{1}(((\-\d+)|(\d+))[,.]?\d*)");
                     if (isParameter)
                     {
-                        SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(177, 3, 252, 200));
-                        continue; 
-                    }
-                    var isGCommand = Regex.IsMatch( str, @"(G|g){1}\d+");
-                    if (isGCommand)
-                    {
-                        SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(52, 235, 152, 200));
+                        SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1,
+                                           new Color32(177, 3, 252, 200));
+
                         continue;
                     }
+
+                    var isGCommand = Regex.IsMatch(str, @"(G|g){1}\d+");
+                    if (isGCommand)
+                    {
+                        SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1,
+                                           new Color32(52, 235, 152, 200));
+
+                        continue;
+                    }
+
                     var isMCommand = Regex.IsMatch(str, @"(M|m){1}\d+");
                     if (isMCommand)
                     {
-                        SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(255, 255, 0, 200));
+                        SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1,
+                                           new Color32(255, 255, 0, 200));
+
                         continue;
                     }
 
                     var isArbCommand = Regex.IsMatch(str, @"([^\d \n]{2,}|[SsFfTtDd]{1})\d*");
                     if (isArbCommand)
                     {
-                        SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(50, 120, 200, 200));
+                        SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1,
+                                           new Color32(50, 120, 200, 200));
+
                         continue;
                     }
 
@@ -383,6 +410,29 @@ namespace Pyro.Nc.UI
             }
             txt.meshInfo[0].mesh.vertices = txt.meshInfo[0].vertices;
             Text.textComponent.UpdateVertexData();
+        }
+
+        public void AddNumerations(int step)
+        {
+            var str = Text.text;
+            StringBuilder builder = new StringBuilder();
+            var split = str.Split('\n');
+            for (int i = 1; i < split.Length + 1; i++)
+            {
+                var s = split[i - 1];
+                if (!string.IsNullOrEmpty(s))
+                {
+                    builder.Append("N");
+                    builder.Append(i * 10);
+                    builder.Append(' ');
+                    if (s[0] == 'N')
+                    {
+                        s = s.Remove(0, s.IndexOf(' '));
+                    }
+                    builder.AppendLine(s);
+                }
+            }
+            Text.text = builder.ToString();
         }
     }
 }

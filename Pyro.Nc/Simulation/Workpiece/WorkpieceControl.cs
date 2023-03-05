@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Pyro.IO;
+using Pyro.Math;
 using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Serializable;
 using Pyro.Nc.UI;
@@ -15,6 +17,7 @@ namespace Pyro.Nc.Simulation.Workpiece;
 
 public class WorkpieceControl : InitializerRoot
 {
+    public static WorkpieceControl Instance;
     public WorkpieceView View;
 
     public List<Vector3> Vertices
@@ -30,6 +33,16 @@ public class WorkpieceControl : InitializerRoot
         }
     }
 
+    public int[] Triangles
+    {
+        get => _current.triangles;
+        set
+        {
+            Push($"[TRIANGLES]: {value.Length} indices, {value.Length / 3f} triangles");
+            _current.triangles = value;
+        }
+    }
+
     public List<Color> Colors
     {
         get
@@ -40,8 +53,10 @@ public class WorkpieceControl : InitializerRoot
 
     public List<Vector3> OriginalVertices { get; private set; }
     public List<Color> OriginalColors { get; private set; }
+    public Dictionary<Vector3Range, List<Algorithms.VertexMap>> VertexBoxHash => _vertexBoxHash;
     public Vector3 MaxValues;
     public Vector3 MinValues;
+    //public readonly WorkpieceStatistics Statistics = WorkpieceStatistics.Statistics;
 
     private Dictionary<Vector3Range, List<Algorithms.VertexMap>> _vertexBoxHash;
     private Mesh _current;
@@ -50,8 +65,8 @@ public class WorkpieceControl : InitializerRoot
     private List<Vector3> _vertices;
     private List<Color> _colors;
 
-    [StoreAsJson(nameof(step), typeof(float))]
-    internal float step;
+    [StoreAsJson]
+    public static float Step { get; set; } = 12.5f;
 
     public override void Initialize()
     {
@@ -63,45 +78,66 @@ public class WorkpieceControl : InitializerRoot
             mesh.name = "Default Pyro Mesh";
             mesh.Optimize();
             mesh.MarkDynamic();
-            _current = mesh;
+            _current = new Mesh();
+            _current.vertices = mesh.vertices;
+            _current.colors = mesh.colors;
+            _current.triangles = mesh.triangles;
+            _current.RecalculateNormals();
+            _currentMeshFilter.mesh = _current;
+            _currentMeshFilter.sharedMesh = _current;
         }
-        OriginalVertices = new List<Vector3>();
-        OriginalColors = new List<Color>();
         _userAddedMesh = new SerializableMesh(_current);
-        _vertices = new List<Vector3>();
-        _colors = new List<Color>();
-        _vertexBoxHash = new Dictionary<Vector3Range, List<Algorithms.VertexMap>>(_vertices.Count);
-        _current.GetVertices(_vertices);
-        _current.GetColors(_colors);
-        _current.GetVertices(OriginalVertices);
-        _current.GetColors(OriginalColors);
-        GenerateVertexBoxHashes(step);
+        _vertexBoxHash = new Dictionary<Vector3Range, List<Algorithms.VertexMap>>(200);
+        _vertices = _current.vertices.ToList();
+        OriginalVertices = _current.vertices.ToList();
+        OriginalColors = Enumerable.Repeat(Color.white, _vertices.Count).ToList();
+        _colors = Enumerable.Repeat(Color.white, _vertices.Count).ToList();
+        var tr = transform;
+        var maxs = Vertices.Select(x => tr.TransformPoint(x)).Max(v1 => v1.x, v2 => v2.y, v3 => v3.z).ToArray();
+        var xx = maxs[0];
+        var yy = maxs[1];
+        var zz = maxs[2];
+        MaxValues = new Vector3(xx, yy, zz);
+        GenerateVertexBoxHashes(Step, HashmapGenerationReason.Initialized);
         Globals.Workpiece = this;
+        Instance = this;
     }
-
+                                         
     public void ResetVertices()
     {
-        Vertices.Clear();
-        Vertices.AddRange(OriginalVertices);
+        _vertices = OriginalVertices.ToList();
+        UpdateVertices();
     }
 
     public void ResetColors()
     {
-        Colors.Clear();
-        Colors.AddRange(OriginalColors);
+        _colors = OriginalColors.ToList();
     }
 
     public void UpdateVertices()
     {
-        _current.SetVertices(_vertices);
-        GenerateVertexBoxHashes(step);
+        _current.vertices = _vertices.GetInternalArray();
+        _current.colors = _colors.GetInternalArray();
+    }
+
+    public void UpdateVerticesAndGenerateHash(List<Vector3Range> affectedRanges)
+    {
+        UpdateVertices();
+        RegenerateVertexBoxHashes(affectedRanges, Step, HashmapGenerationReason.UpdatedVertices);
+    }
+    
+    public void UpdateVerticesAndGenerateHash(Vector3Range affectedRange)
+    {
+        UpdateVertices();
+        RegenerateVertexBoxHash(affectedRange, Step, HashmapGenerationReason.UpdatedVertices);
+        //Statistics.Increment(nameof(UpdateVerticesAndGenerateHash));
     }
 
     public void UpdateVertices(Vector3[] vertices)
     {
         _current.SetVertices(vertices);
         _current.GetVertices(_vertices);
-        GenerateVertexBoxHashes(step);
+        GenerateVertexBoxHashes(Step, HashmapGenerationReason.UpdatedVertices);
     }
     private void LoadUserAddedMesh()
     {
@@ -115,26 +151,92 @@ public class WorkpieceControl : InitializerRoot
         _current = mesh;
         _userAddedMesh = sMesh;
     }
-    public void GenerateVertexBoxHashes(float step)
+
+    public void RegenerateVertexBoxHashes(List<Vector3Range> affectedRanges, float step, HashmapGenerationReason reason)
     {
-        var maxs = Vertices.Max(v1 => v1.x, v2 => v2.y, v3 => v3.z).ToArray();
+        var tr = transform;
+        foreach (var range in affectedRanges)
+        {
+            var list = VertexBoxHash[range];
+            for (var i = 0; i < list.Count; i++)
+            {
+                var map = list[i];
+                if (range.Fits(map.Vertex))
+                {
+                    map.Vertex = tr.TransformPoint(_vertices[map.Index]);
+                    list[i] = map;
+                }
+                else
+                {
+                    list.Remove(map);
+                    for (int j = 0; j < _vertexBoxHash.Count; j++)
+                    {
+                        var r = _vertexBoxHash.Keys.ElementAt(j);
+                        if (r.Fits(map.Vertex))
+                        {
+                            _vertexBoxHash[r].Add(map);
+                        }
+                    }
+                }
+            }
+        }
+        //DrawHashedBlocks();
+        //Statistics.Increment(nameof(RegenerateVertexBoxHashes));
+    }
+    
+    public void RegenerateVertexBoxHash(Vector3Range affectedRange, float step, HashmapGenerationReason reason)
+    {
+        var tr = transform;
+        var list = VertexBoxHash[affectedRange];
+        for (var i = 0; i < list.Count; i++)
+        {
+            var map = list[i];
+            if (affectedRange.Fits(map.Vertex))
+            {
+                map.Vertex = tr.TransformPoint(_vertices[map.Index]);
+                list[i] = map;
+            }
+            else
+            {
+                list.Remove(map);
+                for (int j = 0; j < _vertexBoxHash.Count; j++)
+                {
+                    var r = _vertexBoxHash.Keys.ElementAt(j);
+                    if (r.Fits(map.Vertex))
+                    {
+                        _vertexBoxHash[r].Add(map);
+                    }
+                }
+            }
+        }
+        //DrawHashedBlocks();
+        //Statistics.Increment(nameof(RegenerateVertexBoxHash));
+    }
+    public void GenerateVertexBoxHashes(float step, HashmapGenerationReason reason)
+    {
+        if (step == 0)
+        {
+            return;
+        }
+        _vertexBoxHash.Clear();
+        var tr = transform;
+        var maxs = MaxValues;
         var xx = maxs[0];
         var yy = maxs[1];
         var zz = maxs[2];
         var xCount = (int)System.Math.Ceiling(xx / step);
         var zCount = (int)System.Math.Ceiling(yy / step);
         var yCount = (int)System.Math.Ceiling(zz / step);
-        MaxValues = new Vector3(xx, yy, zz);
         MinValues = new Vector3();
         var vertCount = _vertices.Count;
         for (int i = 0; i < vertCount; i++)
         {
-            var currentVert = _vertices[i];
+            var currentVert = tr.TransformPoint(_vertices[i]);
             var currentVertexMap = new Algorithms.VertexMap(currentVert, i);
             var xVal = currentVert.x;
             var yVal = currentVert.y;
             var zVal = currentVert.z;
-            for (int x = 0; x < xCount; x++)
+            for (int x = -1; x < xCount; x++)
             {
                 var xmin = x * step;
                 var xmax = (x + 1) * step;
@@ -143,7 +245,7 @@ public class WorkpieceControl : InitializerRoot
                 {
                     continue;
                 }
-                for (int z = 0; z < zCount; z++)
+                for (int z = -1; z < zCount; z++)
                 {
                     var zmin = z * step;
                     var zmax = (z + 1) * step;
@@ -171,6 +273,25 @@ public class WorkpieceControl : InitializerRoot
                 }
             }
         }
+        #if DEBUG
+        var sum = _vertexBoxHash.Values.Sum(x => x.Count);
+        var averagePerSide = _vertexBoxHash.Values.Count / 6;
+
+        if (_vertices.Count > sum)
+        {
+            Globals.Console.Push(
+                $"[ALGORITHMS/WORKPIECE]-{nameof(GenerateVertexBoxHashes)}: ({reason.ToString()}) Generation failed, vertex list contains more elements than hashmap " +
+                $"*({_vertices.Count}v) > *({sum}v in {_vertexBoxHash.Values.Count} blocks) with an increment of {step}!");
+        }
+        else
+        {
+            Globals.Console.Push(
+                $"[ALGORITHMS/WORKPIECE]-{nameof(GenerateVertexBoxHashes)}: ({reason.ToString()}) Generation succeeded, vertex list contains less or equal elements than hashmap " +
+                $"*({_vertices.Count}v) <= *({sum}v in {_vertexBoxHash.Values.Count} blocks) with an increment of {step}.");
+        }
+        //DrawHashedBlocks();
+        #endif
+        //Statistics.Increment(nameof(GenerateVertexBoxHashes));
     }
     private void FinalGenerate(Vector3 minVec, Vector3 maxVec, Algorithms.VertexMap vertexMap)
     {
@@ -186,5 +307,29 @@ public class WorkpieceControl : InitializerRoot
                 vertexMap
             });
         }
+        //Statistics.Increment(nameof(FinalGenerate));
+    }
+
+    public void DrawHashedBlocks()
+    {
+        foreach (var vhv in _vertexBoxHash)
+        {
+            var val1 = vhv.Key.Start;
+            var val2 = vhv.Key.End;
+                    
+            //Debug.DrawLine(val1, new Vector3(val2.x, val1.y, val2.z), Color.red, 10000);
+            for (var i = 1; i < vhv.Value.Count; i++)
+            {
+                //Debug.DrawLine(vhv.Value[i-1].Vertex, vhv.Value[i].Vertex, Color.green, 0.5F);
+                var v = vhv.Value[i - 1].Vertex;
+                Debug.DrawLine(vhv.Value[i-1].Vertex, v + new Vector3(0.2f, 0, 0), Color.green, 0.1F);
+            }
+        }
+        //Statistics.Increment(nameof(DrawHashedBlocks));
+    }
+
+    private void Update()
+    {
+        //DrawHashedBlocks();
     }
 }

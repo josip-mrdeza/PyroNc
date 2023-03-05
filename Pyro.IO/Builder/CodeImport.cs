@@ -89,23 +89,6 @@ public static class CodeImport
     public static void SwitchMethodImplsForCustom(Assembly customAssembly)
     {
         throw new NotImplementedException();
-        if (_availableSwitchableCustomMethodImpls is null)
-        {
-            InitCustomImplMethodsInMainAssembly();
-        }
-
-        Type[] t = customAssembly.GetTypes();
-        foreach (var type in t)
-        {
-            foreach (var method in type.GetMethods())
-            {
-                if (_availableSwitchableCustomMethodImpls.ContainsKey(method.Name))
-                {
-                    var mi = _availableSwitchableCustomMethodImpls[method.Name];
-                    var prop = typeof(MethodInfo).GetProperty("");
-                }
-            }
-        }
     }
     private static void InitCustomImplMethodsInMainAssembly()
     {

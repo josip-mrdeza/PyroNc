@@ -13,6 +13,7 @@ public class MachineStateControl
     public bool IsFree => State == MachineState.Idle;
     public bool IsPaused => State == MachineState.Paused;
     public bool IsExecuting => State == MachineState.Executing;
+    public bool IsResetting => State == MachineState.Resetting;
     
     public async Task WaitForControl()
     {
@@ -47,13 +48,14 @@ public class MachineStateControl
         runner.Queue.Clear();
         ResetUI();
         State = MachineState.Idle;
+        CommandHelper.PreviousModal = null;
+        MachineBase.CurrentMachine.EventSystem.SystemReset();
         MachineBase.CurrentMachine.EventSystem.PEvents.Fire(Locals.EventConstants.SimulationReset);
     }
 
-    private static void ResetUI()
+    public void ResetUI()
     {
         ViewHandler.ShowOne("3DView");
-        CommandHelper.PreviousModal = null;
         UI_3D.Instance.SetTimeDisplay(new TimeSpan());
     }
 }

@@ -29,6 +29,7 @@ public class InputReader : MonoBehaviour
         }
 
         Field.onValueChanged.AddListener(s => OnChanged?.Invoke(s));
+        Field.onDeselect.AddListener(s => OnChanged?.Invoke(s));
     }
 
     public event UnityAction<string> OnChanged;

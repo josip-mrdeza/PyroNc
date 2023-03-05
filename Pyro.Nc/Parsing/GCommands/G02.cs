@@ -18,6 +18,7 @@ namespace Pyro.Nc.Parsing.GCommands
         }
 
         public override bool IsArc => true;
+        public override bool IsModal => true;
 
         public override string Description => Locals.G02;
 
@@ -25,12 +26,10 @@ namespace Pyro.Nc.Parsing.GCommands
         {
             await Execute(false, draw);
         }
-        //TODO this only defines the beginning of the circle, not it's center as i thought before.This needs fixing...
         protected async Task Execute(bool reverse, bool draw)
         {
             var arc = GetArc3D(reverse);
             await ToolBase.Traverse(arc, true);
-            //Expire();
         }
         public override void Execute2D()
         {
@@ -62,7 +61,7 @@ namespace Pyro.Nc.Parsing.GCommands
             }
             else
             {
-                endPoint = new Vector3((parameters.X + trans.x).FixNan(pos.x), pos.y, (parameters.Z + trans.z).FixNan(pos.z));
+                endPoint = new Vector3((parameters.X + trans.x).FixNan(pos.x), pos.y, (parameters.Y + trans.z).FixNan(pos.z));
             }
 
             if (float.IsNaN(parameters.I) && float.IsNaN(parameters.J))

@@ -24,7 +24,7 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
             {
                 throw new SpindleSpeedOverLimitException(this, value, spindle.SpindleSpeed.UpperLimit);
             }
-            Machine.SetSpindleSpeed(value);
+            Machine.SpindleControl.SpindleSpeed.Set(value);
             var rigidBody = ToolBase.Body;
             if (rigidBody.angularVelocity.y != 0)
             {
@@ -38,7 +38,7 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
             }
             else
             {
-                rigidBody.angularVelocity = new Vector3(0, 1, 0) * (value * 0.10472f);
+                //rigidBody.angularVelocity = new Vector3(0, 1, 0) * (value * 0.10472f);
             }
             return Task.CompletedTask;
         }

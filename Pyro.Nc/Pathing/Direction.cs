@@ -55,5 +55,12 @@ namespace Pyro.Nc.Pathing
         {
             return new Vector3(direction.X, direction.Y, direction.Z);
         }
+
+        public override string ToString()
+        {
+            var v = (Vector3)this;
+
+            return v.ToString();
+        }
     }
 }

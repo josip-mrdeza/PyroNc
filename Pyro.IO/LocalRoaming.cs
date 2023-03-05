@@ -15,13 +15,15 @@ namespace Pyro.IO
         public Dictionary<string, DirectoryInfo> Folders { get; private set; }
         public string Site { get; private set; }
         public DirectoryInfo Info { get; private set; }
-        
+
         private static readonly Dictionary<string, LocalRoaming> Roamings = new Dictionary<string, LocalRoaming>();
+
         private static readonly JsonSerializerOptions Options = new JsonSerializerOptions()
         {
             PropertyNameCaseInsensitive = true,
             WriteIndented = true
         };
+
         private readonly byte[] _emptyBytes = Array.Empty<byte>();
 
         private LocalRoaming(string id)
@@ -36,6 +38,7 @@ namespace Pyro.IO
             if (Roamings.ContainsKey(id))
             {
                 roaming = Roamings[id];
+
                 return roaming;
             }
 
@@ -43,7 +46,7 @@ namespace Pyro.IO
 
             return roaming;
         }
-        
+
         private void Init(string name)
         {
             Site = $"{Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}\\{name}\\";
@@ -81,17 +84,19 @@ namespace Pyro.IO
         {
             return Files.Values.Select(x => File.ReadAllText(x.FullName));
         }
-        
+
         public byte[] ReadFile(string variableId)
         {
             if (!Files.ContainsKey(variableId))
             {
                 return _emptyBytes;
             }
+
             var fn = Files[variableId].FullName;
 
             return File.ReadAllBytes(fn);
         }
+
         public async Task<byte[]> ReadFileAsync(string variableId)
         {
             FileInfo fi;
@@ -99,6 +104,7 @@ namespace Pyro.IO
             {
                 return _emptyBytes;
             }
+
             fi = Files[variableId];
             using var fs = fi.OpenRead();
             byte[] arr = new byte[fi.Length];
@@ -111,24 +117,40 @@ namespace Pyro.IO
 
             return arr;
         }
-        
+
         public string ReadFileAsText(string variableId)
         {
             if (!Files.ContainsKey(variableId))
             {
                 return string.Empty;
             }
+
             var fn = Files[variableId].FullName;
 
             return File.ReadAllText(fn);
         }
-        
+
         public T ReadFileAs<T>(string variableId)
         {
             T value = default;
             try
             {
                 value = JsonSerializer.Deserialize<T>(ReadFileAsText(variableId), Options);
+            }
+            catch
+            {
+                //ignore
+            }
+
+            return value;
+        }
+
+        public object ReadFileAs(string variableId, Type type)
+        {
+            object value = default;
+            try
+            {
+                value = JsonSerializer.Deserialize(ReadFileAsText(variableId), type, Options);
             }
             catch
             {

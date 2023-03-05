@@ -19,12 +19,7 @@ namespace Pyro.Nc.UI.UI_Screen
         public TextMeshProUGUI PromptText;
         public Button[] PrefabButtons;
         public TextMeshProUGUI[] ButtonTexts;
-        public TMP_InputField PrefabInput;
-        public string Text
-        {
-            get => PrefabInput.text;
-            set => PrefabInput.text = value;
-        }
+        public TMP_InputField[] PrefabInputs;
 
         public void Pop(string msg)
         {
@@ -32,13 +27,19 @@ namespace Pyro.Nc.UI.UI_Screen
             Open();
         }
 
+        private void Start()
+        {
+            Initialize();
+        }
+
         public override void Initialize()
         {
             Canvas = transform.parent.GetComponent<Canvas>();
             var go = ActivePrefab = InitializeCrucial();
+            go.transform.SetParent(Canvas.transform);
             go.transform.localPosition = Vector3.zero;
             PromptText = go.GetComponentInChildren<TextMeshProUGUI>();
-            PrefabInput = go.GetComponentInChildren<TMP_InputField>();
+            PrefabInputs = go.GetComponentsInChildren<TMP_InputField>();
             PrefabButtons = go.GetComponentsInChildren<Button>();
             ButtonTexts = PrefabButtons.Select(x => x.GetComponentInChildren<TextMeshProUGUI>()).ToArray();
             Close();
@@ -105,6 +106,15 @@ namespace Pyro.Nc.UI.UI_Screen
             }
         }
 
+        public static void PopDualInputOption(string text, string buttonText,
+            params Action<PopupHandler>[] optionFuncs)
+        {
+            var handler = Globals.DualTextInputPopupHandler;
+            handler.ButtonTexts[0].text = buttonText;
+            handler.RemoveListeners();
+            handler.AddListeners(optionFuncs);
+            handler.Pop(text);
+        }
         public static void PopDoubleOption(string text, string option1Text, string option2Text, params Action<PopupHandler>[] optionFuncs)
         {
             var handler = Globals.DoublePopupHandler;
@@ -117,7 +127,7 @@ namespace Pyro.Nc.UI.UI_Screen
         
         public static void PopInputOption(string text, string optionText, Action<PopupHandler> optionFunc1, bool smallVersion = false)
         {
-            var handler = smallVersion ? Globals.InputPopupHandlerSmall : Globals.InputPopupHandlerLarge;
+            var handler = smallVersion ? (PopupHandler) Globals.InputPopupHandlerSmall : Globals.InputPopupHandlerLarge;
             handler.ButtonTexts[0].text = optionText;
             handler.RemoveListeners();
             handler.AddListeners(optionFunc1);

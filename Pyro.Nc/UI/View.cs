@@ -39,7 +39,7 @@ namespace Pyro.Nc.UI
             {
                 Hide(); 
             }
-            Push($"Initialized View: {gameObject.name}", $"View has {Objects.Count} children.");
+            //Push($"Initialized View: {gameObject.name}", $"View has {Objects.Count} children.");
         }
 
         public void RefreshChildObjects()

@@ -1,17 +1,20 @@
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
+using Pyro.Nc.Parsing;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.Simulation.Machines;
 using Pyro.Nc.UI;
 using Pyro.Nc.UI.UI_Screen;
 using Pyro.Net;
+using Pyro.Threading;
 using UnityEngine;
 
 namespace Pyro.Nc.Exceptions
 {
     public class NotifyException : Exception
     {
+        public static BaseCommand CurrentContext => MachineBase.CurrentMachine.Runner.CurrentContext;
         public NotifyException(string message, bool asWarning = false) : base(message)
         {
             Globals.Comment.PushComment(base.GetBaseException().GetType().Name + ": " + message, asWarning ? Color.yellow : Color.red);
@@ -21,8 +24,11 @@ namespace Pyro.Nc.Exceptions
             }
 
             MachineBase.CurrentMachine.EventSystem.PEvents.Fire(Locals.EventConstants.ProgramEnd);
+            var mach = MachineBase.CurrentMachine;
+            mach.SetSpindleSpeed(0);
+            mach.SetFeedRate(0);
             PopupHandler.PopText(message);
-            Task.Run(async () =>
+            MachineBase.CurrentMachine.Queue.Run(async () =>
             {
                 await NetHelpers.Post("https://pyronetserver.azurewebsites.net/events/invoke?id=Exception&sequence=Pyro", $"Line {Globals.GCodeInputHandler.Line}-{message}");
             });

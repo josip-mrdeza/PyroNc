@@ -64,6 +64,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroLogger", "PyroLogger\Py
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pyro.IO.Interop", "Pyro.IO.Interop\Pyro.IO.Interop.csproj", "{B9440682-EC1D-400B-9666-9C50B8DE7097}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PiRcCar", "PiRcCar\PiRcCar.csproj", "{A55E8344-A638-4A2B-910E-C9AC0A8976FA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PiRcCarMono", "PiRcCarMono\PiRcCarMono.csproj", "{586DA007-F2A3-4943-9DE2-7C4A2541CF19}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PiRcCarMonoKeeper", "PiRcCarMonoKeeper\PiRcCarMonoKeeper.csproj", "{527F7AE9-E87E-46CA-AEC9-63C2D9EC3886}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroNetRouter", "PyroNetRouter\PyroNetRouter.csproj", "{DCAEA46D-C19B-4ECC-A131-45229F7A4974}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "capprouter", "capprouter\capprouter.csproj", "{A49153C2-2F4D-4B14-93BC-0E3AD8D82B18}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -198,5 +208,25 @@ Global
 		{B9440682-EC1D-400B-9666-9C50B8DE7097}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B9440682-EC1D-400B-9666-9C50B8DE7097}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B9440682-EC1D-400B-9666-9C50B8DE7097}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A55E8344-A638-4A2B-910E-C9AC0A8976FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A55E8344-A638-4A2B-910E-C9AC0A8976FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A55E8344-A638-4A2B-910E-C9AC0A8976FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A55E8344-A638-4A2B-910E-C9AC0A8976FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{586DA007-F2A3-4943-9DE2-7C4A2541CF19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{586DA007-F2A3-4943-9DE2-7C4A2541CF19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{586DA007-F2A3-4943-9DE2-7C4A2541CF19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{586DA007-F2A3-4943-9DE2-7C4A2541CF19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{527F7AE9-E87E-46CA-AEC9-63C2D9EC3886}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{527F7AE9-E87E-46CA-AEC9-63C2D9EC3886}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{527F7AE9-E87E-46CA-AEC9-63C2D9EC3886}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{527F7AE9-E87E-46CA-AEC9-63C2D9EC3886}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCAEA46D-C19B-4ECC-A131-45229F7A4974}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCAEA46D-C19B-4ECC-A131-45229F7A4974}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCAEA46D-C19B-4ECC-A131-45229F7A4974}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCAEA46D-C19B-4ECC-A131-45229F7A4974}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A49153C2-2F4D-4B14-93BC-0E3AD8D82B18}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A49153C2-2F4D-4B14-93BC-0E3AD8D82B18}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A49153C2-2F4D-4B14-93BC-0E3AD8D82B18}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A49153C2-2F4D-4B14-93BC-0E3AD8D82B18}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

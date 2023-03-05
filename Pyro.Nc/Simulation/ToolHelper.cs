@@ -10,6 +10,7 @@ using Pyro.Nc.Parsing;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation.Machines;
 using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Simulation
@@ -26,7 +27,7 @@ namespace Pyro.Nc.Simulation
                 return x;
             }) ?? new ToolValues(toolBase);
         }
-
+        [Obsolete]
         public static async Task<ToolConfiguration> ChangeTool(this ToolBase toolBase, int index)
         {
             ThrowNoToolException(toolBase);
@@ -37,28 +38,14 @@ namespace Pyro.Nc.Simulation
             return toolBase.ToolConfig;
         }
 
-        public static bool IsPresent(this ToolBase toolBase)
+        public static void Pause(this MachineBase machine)
         {
-            ThrowNoToolException(toolBase);
-
-            return toolBase.ToolConfig.Index != 0;
+            machine.StateControl.PauseControl();
         }
 
-        public static async Task Pause(this ToolBase toolBase)
+        public static void Resume(this MachineBase machine)
         {
-            ThrowNoToolException(toolBase);
-
-            //toolBase.Values.IsPaused = true;    
-            //await toolBase.EventSystem.FireAsync("ProgramPause");
-        }
-
-        public static Task Resume(this ToolBase toolBase)
-        {
-            ThrowNoToolException(toolBase);
-
-            //toolBase.Values.IsPaused = false;
-
-            return Task.CompletedTask;
+            machine.StateControl.FreeControl();
         }
         
         public static void ThrowNoToolException(this ToolBase toolBase)

@@ -14,7 +14,6 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override async Task Execute(bool draw)
         {
-            //await ToolBase.InvokeOnConsumeStopCheck();
             ToolBase.Values.ExactStopCheck = false;
         }
     }

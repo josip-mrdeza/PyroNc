@@ -1,10 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading.Tasks;
+using Pyro.IO;
 using Pyro.Math;
+using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
+using TinyClient;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 
@@ -17,6 +21,14 @@ namespace Pyro.Nc.Configuration.Startup
         private async void Start()
         {
             await Logger.InitializeComplete();
+            
+            var lr = LocalRoaming.OpenOrCreate("PyroNc\\Configuration\\Json");
+            Assembly.GetAssembly(typeof(MonoInitializer)).TraverseAssemblyAndCreateJsonFiles(lr);
+            JsonConfigCreator.AssignJsonStoresToStaticInstances(typeof(Globals), JsonConfigCreator.Stores, lr, (parent, field, value) =>
+            {
+                Globals.Console.Push($"[{parent}] - Loaded config for field '{field}' with a value of '{value}'!");
+            }, s => Globals.Console.Push(s));
+            
             OnLoadedScript?.Invoke(Logger, TimeSpan.Zero, -1);
             Globals.Initializer = this;
             Stopwatch stopwatch = Stopwatch.StartNew();
@@ -26,18 +38,14 @@ namespace Pyro.Nc.Configuration.Startup
                 var root = Scripts[i];
                 try
                 {
-                    //await Task.Delay(50);
                     individual.Restart();
                     await root.InitializeComplete();
                     individual.Stop();
-                    PyroConsoleView.PushTextStatic(Globals.Localisation.Find(Localisation.MapKey.MonoInitializerComplete,
-                                                                             root.GetType().Name, 
-                                                                             individual.Elapsed.TotalMilliseconds.Round().ToString()));
                     OnLoadedScript?.Invoke(root, individual.Elapsed, i);
                 }
                 catch (Exception e)
                 {
-                    Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.GenericHandledError, e));
+                    Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.GenericHandledError, root.GetType().Name, e.ToString()));
                 }
             }
             stopwatch.Stop();

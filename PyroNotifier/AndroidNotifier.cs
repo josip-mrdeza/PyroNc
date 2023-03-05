@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using Android.App;
 using Android.Content;
 using Android.Graphics;
@@ -61,6 +62,7 @@ namespace PyroNotifier
                                                               (int)NotificationDefaults.Vibrate);
 
             Notification notification = builder.Build();
+            builder.SetTimeoutAfter(10000);
             manager.Notify(messageId++, notification);
         }
 

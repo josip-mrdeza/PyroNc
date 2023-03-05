@@ -36,7 +36,7 @@ public class ForLoopGCode : BaseCommand
             return;
         }
 
-        for (CurrentIndex = StartIndex; CurrentIndex < Iterations; CurrentIndex++, SetVariableValue(CurrentIndex))
+        for (CurrentIndex = StartIndex; CurrentIndex < Iterations; CurrentIndex++)
         {
             foreach (var command in ContainedCommands)
             {
@@ -50,8 +50,9 @@ public class ForLoopGCode : BaseCommand
                 }
             }
         }
-
+        
         DeleteVariableValue();
+        Globals.Console.Push("[ForLoop] - Deleted temporary index variable STARTINDEX!");
     }
 
     public void SetVariableValue(object value)

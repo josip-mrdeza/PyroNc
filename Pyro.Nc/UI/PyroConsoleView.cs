@@ -25,7 +25,9 @@ namespace Pyro.Nc.UI
         public TextMeshProUGUI TextMesh;
         public StreamWriter Stream;
         public int Count;
-        public bool UseFileStream;
+        [StoreAsJson]
+        public static bool UseFileStream { get; set; }
+        private Process Process;
         private object _lock = new object();
         public override void Initialize()
         {
@@ -38,12 +40,29 @@ namespace Pyro.Nc.UI
             else
             {
                 var roaming = LocalRoaming.OpenOrCreate("PyroNc\\Logger");
-                var file = roaming.Files.FirstOrDefault(x => x.Value.Name == "PyroLogger.exe");
+                var exe = "PyroLogger.exe";
+                var file = roaming.Files.FirstOrDefault(x => x.Value.Name == exe);
                 var psi = new ProcessStartInfo(file.Value.FullName);
-                Process.Start(psi);
-                Stream = new StreamWriter(roaming.AddFileNoLock("IF.intermediate", FileAccess.Write));
+                var fn = "IF.intermediate";
+                var arr = Process.GetProcessesByName("PyroLogger");
+                foreach (var process in arr)
+                {
+                    UnityEngine.Debug.Log($"Closing process: {process.Id}");
+                    if (process.HasExited)
+                    {
+                        UnityEngine.Debug.Log("Process exited.");
+                    }
+                    else
+                    {
+                        process.Kill();
+                    }
+                    UnityEngine.Debug.Log("Closed process!");
+                }
+                roaming.Delete(fn);
+                Process = Process.Start(psi);
+                Stream = new StreamWriter(roaming.AddFileNoLock(fn, FileAccess.Write));
                 Push("Begun STD Stream on console.");
-            }
+            }   
             PushCreation();
             base.Initialize();
         }
@@ -219,12 +238,13 @@ namespace Pyro.Nc.UI
             }
 
             StringBuilder builder = new StringBuilder();
-            builder.AppendLine(message.FirstOrDefault());
+            builder.Append(message.FirstOrDefault());
             for (int i = 1; i < message.Length; i++)
             {
+                builder.Append('\n');
                 builder.Append("    --");
                 builder.Append(message[i]);
-                builder.Append('\n');
+                //builder.Append('\n');
             }
 
             //builder.AppendLine("<-------------");
@@ -237,12 +257,12 @@ namespace Pyro.Nc.UI
         {
             Stream.Close();
             Stream.Dispose();
+            UnityEngine.Debug.Log("Killing console logger process.");
+            Process?.Kill();
             if (!Globals.IsNetworkPresent)
             {
                 return;
             }
-
-            //Collector.SendLogStatisticAsync();
         }
     }
 }

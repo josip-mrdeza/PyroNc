@@ -15,7 +15,7 @@ public class ReferencePointHandler : MonoBehaviour
     public ReferencePointViewer ReferencePoint;
     public BeginPointViewer BeginPoint;
     public TransPointViewer Trans;
-    public void Start()
+    public void Awake()
     {
         Globals.ReferencePointHandler = this;
         MachineZeroPoint = new GameObject("machinezero").AddComponent<MachinePointViewer>();

@@ -11,7 +11,7 @@ using UnityEngine;
 
 namespace Pyro.Nc.Parsing.MCommands
 {
-    public class M06 : M00
+    public class M06 : BaseCommand
     {
         public M06(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
         {
@@ -19,8 +19,6 @@ namespace Pyro.Nc.Parsing.MCommands
         public override string Description => Locals.M06;
         public override async Task Execute(bool draw)
         {
-            //??
-            //TODO Change tool mesh and radius
             var tools = Globals.ToolManager.Tools;
             ToolConfiguration first = null;
             var requiredTool = (int) Parameters.GetValue("value");

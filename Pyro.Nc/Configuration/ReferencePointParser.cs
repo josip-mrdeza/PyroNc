@@ -12,9 +12,11 @@ namespace Pyro.Nc.Configuration
 {
     public class ReferencePointParser : InitializerRoot
     {
+        public static ReferencePointParser Instance;
         public override void Initialize()
         {
             Globals.ReferencePointParser = this;
+            Instance = this;
             PyroConsoleView.PushTextStatic("Starting ReferencePointParser in path:", Globals.Roaming?.Site);
             referencePointsTxt = LocalRoaming.OpenOrCreate("PyroNc\\Configuration").ReadFileAsText("referencePoints.txt").Split('\n');
             var valid = referencePointsTxt.Where(l => !l.StartsWith("//")).ToArray();
@@ -36,8 +38,8 @@ namespace Pyro.Nc.Configuration
         private string[] referencePointsTxt;
         [SerializeField]
         private Vector3[] _cachedValues = new Vector3[6];
-        [SerializeField]
-        private bool _isRuntimeConst;
+        [StoreAsJson]
+        public static bool _isRuntimeConst { get; set; }
 
         private void InitPerIndex(int index)
         {

@@ -34,10 +34,11 @@ namespace Pyro.Nc.Simulation
         public static MethodStateManager MethodManager;
         public static DefaultsManager DefaultsManager;
         public static MonoInitializer Initializer;
-        public static PopupHandler DoublePopupHandler;
-        public static PopupHandler InputPopupHandlerLarge;
-        public static PopupHandler InputPopupHandlerSmall;
-        public static PopupHandler TextPopupHandler;
+        public static DoubleInputPopupHandler DoublePopupHandler;
+        public static StringInputPopupHandlerLarge InputPopupHandlerLarge;
+        public static StringInputPopupHandlerSmall InputPopupHandlerSmall;
+        public static TextPopupHandler TextPopupHandler;
+        public static DualTextInputPopupHandler DualTextInputPopupHandler;
         public static ReferencePointHandler ReferencePointHandler;
         public static ReferencePointParser ReferencePointParser;
         public static ParseRules Rules = new ParseRules();

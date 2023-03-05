@@ -33,10 +33,15 @@ public class UI_3D : InitializerRoot
         Trans = tr.Find("Trans_Display").GetComponent<ValueDisplayer>();
         Time = tr.Find("Time_Display").GetComponent<TimeValueDisplayer>();
         var mach = MachineBase.CurrentMachine;
-        mach.EventSystem.OnPositionChanged += (_, pos)=> SetPositionDisplay(pos);
-        mach.EventSystem.OnTransChanged += (_, t) => SetTransDisplay(t);
-        mach.EventSystem.OnFeedRateChanged += (_, f) => SetFeedDisplay(f);
-        mach.EventSystem.OnSpindleSpeedChanged += (_, s) => SetSpindleDisplay(s);
+        var machineEventSystem = mach.EventSystem;
+        machineEventSystem.OnPositionChanged += (_, pos)=> SetPositionDisplay(pos);
+        machineEventSystem.OnTransChanged += (_, t) => SetTransDisplay(t);
+        machineEventSystem.OnFeedRateChanged += (_, f) => SetFeedDisplay(f);
+        machineEventSystem.OnSpindleSpeedChanged += (_, s) => SetSpindleDisplay(s);
+        machineEventSystem.PositionChanged();
+        machineEventSystem.TransChanged();
+        machineEventSystem.FeedRateChanged();
+        machineEventSystem.SpindleSpeedChanged();
     }
     
     public void SetPositionDisplay(Vector3 v)

@@ -11,10 +11,5 @@ namespace Pyro.Nc.Parsing.MCommands
         {
         }
         public override string Description => Locals.M01;
-
-        public override async Task Execute(bool draw)
-        {
-            await Machine.EventSystem.PEvents.FireAsync("ProgramPauseConditional");
-        }
     }
 }

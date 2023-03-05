@@ -19,9 +19,9 @@ namespace Pyro.Nc.Parsing.GCommands
             var spindle = Machine.SpindleControl;
             if(spindle.FeedRate == 0)
             {
-                throw new FeedRateNotDefinedException();
+                throw new FeedRateNotDefinedException($"~[Line {Line}]:Can't move tool with no feed rate defined!~");
             }
-            if (spindle.FeedRate == 0)
+            if (spindle.SpindleSpeed == 0)
             {
                 throw new SpindleSpeedNotDefinedException();
             }

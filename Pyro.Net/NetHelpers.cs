@@ -59,12 +59,6 @@ namespace Pyro.Net
         {
             await Client.PutAsync(addr, new StringContent(""));
         }
-
-        public static NetworkEvent ListenToEvent(string id, string password)
-        {
-            var ne = new NetworkEvent(id, password);
-
-            return ne;
-        }
+        
     }
 }

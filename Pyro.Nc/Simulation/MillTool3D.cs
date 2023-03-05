@@ -100,16 +100,7 @@ namespace Pyro.Nc.Simulation
             EventSystem.AddAsyncSubscriber("RapidFeedError", ResolveRapidFeedCollision());
             Position = new Vector3(-50, 100, -50);
             LineRenderer = Lr;
-            await Task.Run(() =>
-            {
-                for (int i = 0; i < Vertices.Count; i++)
-                {
-                    Sim3D.VertexTracker.Add(i, 0);
-                }
-                return;
-                RunCacheIndexing();
-            });
-            
+
         }
 
         private void RunCacheIndexing()

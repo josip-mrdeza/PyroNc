@@ -23,6 +23,7 @@ namespace Pyro.Nc.Parsing
         internal static BaseCommand PreviousModal;
         internal static Dictionary<string, object> VariableMap = new Dictionary<string, object>();
         internal static string PreviousExceptionMessage;
+        internal static MathParser ExpParser = new MathParser("", VariableMap);
         public static bool IsTrue<T>(this T obj, Predicate<T> predicate)
         {
             return predicate(obj);
@@ -55,6 +56,10 @@ namespace Pyro.Nc.Parsing
         }
         public static List<string[]> FindVariables(this string code)
         {
+            if (string.IsNullOrEmpty(code))
+            {
+                return new List<string[]>();
+            }
             var index = code.IndexOf(_cachedKvp!.Value.Key, StringComparison.Ordinal);
             if (index != -1)
             {
@@ -93,6 +98,18 @@ namespace Pyro.Nc.Parsing
                 }
                 else
                 {
+                    if (Regex.IsMatch(section, @"\w\([^)]+\)"))
+                    {
+                        continue;
+                    }
+                    else if (splitCode[0] == "DEF")
+                    {
+                        continue;
+                    }
+                    else if (Regex.IsMatch(section, @"\$(.+)"))
+                    {
+                        continue;
+                    }
                     for (int j = 0; j < Storage.ArbitraryCommands.Keys.Count; j++)
                     {
                         if (section.Contains(Storage.ArbitraryCommands.Keys.ElementAt(j)))
@@ -102,7 +119,7 @@ namespace Pyro.Nc.Parsing
                         }
                     }
                 }   
-                if (Storage.FetchUnresolved(section) != null && !activated)
+                if ((Storage.FetchUnresolved(section) != null && !activated))
                 {
                     indices.Add(i);
                     activated = true;
@@ -150,8 +167,20 @@ namespace Pyro.Nc.Parsing
                     id = commandString[0];
                     if (ScrapComment(arrOfCommands, id, index, commands, out var list)) { return list; }
                     id = id.ToUpperInvariant();
+                    if (ScrapVariableDefinition(string.Join(" ", commandString), commands))
+                    {
+                        continue;
+                    }
+
+                    if (ScrapDereferencesDeclaration(id, out var bc))
+                    {
+                        continue;
+                    }
                     if (ScrapNotation(id, commands) || ScrapToolChange(id, commands) || ScrapSpindleSpeedSetter(id, commands) || ScrapFeedRateSetter(id, commands)) { continue; }
-                    if (HandleForLoopCondition(id, commands, out list)) return list;
+                    if (SynCommandHelper.PopulateIfValid(id, ref commandString, commands))
+                    {
+                        return commands;
+                    }
                     var command = (BaseCommand) Storage.TryGetCommand(id).Copy();
                     if (command is null) { continue; }
                     if (GetCycle(arrOfCommands, command, commands)) continue;
@@ -163,7 +192,7 @@ namespace Pyro.Nc.Parsing
                 }
                 catch (NullReferenceException e)
                 {
-                    if (PreviousExceptionMessage != e.Message)
+                    if (true || PreviousExceptionMessage != e.Message)
                     {
                         PyroConsoleView.PushTextStatic(
                             "An Exception has occured in CommandHelper.CollectCommands:",
@@ -182,81 +211,89 @@ namespace Pyro.Nc.Parsing
                 }
                 catch (Exception e)
                 {
-                    if (PreviousExceptionMessage != e.Message)
-                    {
-                        PyroConsoleView.PushTextStatic(
-                            "An Exception has occured in CommandHelper.CollectCommands:",
-                            $"List length: {commands.Count.ToString()}",
-                            $"List contents: [{string.Join(" ", commands)}]",
-                            $"Current index: {index.ToString()}",
-                            $"Current string: [{string.Join(" ", commandString!)}]",
-                            $"Current id: {id}",
-                            e.Message, e.TargetSite.Name);
-                        PreviousExceptionMessage = e.Message;
-                    }
+                    continue;
                 }
             }
             Globals.Rules.Try(commands);
             if (exception is not null)
             {
-                throw exception;
+                //fail
             }
             return commands;
         }
 
-        private static bool HandleForLoopCondition(string id, List<BaseCommand> commands, out List<BaseCommand> list)
+        private static bool ScrapDereferencesDeclaration(string id, out ValuePointerDereference command)
         {
-            if (id.StartsWith("FOR"))
+            var match = Regex.Match(id, @"\$([\w]+|[\d]+)");
+            if (match.Success)
             {
-                var reg = Regex.Matches(id, @"[\d]+");
-                var reg2 = Regex.Match(id, @"[\w]+=");
-                var r = reg.GetEnumerator();
-                int i = 0;
-                if (r.MoveNext())
-                {
-                    int.TryParse(((Match)r.Current).Value, out i);
-                }
-
-                int iterations = 0;
-                if (r.MoveNext())
-                {
-                    int.TryParse(((Match)r.Current).Value, out iterations);
-                }
-
-                r.Reset();
-                var command = new ForLoopGCode(i, iterations, reg2.Value.Replace("=", ""));
-                commands.Add(command);
-                var loop = command;
-                if (VariableMap.ContainsKey(loop.VariableName))
-                {
-                    VariableMap[loop.VariableName] = loop.StartIndex;
-                }
-                else
-                {
-                    VariableMap.Add(loop.VariableName, i);
-                }
-
-                {
-                    list = commands;
-
-                    return true;
-                }
+                var valueDerf = new ValuePointerDereference(Globals.Tool, new ArbitraryCommandParameters());
+                valueDerf.Name = match.Groups[1].Value;
+                command = valueDerf;
+                return true;
             }
 
-            if (id.StartsWith("ENDFOR"))
-            {
-                var command = new EndForGCode();
-                commands.Add(command);
-                {
-                    list = commands;
-
-                    return true;
-                }
-            }
-
-            list = null;
+            command = null;
             return false;
         }
+        private static bool ScrapVariableDefinition(string id, List<BaseCommand> commands)
+        {
+            bool partialOk = Regex.IsMatch(id, @"DEF");
+            var match = Regex.Match(id, @"DEF (\w+) (\w+)\=(.+)");
+            if (match.Success)  //regular
+            {
+                var varType = match.Groups[1].Value;
+                var name = match.Groups[2].Value;
+                var value = match.Groups[3].Value;
+                var ok = Enum.TryParse<VariableType>(varType, out var type);
+                if (!ok)
+                {
+                    throw new RuleParseException($"Invalid variable type: {varType}!");
+                }
+                DEF def = new DEF(type, false, name, DEF.CreateVariableOfType(type, false, value), 0, 0);
+                commands.Add(def);
+                return true;
+            }
+
+            match = Regex.Match(id, @"DEF (\w+)\[?(\d?)\]? (\w+)\[(\d+),?(\d?)\]");
+            if (match.Success) //array
+            {
+                var varType = match.Groups[1].Value;
+                int.TryParse(match.Groups[2].Value, out var n);
+                var name = match.Groups[3].Value;
+                int.TryParse(match.Groups[4].Value, out n);
+                int.TryParse(match.Groups[5].Value, out var m);
+                var ok = Enum.TryParse<VariableType>(varType, out var e);
+                if (!ok)
+                {
+                    throw new RuleParseException($"Invalid variable type: {varType}!");
+                }
+
+                var variable = DEF.CreateVariableOfType(e, true, null, n, m);
+                DEF def = new DEF(e, true, name, variable, n, m);
+                commands.Add(def);
+                return true;
+            }
+
+            match = Regex.Match(id, "DEF STRING\\[(\\d+)\\] (\\w+)\\=\"(.*)\"");
+            if (match.Success) //string
+            {
+                var name = match.Groups[2].Value;
+                var value = match.Groups[3].Value;
+                DEF def = new DEF(VariableType.STRING, false, name, value, value.Length, 1);
+                commands.Add(def);
+                return true;
+            }
+
+            if (partialOk)
+            {
+                var def = new DEF(Globals.Tool, new ArbitraryCommandParameters());
+                def.Description = "Partial variable declaration";
+                commands.Add(def);
+            }
+            return partialOk;
+        }
+
         private static BaseCommand FinalizeCommand(BaseCommand command, string[] commandString)
         {
             if (command is UnresolvedCommand unresolvedCommand)
@@ -292,12 +329,19 @@ namespace Pyro.Nc.Parsing
                 var success = float.TryParse(reqStr, out var f);
                 if (!success)
                 {
+                    if (ScrapDereferencesDeclaration(reqStr, out var drc))
+                    {
+                        var value = VariableMap[drc.Name];
+                        f = (float) value;
+                        command.Parameters.Values[char.ToUpperInvariant(par[0]).ToString()] = f;
+                        continue;
+                    }
                     reqStr = reqStr.Replace("(", "").Replace(")", "");
-                    var nums = reqStr.LookForNumbers();
-                    var results = nums.Solve();
-                    f = (float)results[1].Value;
-
-                    //Debug.Log($"Solver result: {f.ToString(CultureInfo.InvariantCulture)}");
+                    ExpParser.Expression = reqStr;
+                    // var nums = reqStr.LookForNumbers();
+                    // var results = nums.Solve();
+                    f = (float)ExpParser.Evaluate();
+                    ExpParser.Expression = null;
                 }
 
                 command.Parameters.Values[char.ToUpperInvariant(par[0]).ToString()] = f;
@@ -315,12 +359,12 @@ namespace Pyro.Nc.Parsing
 
             return command;
         }
-        private static void PopulateCommandParameters(string[] commandString, BaseCommand command)
+        internal static void PopulateCommandParameters(string[] commandString, BaseCommand command, int charLen = 1)
         {
             for (int i = 1; i < commandString.Length; i++)
             {
                 var par = commandString[i];
-                var reqStr = new string(par.Skip(1).ToArray());
+                var reqStr = new string(par.Skip(charLen).ToArray());
                 if (string.IsNullOrEmpty(reqStr))
                 {
                     continue;
@@ -329,10 +373,18 @@ namespace Pyro.Nc.Parsing
                 var success = float.TryParse(reqStr, out var f);
                 if (!success)
                 {
+                    if (ScrapDereferencesDeclaration(reqStr, out var drc))
+                    {
+                        var d = (double)drc.Value;
+                        f = (float)d;
+                        reqStr = reqStr.Replace($"${drc.Name}", f.ToString());
+                    }
                     reqStr = reqStr.Replace("(", "").Replace(")", "");
-                    var nums = reqStr.LookForNumbers();
-                    var results = nums.Solve();
-                    f = (float)results[1].Value;
+                    ExpParser.Expression = reqStr;
+                    // var nums = reqStr.LookForNumbers();
+                    // var results = nums.Solve();
+                    f = (float) ExpParser.Evaluate();
+                    ExpParser.Expression = null;
                 }
 
                 command.Parameters.Values[char.ToUpperInvariant(par[0]).ToString()] = f;

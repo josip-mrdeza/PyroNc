@@ -56,7 +56,11 @@ namespace Pyro.Nc.Parsing
 
         public void Try(List<BaseCommand> commands)
         {
-            PreviousModal = (BaseCommand) commands.FindLast(x => x.IsModal);
+            var lastModal = commands.FindLast(x => x.IsModal);
+            if (lastModal != null)
+            {
+                PreviousModal = commands.FindLast(x => x.IsModal);
+            }
             foreach (var commandRule in CommandRules)
             {
                 var b = commandRule.CheckValidity(commands);
