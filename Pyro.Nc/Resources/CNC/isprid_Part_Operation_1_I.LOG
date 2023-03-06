@@ -1,0 +1,75 @@
+
+---------------------------------------
+
+Reading document : Start.
+Reading document : End.
+
+---------------------------------------
+
+Verifying document : Start.
+Verifying document : End.
+
+---------------------------------------
+
+Machine initialization : Start.
+Warning : Machine : PP Word Table not found at the specified place  
+Machine initialization : End.
+
+---------------------------------------
+
+
+Generating NC code file : Start.
+
+Information: ** activity Manufacturing Program.1 : INIT. ** 
+
+Information: ** activity Tool Change.1 : INIT. ** 
+Information: ** Machining and total time  : 0s , 0s . ** 
+Information: ** activity Tool Change.1 : END . ** 
+Warning: activity Pocketing.1 is locked.
+
+Information: ** activity Pocketing.1 : INIT. ** 
+Information: Force Compute on Pocketing.1.
+Information: ** Machining and total time  : 3s , 7s . ** 
+Information: ** activity Pocketing.1 : END . ** 
+Warning: activity Curve Following.1 is locked.
+
+Information: ** activity Curve Following.1 : INIT. ** 
+Information: Force Compute on Curve Following.1.
+Information: ** Machining and total time  : 3s , 7s . ** 
+Information: ** activity Curve Following.1 : END . ** 
+Warning: activity Curve Following.2 is locked.
+
+Information: ** activity Curve Following.2 : INIT. ** 
+Information: Force Compute on Curve Following.2.
+Information: ** Machining and total time  : 5s , 9s . ** 
+Information: ** activity Curve Following.2 : END . ** 
+Warning: activity Curve Following.3 is locked.
+
+Information: ** activity Curve Following.3 : INIT. ** 
+Information: Force Compute on Curve Following.3.
+Information: ** Machining and total time  : 5s , 9s . ** 
+Information: ** activity Curve Following.3 : END . ** 
+
+Information: ** activity Tool Change.3 : INIT. ** 
+Information: ** Machining and total time  : 0s , 0s . ** 
+Information: ** activity Tool Change.3 : END . ** 
+
+Information: ** activity Drilling.2 : INIT. ** 
+Information: ** Machining and total time  : 1s , 4s . ** 
+Information: ** activity Drilling.2 : END . ** 
+Information: ** activity Manufacturing Program.1 : END . ** 
+Generating NC code file : End.
+
+---------------------------------------
+
+Generating ISO file : Debut.
+Generating ISO file : End.
+
+---------------------------------------
+
+Saving document : Start.
+Saving document : End.
+End of Batch.
+
+---------------------------------------
+

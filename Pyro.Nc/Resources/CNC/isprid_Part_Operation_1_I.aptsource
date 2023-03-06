@@ -1,0 +1,152 @@
+$$ -----------------------------------------------------------------
+$$     Generated on 14. veljaèa 2023. 9:00:55
+$$     CATIA APT VERSION 1.0
+$$ -----------------------------------------------------------------
+$$ Manufacturing Program.1
+$$  Part Operation.1
+$$*CATIA0
+$$ Manufacturing Program.1
+$$     1.00000     0.00000     0.00000     0.00000
+$$     0.00000     0.00000    -1.00000     0.00000
+$$     0.00000     1.00000     0.00000     0.00000
+PARTNO PART TO BE MACHINED
+COOLNT/ON
+CUTCOM/OFF
+$$ OPERATION NAME : Tool Change.1
+$$  Start generation of : Tool Change.1
+TLAXIS/ 0.000000, 0.000000, 1.000000
+$$ TOOLCHANGEBEGINNING
+CUTTER/  4.000000,  0.000000,  2.000000,  0.000000,  0.000000,$
+         0.000000, 50.000000
+TOOLNO/1,    4.000000
+TPRINT/T4 End Mill D 4
+LOADTL/1
+$$ TOOLCHANGEEND
+$$  End of generation of : Tool Change.1
+$$ OPERATION NAME : Pocketing.1
+$$  Start generation of : Pocketing.1
+LOADTL/1,1
+FEDRAT/  300.0000,MMPM
+SPINDL/   10.0000,RPM,CLW
+GOTO  /   49.83514,    9.98632,    8.00000
+GOTO  /   49.83514,    9.98632,   -2.00000
+FEDRAT/  500.0000,MMPM
+INTOL /    0.10000
+OUTTOL/    0.00000
+AUTOPS
+INDIRV/   -0.98632,   -0.16486,    0.00000
+TLON,GOFWD/      (CIRCLE/     50.00000,      9.00000,     -2.00000,$
+       1.00000),ON,(LINE/     50.00000,      9.00000,     -2.00000,$
+                              49.08348,      9.40000,     -2.00000)
+GOTO  /   48.88153,    9.00000,   -2.00000
+GOTO  /   49.08348,    8.60000,   -2.00000
+INDIRV/    0.40000,   -0.91652,    0.00000
+TLON,GOFWD/      (CIRCLE/     50.00000,      9.00000,     -2.00000,$
+       1.00000),ON,(LINE/     50.00000,      9.00000,     -2.00000,$
+                              50.91652,      8.60000,     -2.00000)
+GOTO  /   51.11847,    9.00000,   -2.00000
+GOTO  /   50.91652,    9.40000,   -2.00000
+INDIRV/   -0.40000,    0.91652,    0.00000
+TLON,GOFWD/      (CIRCLE/     50.00000,      9.00000,     -2.00000,$
+       1.00000),ON,(LINE/     50.00000,      9.00000,     -2.00000,$
+                              49.83514,      9.98632,     -2.00000)
+GOTO  /   49.67029,   10.97264,   -2.00000
+GOTO  /   49.50543,   11.95895,   -2.00000
+INDIRV/   -0.98632,   -0.16486,    0.00000
+TLON,GOFWD/      (CIRCLE/     50.00000,      9.00000,     -2.00000,$
+       3.00000),ON,(LINE/     50.00000,      9.00000,     -2.00000,$
+                              47.25045,     10.20000,     -2.00000)
+INDIRV/   -0.40000,   -0.91652,    0.00000
+TLON,GOFWD/      (CIRCLE/     45.41742,     11.00000,     -2.00000,$
+       2.00000),ON,(LINE/     45.41742,     11.00000,     -2.00000,$
+                              45.41742,      9.00000,     -2.00000)
+INDIRV/    1.00000,    0.00000,    0.00000
+TLON,GOFWD/      (CIRCLE/     45.41742,      7.00000,     -2.00000,$
+       2.00000),ON,(LINE/     45.41742,      7.00000,     -2.00000,$
+                              47.25045,      7.80000,     -2.00000)
+INDIRV/    0.40000,   -0.91652,    0.00000
+TLON,GOFWD/      (CIRCLE/     50.00000,      9.00000,     -2.00000,$
+       3.00000),ON,(LINE/     50.00000,      9.00000,     -2.00000,$
+                              52.74955,      7.80000,     -2.00000)
+INDIRV/    0.40000,    0.91652,    0.00000
+TLON,GOFWD/      (CIRCLE/     54.58258,      7.00000,     -2.00000,$
+       2.00000),ON,(LINE/     54.58258,      7.00000,     -2.00000,$
+                              54.58258,      9.00000,     -2.00000)
+INDIRV/   -1.00000,    0.00000,    0.00000
+TLON,GOFWD/      (CIRCLE/     54.58258,     11.00000,     -2.00000,$
+       2.00000),ON,(LINE/     54.58258,     11.00000,     -2.00000,$
+                              52.74955,     10.20000,     -2.00000)
+INDIRV/   -0.40000,    0.91652,    0.00000
+TLON,GOFWD/      (CIRCLE/     50.00000,      9.00000,     -2.00000,$
+       3.00000),ON,(LINE/     50.00000,      9.00000,     -2.00000,$
+                              49.50543,     11.95895,     -2.00000)
+FEDRAT/  300.0000,MMPM
+GOTO  /   49.50543,   11.95895,    8.00000
+$$  End of generation of : Pocketing.1
+$$ OPERATION NAME : Curve Following.1
+$$  Start generation of : Curve Following.1
+FEDRAT/  300.0000,MMPM
+SPINDL/   10.0000,RPM,CLW
+GOTO  /   63.00000,    9.00000,    8.00000
+GOTO  /   63.00000,    9.00000,   -2.00000
+FEDRAT/  500.0000,MMPM
+GOTO  /   37.00000,    9.00000,   -2.00000
+FEDRAT/  300.0000,MMPM
+GOTO  /   37.00000,    9.00000,    8.00000
+$$  End of generation of : Curve Following.1
+$$ OPERATION NAME : Curve Following.2
+$$  Start generation of : Curve Following.2
+FEDRAT/  300.0000,MMPM
+SPINDL/   10.0000,RPM,CLW
+GOTO  /   30.00000,   -1.00000,    9.00000
+GOTO  /   30.00000,   -1.00000,   -1.00000
+FEDRAT/  500.0000,MMPM
+GOTO  /   30.00000,   41.00000,   -1.00000
+FEDRAT/  300.0000,MMPM
+GOTO  /   30.00000,   41.00000,    9.00000
+$$  End of generation of : Curve Following.2
+$$ OPERATION NAME : Curve Following.3
+$$  Start generation of : Curve Following.3
+FEDRAT/  300.0000,MMPM
+SPINDL/   10.0000,RPM,CLW
+GOTO  /   70.00000,   -1.00000,    9.00000
+GOTO  /   70.00000,   -1.00000,   -1.00000
+FEDRAT/  500.0000,MMPM
+GOTO  /   70.00000,   41.00000,   -1.00000
+FEDRAT/  300.0000,MMPM
+GOTO  /   70.00000,   41.00000,    9.00000
+$$  End of generation of : Curve Following.3
+$$ OPERATION NAME : Tool Change.3
+$$  Start generation of : Tool Change.3
+$$ TOOLCHANGEBEGINNING
+CUTTER/  8.000000,  0.000000,  4.000000,  2.309401, 30.000000,$
+         0.000000, 50.000000
+TOOLNO/2,    8.000000
+TPRINT/T5 Drill D 8
+LOADTL/2
+$$ TOOLCHANGEEND
+$$  End of generation of : Tool Change.3
+$$ OPERATION NAME : Drilling.2
+$$  Start generation of : Drilling.2
+LOADTL/2,1
+SPINDL/   10.0000,RPM,CLW
+RAPID
+GOTO  /   70.00000,   25.00000,   11.00000
+FEDRAT/  300.0000,MMPM
+GOTO  /   70.00000,   25.00000,    1.00000
+FEDRAT/  500.0000,MMPM
+GOTO  /   70.00000,   25.00000,   -3.00000
+FEDRAT/ 1000.0000,MMPM
+GOTO  /   70.00000,   25.00000,    1.00000
+RAPID
+GOTO  /   30.00000,   25.00000,    1.00000
+FEDRAT/  500.0000,MMPM
+GOTO  /   30.00000,   25.00000,   -3.00000
+FEDRAT/ 1000.0000,MMPM
+GOTO  /   30.00000,   25.00000,    1.00000
+GOTO  /   30.00000,   25.00000,   11.00000
+$$  End of generation of : Drilling.2
+SPINDL/OFF
+REWIND/0
+END
+

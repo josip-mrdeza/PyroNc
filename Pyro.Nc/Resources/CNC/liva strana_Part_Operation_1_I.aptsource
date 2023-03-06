@@ -1,0 +1,52 @@
+$$ -----------------------------------------------------------------
+$$     Generated on 14. veljaèa 2023. 9:00:27
+$$     CATIA APT VERSION 1.0
+$$ -----------------------------------------------------------------
+$$ Manufacturing Program.1
+$$  Part Operation.1
+$$*CATIA0
+$$ Manufacturing Program.1
+$$     0.00000     0.00000    -1.00000     0.00000
+$$    -1.00000     0.00000     0.00000    79.00000
+$$     0.00000     1.00000     0.00000     0.00000
+PARTNO PART TO BE MACHINED
+COOLNT/ON
+CUTCOM/OFF
+$$ OPERATION NAME : Tool Change.1
+$$  Start generation of : Tool Change.1
+TLAXIS/ 0.000000, 0.000000, 1.000000
+$$ TOOLCHANGEBEGINNING
+CUTTER/ 12.000000,  0.000000,  6.000000,  0.000000,  0.000000,$
+         0.000000, 50.000000
+TOOLNO/1,   12.000000
+TPRINT/T2 End Mill D 12
+LOADTL/1
+$$ TOOLCHANGEEND
+$$  End of generation of : Tool Change.1
+$$ OPERATION NAME : Pocketing.1
+$$  Start generation of : Pocketing.1
+LOADTL/1,1
+FEDRAT/  300.0000,MMPM
+SPINDL/   10.0000,RPM,CLW
+GOTO  /   73.00000,   20.00000,    0.00000
+GOTO  /   73.00000,   20.00000,  -10.00000
+FEDRAT/  500.0000,MMPM
+GOTO  /   73.00000,   21.00000,  -10.00000
+GOTO  /    6.00000,   21.00000,  -10.00000
+GOTO  /    6.00000,   19.00000,  -10.00000
+GOTO  /   73.00000,   19.00000,  -10.00000
+GOTO  /   73.00000,   20.00000,  -10.00000
+GOTO  /   76.00000,   20.00000,  -10.00000
+GOTO  /   79.00000,   20.00000,  -10.00000
+GOTO  /   79.00000,   27.00000,  -10.00000
+GOTO  /    0.00000,   27.00000,  -10.00000
+GOTO  /    0.00000,   13.00000,  -10.00000
+GOTO  /   79.00000,   13.00000,  -10.00000
+GOTO  /   79.00000,   20.00000,  -10.00000
+FEDRAT/  300.0000,MMPM
+GOTO  /   79.00000,   20.00000,    0.00000
+$$  End of generation of : Pocketing.1
+SPINDL/OFF
+REWIND/0
+END
+
