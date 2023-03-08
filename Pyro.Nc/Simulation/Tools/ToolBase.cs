@@ -77,6 +77,13 @@ public class ToolBase : InitializerRoot
         Globals.Tool = this;
     }
 
+    public bool IsCollidingWithWorkpieceAt(Vector3 v)
+    {
+        var pos = Position;
+        var hor = Vector2.Distance(new Vector2(v.x, v.z), new Vector2(pos.x, pos.z));
+        var vert = v.y >= pos.y;
+        return vert && hor < ToolConfig.Radius;
+    }
     public void CutLegacy()
     {
         var control = MachineBase.CurrentMachine.Workpiece;

@@ -55,7 +55,7 @@ public class ToolControl : MonoBehaviour
         {
             if (IsInsideWorkpiece(range))
             {
-                throw new RapidFeedCollisionException(Machine.Runner.CurrentContext);
+                throw new RapidFeedCollisionException(Vector3.negativeInfinity);
             }
         }
         else
@@ -64,7 +64,7 @@ public class ToolControl : MonoBehaviour
             {
                 if (IsInsideWorkpiece(range))
                 {
-                    throw new WorkpieceCollisionException(Machine.Runner.CurrentContext);
+                    throw new WorkpieceCollisionException(Machine.Runner.CurrentContext, Vector3.negativeInfinity);
                 }
             }
         }

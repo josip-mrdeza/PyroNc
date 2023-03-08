@@ -26,6 +26,7 @@ namespace Pyro.Nc.Parsing.MCommands
             machine.ChangeTool(0);
             machine.ToolControl.SelectedTool.Position = Globals.ReferencePointParser.BeginPoint;
             machine.StateControl.ResetControl();
+            machine.SimControl.SoftResetCodeSimulation();
         }
     }
 }

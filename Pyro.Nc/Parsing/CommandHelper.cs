@@ -106,9 +106,9 @@ namespace Pyro.Nc.Parsing
                     {
                         continue;
                     }
-                    else if (Regex.IsMatch(section, @"\$(.+)"))
+                    if (Regex.IsMatch(section, @"\$(.+)"))
                     {
-                        continue;
+                        continue; //problem with this taking S / F
                     }
                     for (int j = 0; j < Storage.ArbitraryCommands.Keys.Count; j++)
                     {
@@ -174,6 +174,7 @@ namespace Pyro.Nc.Parsing
 
                     if (ScrapDereferencesDeclaration(id, out var bc))
                     {
+                        id = id.Replace($"${bc.Name}", bc.Value.ToString());
                         continue;
                     }
                     if (ScrapNotation(id, commands) || ScrapToolChange(id, commands) || ScrapSpindleSpeedSetter(id, commands) || ScrapFeedRateSetter(id, commands)) { continue; }
@@ -252,6 +253,7 @@ namespace Pyro.Nc.Parsing
                 }
                 DEF def = new DEF(type, false, name, DEF.CreateVariableOfType(type, false, value), 0, 0);
                 commands.Add(def);
+                def.Execute(false).RunSynchronously();
                 return true;
             }
 
@@ -272,6 +274,7 @@ namespace Pyro.Nc.Parsing
                 var variable = DEF.CreateVariableOfType(e, true, null, n, m);
                 DEF def = new DEF(e, true, name, variable, n, m);
                 commands.Add(def);
+                def.Execute(false).RunSynchronously();
                 return true;
             }
 
@@ -282,6 +285,7 @@ namespace Pyro.Nc.Parsing
                 var value = match.Groups[3].Value;
                 DEF def = new DEF(VariableType.STRING, false, name, value, value.Length, 1);
                 commands.Add(def);
+                def.Execute(false).RunSynchronously();
                 return true;
             }
 
@@ -331,16 +335,21 @@ namespace Pyro.Nc.Parsing
                 {
                     if (ScrapDereferencesDeclaration(reqStr, out var drc))
                     {
-                        var value = VariableMap[drc.Name];
-                        f = (float) value;
-                        command.Parameters.Values[char.ToUpperInvariant(par[0]).ToString()] = f;
-                        continue;
+                        if (drc.Value == null)
+                        {
+                            command.AdditionalInfo += $"\n[Cannot use variable {drc.Name} before it's declaration.]";
+                            continue;
+                        }
+                        var d = (double)drc.Value;
+                        f = (float)d;
+                        reqStr = reqStr.Replace($"${drc.Name}", f.ToString());
+                        command.AdditionalInfo += $"\n[Borrowing->{drc.Name}:{drc.Value}]";
                     }
                     reqStr = reqStr.Replace("(", "").Replace(")", "");
                     ExpParser.Expression = reqStr;
                     // var nums = reqStr.LookForNumbers();
                     // var results = nums.Solve();
-                    f = (float)ExpParser.Evaluate();
+                    f = (float) ExpParser.Evaluate();
                     ExpParser.Expression = null;
                 }
 
@@ -375,9 +384,15 @@ namespace Pyro.Nc.Parsing
                 {
                     if (ScrapDereferencesDeclaration(reqStr, out var drc))
                     {
+                        if (drc.Value == null)
+                        {
+                            command.AdditionalInfo += $"\n[Cannot use variable {drc.Name} before it's declaration.]";
+                            continue;
+                        }
                         var d = (double)drc.Value;
                         f = (float)d;
                         reqStr = reqStr.Replace($"${drc.Name}", f.ToString());
+                        command.AdditionalInfo += $"\n[Borrowing->{drc.Name}:{drc.Value}]";
                     }
                     reqStr = reqStr.Replace("(", "").Replace(")", "");
                     ExpParser.Expression = reqStr;

@@ -35,7 +35,11 @@ namespace Pyro.Nc.UI
                     }
                 }
             }
-            v.Show();
+
+            if (v != null)
+            {
+                v.Show();
+            }
         }
         
         public static void Hide(string id)

@@ -351,15 +351,35 @@ namespace Pyro.Nc.Simulation
                     }
                     else if (MachineBase.CuttingType == CutType.LineHash)
                     {
-                        toolBase.LineHashCut(dict, point);   //works wonders
+                        toolBase.LineHashCut(dict, point); //works wonders
                     }
                     else
                     {
                         //toolBase.Cut(boxes, maxMapping);
                     }
+
                     MachineBase.CurrentMachine.Workpiece.UpdateVertices();
                 }
-                await Task.Yield();
+                else
+                {
+                    if (!dict.TryGetValue(point, out var list))
+                    {
+                        await FinishMove();
+                        continue;
+                    }
+                    var wp = MachineBase.CurrentMachine.Workpiece;
+                    var tr = wp.transform;
+                    var verts = wp.Vertices;
+                    foreach (var index in list)
+                    {
+                        var v = verts[index];
+                        if (MachineBase.CurrentMachine.ToolControl.SelectedTool.IsCollidingWithWorkpieceAt(tr.TransformPoint(v)))
+                        {
+                            throw new RapidFeedCollisionException(point);
+                        }
+                    }
+                }
+                await FinishMove();
             }
             
             if (MachineBase.CuttingType == CutType.VertexBoxHash)
@@ -373,6 +393,11 @@ namespace Pyro.Nc.Simulation
             }
         }
 
+        public static async Task FinishMove()
+        {
+            await Task.Delay(MachineBase.CurrentMachine.ToolControl.SelectedTool.Values.FastMoveTick);
+            await Task.Yield();
+        }
         public static void Remesh()
         {
             var workpiece = MachineBase.CurrentMachine.Workpiece;

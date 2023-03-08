@@ -29,6 +29,12 @@ public class DEF : BaseCommand
     public int N { get; }
     public int M { get; }
 
+    public override string Description
+    {
+        get => $"{DefiningType.ToString().ToLower()} {Name} = {Value ?? "Null"}";
+        internal set {}
+    }
+
     public override async Task Execute(bool draw)
     {
         if (CommandHelper.VariableMap.ContainsKey(Name))

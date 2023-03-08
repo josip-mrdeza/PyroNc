@@ -23,6 +23,7 @@ public class MachineEventSystem : MachineComponent
     {
         var begin = Globals.ReferencePointParser.BeginPoint;
         Machine.ToolControl.SelectedTool.Position = begin;
+        PositionChanged();
     }
     public void ToolChanged()
     {

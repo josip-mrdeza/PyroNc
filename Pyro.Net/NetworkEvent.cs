@@ -18,6 +18,7 @@ namespace Pyro.Net
         public string Url { get; }
         public string Id { get; }
         public string Sequence { get; }
+        public string LastServerMessage { get; private set; }
         public event EventHandler<NetworkEventArgs> OnEvent;
         public event EventHandler OnConnectedEvent;
         public event EventHandler OnBeginConnectingEvent;
@@ -62,7 +63,12 @@ namespace Pyro.Net
                         if (!isBasic)
                         {
                             await EventStream.ReadAsync(intBuffer, 0, 4);
-                            data = new byte[BitConverter.ToInt32(intBuffer, 0)];
+                            var num = BitConverter.ToInt32(intBuffer, 0);
+                            if (num > 10_000)
+                            {
+                                continue;
+                            }
+                            data = new byte[num];
                             await EventStream.ReadAsync(data, 0, data.Length);
                         } 
                         
@@ -224,14 +230,14 @@ namespace Pyro.Net
             return ne;
         }
 
-        public static async Task InvokeEvent(string id, string password, string content)
+        public static async Task<bool> InvokeEvent(string id, string password, string content)
         {
-            await NetHelpers.Post($"https://pyronetserver.azurewebsites.net/events/invoke?id={id}&sequence={password}", content);
+            return await NetHelpers.Post($"https://pyronetserver.azurewebsites.net/events/invoke?id={id}&sequence={password}", content);
         }
 
-        public static async Task KillEvent(string id)
+        public static async Task<bool> KillEvent(string id)
         {
-            await NetHelpers.Post($"https://pyronetserver.azurewebsites.net/events/close?id={id}");
+            return await NetHelpers.Post($"https://pyronetserver.azurewebsites.net/events/close?id={id}");
         }
     }
 }

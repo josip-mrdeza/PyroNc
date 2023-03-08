@@ -90,6 +90,10 @@ namespace Pyro.Nc.UI
             //Text.onValueChanged.AddListener(_ => ApplySuggestions());
             Button.onClick.AddListener(async () => await Call(Text.text, true));
             Simulation2DButton.onClick.AddListener(async () => await Call(Text.text, true, true));
+            Text.onValueChanged.AddListener(_ =>
+            {
+                ApplyColors();
+            });
             Globals.GCodeInputHandler = this;
             //base.Initialize();
             await NetHelpers.Post($"{Address}/register?userName=joki&password=xx3");
@@ -173,11 +177,10 @@ namespace Pyro.Nc.UI
         public void ApplySuggestions()
         {
             HasSaved = false;
-            //var snip = Snip(Text.caretPosition);
-            // if (string.IsNullOrEmpty(snip))
-            // {
-            //     return;
-            // }
+            if (MachineBase.CurrentMachine.StateControl.IsFree)
+            {
+                MachineBase.CurrentMachine.SimControl.SoftResetCodeSimulation();
+            }
             var str = Text.text;
             string[] suggestions = null;
             suggestions = GetSuggestions(str).ToArray();
@@ -278,7 +281,7 @@ namespace Pyro.Nc.UI
 
         public override void UpdateView()
         {
-            ApplyColors();
+            //ApplyColors();
         }
 
         private void ApplyColors()
@@ -287,56 +290,71 @@ namespace Pyro.Nc.UI
             {
                 return;
             }
-            var infos = Text.textComponent.textInfo.wordInfo;
-            for (int i = 0; i < infos.Length; i++)
+            var first = Text.textComponent.firstVisibleCharacter;
+            var txt = Text.textComponent.textInfo;
+            var last = txt.lineInfo[txt.lineCount-1].lastVisibleCharacterIndex;
+            var lines = Text.text.Substring(first, last).Split(new char[]{'\n'}, StringSplitOptions.RemoveEmptyEntries);
+            int index = 0;
+            for (int i = 0; i < lines.Length; i++)
             {
                 try
                 {
-                    var word = infos[i];
-                    var str = word.GetWord().Replace("\n", " ");
-                    var isParameter = Regex.IsMatch(str, @"[xXyYzZiIjJ]{1}(((\-\d+)|(\d+))[,.]?\d*)");
-                    if (isParameter)
+                    var line = lines[i];
+                    var words = line.Split(' ');
+                    foreach (var word in words)
                     {
-                        SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1,
-                                           new Color32(177, 3, 252, 200));
-
-                        continue;
+                        PaintWords(word, index);
+                        index += word.Length + 1;
                     }
-
-                    var isGCommand = Regex.IsMatch(str, @"(G|g){1}\d+");
-                    if (isGCommand)
-                    {
-                        SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1,
-                                           new Color32(52, 235, 152, 200));
-
-                        continue;
-                    }
-
-                    var isMCommand = Regex.IsMatch(str, @"(M|m){1}\d+");
-                    if (isMCommand)
-                    {
-                        SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1,
-                                           new Color32(255, 255, 0, 200));
-
-                        continue;
-                    }
-
-                    var isArbCommand = Regex.IsMatch(str, @"([^\d \n]{2,}|[SsFfTtDd]{1})\d*");
-                    if (isArbCommand)
-                    {
-                        SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1,
-                                           new Color32(50, 120, 200, 200));
-
-                        continue;
-                    }
-
-                    SetCharacterColors(word.firstCharacterIndex, word.lastCharacterIndex + 1, new Color32(255, 0, 0, 200));
                 }
-                catch
+                catch (Exception e)
                 {
+                    Push($"![Painter]: {e.Message}!~");
                     //ignore
                 }
             }
+        }
+
+        private void PaintWords(string word, int fci)
+        {
+            var isParameter = RegexPatterns.CompleteParameterCheck.IsMatch(word);
+            var lci = fci + word.Length + 1;
+            if (isParameter)
+            {
+                SetCharacterColors(fci, lci,
+                                   new Color32(177, 3, 252, 200));
+
+                return;
+            }
+
+            var isGCommand = RegexPatterns.CompleteGFunctionCheck.IsMatch(word);
+            if (isGCommand)
+            {
+                SetCharacterColors(fci, lci,
+                                   new Color32(52, 235, 152, 200));
+
+                return;
+            }
+
+            var isMCommand = RegexPatterns.CompleteMFunctionCheck.IsMatch(word);
+            if (isMCommand)
+            {
+                SetCharacterColors(fci, lci,
+                                   new Color32(255, 255, 0, 200));
+
+                return;
+            }
+
+            //var isArbCommand = RegexPatterns.CompleteArbitraryFunctionCheck.IsMatch(word);
+            if (false)//isArbCommand)
+            {
+                SetCharacterColors(fci, lci,
+                                   new Color32(50, 120, 200, 200));
+
+                return;
+            }
+
+            SetCharacterColors(fci, lci, new Color32(255, 0, 0, 200));
         }
 
         public int GetLineNumber()

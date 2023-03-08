@@ -28,6 +28,7 @@ namespace Pyro.Nc.UI
         [StoreAsJson]
         public static bool UseFileStream { get; set; }
         private Process Process;
+        private Process Charter;
         private object _lock = new object();
         public override void Initialize()
         {
@@ -39,30 +40,49 @@ namespace Pyro.Nc.UI
             }
             else
             {
-                var roaming = LocalRoaming.OpenOrCreate("PyroNc\\Logger");
-                var exe = "PyroLogger.exe";
-                var file = roaming.Files.FirstOrDefault(x => x.Value.Name == exe);
-                var psi = new ProcessStartInfo(file.Value.FullName);
-                var fn = "IF.intermediate";
-                var arr = Process.GetProcessesByName("PyroLogger");
-                foreach (var process in arr)
+                try
                 {
-                    UnityEngine.Debug.Log($"Closing process: {process.Id}");
-                    if (process.HasExited)
+
+                    var roaming = LocalRoaming.OpenOrCreate("PyroNc\\Logger");
+                    var r2 = LocalRoaming.OpenOrCreate("PyroNc\\Logger\\Charter");
+                    var exe = "PyroLogger.exe";
+                    var exe2 = "PyroCharting.exe";
+                    var file = roaming.Files.FirstOrDefault(x => x.Value.Name == exe);
+                    var file2 = r2.Files.FirstOrDefault(x => x.Value.Name == exe2);
+                    var psi = new ProcessStartInfo(file.Value.FullName);
+                    var psi2 = new ProcessStartInfo(file2.Value.FullName);
+                    var fn = "IF.intermediate";
+                    var arr = Process.GetProcessesByName("PyroLogger");
+                    foreach (var process in arr)
                     {
-                        UnityEngine.Debug.Log("Process exited.");
+                        UnityEngine.Debug.Log($"Closing process: {process.Id}");
+                        if (process.HasExited)
+                        {
+                            UnityEngine.Debug.Log("Process exited.");
+                        }
+                        else
+                        {
+                            process.Kill();
+                        }
+
+                        UnityEngine.Debug.Log("Closed process!");
                     }
-                    else
-                    {
-                        process.Kill();
-                    }
-                    UnityEngine.Debug.Log("Closed process!");
+
+                    roaming.Delete(fn);
+                    Process = Process.Start(psi);
+                    psi2.Arguments = Process.GetCurrentProcess().Id.ToString();
+                    psi2.UseShellExecute = true;
+                    Charter = Process.Start(psi2);
+                    Stream = new StreamWriter(roaming.AddFileNoLock(fn, FileAccess.Write));
+                    Push("Begun STD Stream on console.");
                 }
-                roaming.Delete(fn);
-                Process = Process.Start(psi);
-                Stream = new StreamWriter(roaming.AddFileNoLock(fn, FileAccess.Write));
-                Push("Begun STD Stream on console.");
-            }   
+                catch (Exception e)
+                {
+                    UnityEngine.Debug.LogWarning($"[{e.GetType().Name}] - Failed to initialize PyroConsoleView (Logger)! - \n" +
+                                                 $"{e.ToString()}");
+                }
+            }
+
             PushCreation();
             base.Initialize();
         }
@@ -259,10 +279,16 @@ namespace Pyro.Nc.UI
             Stream.Dispose();
             UnityEngine.Debug.Log("Killing console logger process.");
             Process?.Kill();
+            Charter?.Kill();
             if (!Globals.IsNetworkPresent)
             {
                 return;
             }
+        }
+
+        private void OnDestroy()
+        {
+            DisposeStream();
         }
     }
 }

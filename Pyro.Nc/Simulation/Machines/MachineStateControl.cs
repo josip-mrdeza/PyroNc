@@ -30,16 +30,22 @@ public class MachineStateControl
     public void BorrowControl()
     {
         State = MachineState.Executing;
+        Application.targetFrameRate = 240;
+        QualitySettings.vSyncCount = 0;
     }
 
     public void FreeControl()
     {
         State = MachineState.Idle;
+        Application.targetFrameRate = 60;
+        QualitySettings.vSyncCount = 0;
     }
 
     public void PauseControl()
     {
         State = MachineState.Paused;
+        Application.targetFrameRate = 60;
+        QualitySettings.vSyncCount = 0;
     }
 
     public void ResetControl()
@@ -51,6 +57,8 @@ public class MachineStateControl
         CommandHelper.PreviousModal = null;
         MachineBase.CurrentMachine.EventSystem.SystemReset();
         MachineBase.CurrentMachine.EventSystem.PEvents.Fire(Locals.EventConstants.SimulationReset);
+        Application.targetFrameRate = 60;
+        QualitySettings.vSyncCount = 0;
     }
 
     public void ResetUI()

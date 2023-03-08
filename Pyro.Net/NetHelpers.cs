@@ -4,7 +4,6 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using TinyClient;
-using UnityEngine;
 
 namespace Pyro.Net
 {
@@ -40,24 +39,25 @@ namespace Pyro.Net
             return content.DeserializeUtf8JsonInto<T>();
         }
 
-        public static async Task PostJson<T>(this T obj, string addr)
+        public static async Task<bool> PostJson<T>(this T obj, string addr)
         {
-            await Client.PostAsync(addr, new StringContent(obj.SerializeToUtf8Json(), Encoding.Default, "text/json"));
+            return (await Client.PostAsync(addr, new StringContent(obj.SerializeToUtf8Json(),
+                                                                   Encoding.Default, "text/json"))).IsSuccessStatusCode;
         }
 
-        public static async Task Post(string addr)
+        public static async Task<bool> Post(string addr)
         {
-            await Client.PostAsync(addr, new StringContent(""));
+            return (await Client.PostAsync(addr, new StringContent(""))).IsSuccessStatusCode;
         }
         
-        public static async Task Post(string addr, string content)
+        public static async Task<bool> Post(string addr, string content)
         {
-            await Client.PostAsync(addr, new StringContent(content));
+            return (await Client.PostAsync(addr, new StringContent(content))).IsSuccessStatusCode;
         }
         
-        public static async Task Put(string addr)
+        public static async Task<bool> Put(string addr)
         {
-            await Client.PutAsync(addr, new StringContent(""));
+            return (await Client.PutAsync(addr, new StringContent(""))).IsSuccessStatusCode;
         }
         
     }
