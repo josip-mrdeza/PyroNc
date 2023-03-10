@@ -27,13 +27,17 @@ namespace Pyro.Nc.UI
         public int Count;
         [StoreAsJson]
         public static bool UseFileStream { get; set; }
+        [StoreAsJson]
+        public static bool UseChart { get; set; }
         private Process Process;
         private Process Charter;
         private object _lock = new object();
         public override void Initialize()
         {
             UpdateGlobals();
-            if (UseFileStream)
+            var roaming = LocalRoaming.OpenOrCreate("PyroNc\\Logger");
+            var b = roaming.Exists("PyroLogger.exe");
+            if (UseFileStream || !b)
             {
                 var fileInfo = CreateFileStream();
                 PushEventCreation(fileInfo);
@@ -42,8 +46,6 @@ namespace Pyro.Nc.UI
             {
                 try
                 {
-
-                    var roaming = LocalRoaming.OpenOrCreate("PyroNc\\Logger");
                     var r2 = LocalRoaming.OpenOrCreate("PyroNc\\Logger\\Charter");
                     var exe = "PyroLogger.exe";
                     var exe2 = "PyroCharting.exe";
@@ -70,20 +72,23 @@ namespace Pyro.Nc.UI
 
                     roaming.Delete(fn);
                     Process = Process.Start(psi);
-                    psi2.Arguments = Process.GetCurrentProcess().Id.ToString();
-                    psi2.UseShellExecute = true;
-                    Charter = Process.Start(psi2);
+                    if (UseChart)
+                    {
+                        psi2.Arguments = Process.GetCurrentProcess().Id.ToString();
+                        psi2.UseShellExecute = true;
+                        Charter = Process.Start(psi2);
+                    }
                     Stream = new StreamWriter(roaming.AddFileNoLock(fn, FileAccess.Write));
                     Push("Begun STD Stream on console.");
+                    PushCreation();
                 }
                 catch (Exception e)
                 {
-                    UnityEngine.Debug.LogWarning($"[{e.GetType().Name}] - Failed to initialize PyroConsoleView (Logger)! - \n" +
+                    UnityEngine.Debug.LogError($"[{e.GetType().Name}] - Failed to initialize PyroConsoleView (Logger)! - \n" +
                                                  $"{e.ToString()}");
                 }
             }
 
-            PushCreation();
             base.Initialize();
         }
 

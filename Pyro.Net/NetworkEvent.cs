@@ -24,14 +24,16 @@ namespace Pyro.Net
         public event EventHandler OnBeginConnectingEvent;
         public readonly ConcurrentQueue<Action> Queue;
         public readonly ConcurrentQueue<Func<Task>> AsyncQueue;
+        public TimeSpan Delay;
         private readonly byte[] _matchSequence;
-        private readonly Task _eventTaskRefresher;
+        private Task _eventTaskRefresher;
         private readonly HttpClient _httpClient;
         private readonly bool _executeOnMainThread;
         
-        public NetworkEvent(string eventId, string matchSequence, bool executeEventsOnMainThread = false)
+        public NetworkEvent(string eventId, string matchSequence, bool executeEventsOnMainThread = false, bool startImplicitly = true)
         {
-            _httpClient = new HttpClient(); 
+            _httpClient = new HttpClient();
+            Delay = TimeSpan.FromMilliseconds(25);
             Subscribers = new Lazy<List<NetworkEventSubscriber>>();
             IsActive = true;
             var url = "https://pyronetserver.azurewebsites.net/events";
@@ -40,11 +42,22 @@ namespace Pyro.Net
             Sequence = matchSequence;
             _executeOnMainThread = executeEventsOnMainThread;
             _matchSequence = matchSequence.Select(x => (byte)x).ToArray();
-            _eventTaskRefresher = Task.Run(async () => await RefreshStream());
+            if (startImplicitly)
+            {
+                StartListening();
+            }
             if (executeEventsOnMainThread)
             {
                 Queue = new ConcurrentQueue<Action>();
                 AsyncQueue = new ConcurrentQueue<Func<Task>>();
+            }
+        }
+
+        public void StartListening()
+        {
+            if (_eventTaskRefresher == null)
+            {
+                _eventTaskRefresher = Task.Run(async () => await RefreshStream());
             }
         }
 
@@ -163,7 +176,7 @@ namespace Pyro.Net
                     }
                     
 
-                    await Task.Delay(5);
+                    await Task.Delay(Delay);
                 }
                 catch (Exception e)
                 {
@@ -188,7 +201,7 @@ namespace Pyro.Net
                 }
                 finally
                 {
-                    await Task.Delay(10);
+                    await Task.Delay(Delay);
                 }
             }
             Dispose();
@@ -223,9 +236,9 @@ namespace Pyro.Net
             IsActive = false;
         }
 
-        public static NetworkEvent ListenToEvent(string id, string password)
+        public static NetworkEvent ListenToEvent(string id, string password, bool startImplicitly = true)
         {
-            var ne = new NetworkEvent(id, password);
+            var ne = new NetworkEvent(id, password, startImplicitly:startImplicitly);
 
             return ne;
         }

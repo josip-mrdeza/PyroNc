@@ -5,12 +5,16 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.IO.Events;
+using Pyro.Math;
+using Pyro.Math.Geometry;
 using Pyro.Nc.Configuration;
 using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation.Tools;
 using Pyro.Nc.Simulation.Workpiece;
+using Pyro.Nc.UI.Entry;
+using Pyro.Net;
 using Pyro.Threading;
 using TinyClient;
 using UnityEngine;
@@ -30,11 +34,14 @@ public class MachineBase : InitializerRoot
     public ClickHandler ClickHandler => ClickHandler.Instance;
     public MachineType CncType { get; protected set; }
     public ThreadTaskQueue Queue { get; private set; }
+    public NetworkEvent JogEvent { get; private set; }
 
     [StoreAsJson]
     public static CutType CuttingType { get; set; }
     [StoreAsJson]
     public static bool Test { get; set; }
+    [StoreAsJson]
+    public static string SimulationId { get; set; }
     
     public override void Initialize()
     {
@@ -57,10 +64,33 @@ public class MachineBase : InitializerRoot
         };
         SpindleControl.FeedRate.SetUpperValue(350);
         SpindleControl.SpindleSpeed.SetUpperValue(4000);
+        SimulationId = EntryHandler.User.Name;
+        JogEvent = NetworkEvent.ListenToEvent($"{SimulationId}_jog", "null");
+        JogEvent.OnEvent += OnRemoteJog;
+        Push($"Listening for jog events on: {JogEvent.Id} [{JogEvent.IsActive}]");
     }
 
+    private void OnRemoteJog(object o, NetworkEventArgs args)
+    {
+        Queue.Run(async arg =>
+        {                                            
+            var v3Str = arg.StringData.Value;
+            var v3Split = v3Str.Split(',');
+            Vector3 v3 = new Vector3((float) v3Split[0].ParseNumber(), (float) v3Split[1].ParseNumber(), (float) v3Split[2].ParseNumber());
+            var pos = CurrentMachine.ToolControl.SelectedTool.Position;
+            var totalMove = v3;
+            var destination = pos + totalMove;
+            CurrentMachine.ToolControl.SelectedTool.Position = destination;
+            CurrentMachine.Push($"[REMOTE-JOG] - Jogging to {destination.ToString()}...");
+        }, args);
+    }
+    
     private void LateUpdate()
     {
+        if (Queue == null)
+        {
+            return;
+        }
         Queue.ThreadHandle().GetAwaiter().GetResult();
     }
 

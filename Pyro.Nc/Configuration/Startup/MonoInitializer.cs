@@ -20,13 +20,20 @@ namespace Pyro.Nc.Configuration.Startup
         public List<InitializerRoot> Scripts;
         private async void Start()
         {
-            await Logger.InitializeComplete();
+            try
+            {
+                await Logger.InitializeComplete();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+            }
             
             var lr = LocalRoaming.OpenOrCreate("PyroNc\\Configuration\\Json");
             Assembly.GetAssembly(typeof(MonoInitializer)).TraverseAssemblyAndCreateJsonFiles(lr);
             JsonConfigCreator.AssignJsonStoresToStaticInstances(typeof(Globals), JsonConfigCreator.Stores, lr, (parent, field, value) =>
             {
-                Globals.Console.Push($"[{parent}] - Loaded config for field '{field}' with a value of '{value}'!");
+                Globals.Console.Push($"[{parent}] - Loaded config for property '{field}' with a value of '{value}'!");
             }, s => Globals.Console.Push(s));
             
             OnLoadedScript?.Invoke(Logger, TimeSpan.Zero, -1);

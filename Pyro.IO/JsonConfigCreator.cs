@@ -44,11 +44,25 @@ public static class JsonConfigCreator
                 object propBaseValue;
                 if (prop is FieldInfo info)
                 {
-                    propBaseValue = Activator.CreateInstance(info.FieldType);
+                    if (info.FieldType == typeof(string))
+                    {
+                        propBaseValue = "";
+                    }
+                    else
+                    {
+                        propBaseValue = Activator.CreateInstance(info.FieldType);
+                    }
                 }
                 else
                 {
-                    propBaseValue = Activator.CreateInstance((prop as PropertyInfo).PropertyType);
+                    if ((prop as PropertyInfo).PropertyType == typeof(string))
+                    {
+                        propBaseValue = "";
+                    }
+                    else
+                    {
+                        propBaseValue = Activator.CreateInstance((prop as PropertyInfo).PropertyType);
+                    }
                 }
 
                 parts.Add(new StoreJsonPart(attr.Name, propBaseValue));

@@ -48,7 +48,7 @@ public static class SynCommandHelper
         commands.Add(command);
         return true;
     }
-    private static bool HandleForLoopCondition(string id, string[] parameterList, List<BaseCommand> commands)
+    public static bool HandleForLoopCondition(string id, string[] parameterList, List<BaseCommand> commands)
     {
         if (id.StartsWith("FOR"))
         {

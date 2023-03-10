@@ -13,10 +13,16 @@ public class ResetButton : InitializerRoot
 {
     public static Button Instance;
     private Button _button;
+
+    private void Start()
+    {
+        Initialize();
+    }
+
     public override void Initialize()
     {
         _button = GetComponent<Button>();
         Instance = _button;
-        _button.onClick.AddListener(MachineBase.CurrentMachine.SimControl.ResetSimulation);
+        _button.onClick.AddListener(() => MachineBase.CurrentMachine.SimControl.ResetSimulation());
     }
 }

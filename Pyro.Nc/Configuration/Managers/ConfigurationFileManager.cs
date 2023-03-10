@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Nc.Parsing;
+using Pyro.Nc.Simulation;
 using Pyro.Nc.UI;
 
 namespace Pyro.Nc.Configuration.Managers
@@ -34,6 +36,7 @@ namespace Pyro.Nc.Configuration.Managers
         public void Init()
         {
             LocalRoaming roaming = LocalRoaming.OpenOrCreate("PyroNc");
+
             foreach (var kvp in Required)
             {
                 if (!roaming.Exists(kvp.Key))

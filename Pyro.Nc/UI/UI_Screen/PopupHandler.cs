@@ -6,6 +6,7 @@ using Pyro.Nc.Simulation;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace Pyro.Nc.UI.UI_Screen
@@ -20,6 +21,7 @@ namespace Pyro.Nc.UI.UI_Screen
         public Button[] PrefabButtons;
         public TextMeshProUGUI[] ButtonTexts;
         public TMP_InputField[] PrefabInputs;
+        public TextMeshProUGUI[] PrefabInputPlaceholders;
 
         public void Pop(string msg)
         {
@@ -27,7 +29,7 @@ namespace Pyro.Nc.UI.UI_Screen
             Open();
         }
 
-        private void Start()
+        public virtual void Awake()
         {
             Initialize();
         }
@@ -41,6 +43,8 @@ namespace Pyro.Nc.UI.UI_Screen
             PromptText = go.GetComponentInChildren<TextMeshProUGUI>();
             PrefabInputs = go.GetComponentsInChildren<TMP_InputField>();
             PrefabButtons = go.GetComponentsInChildren<Button>();
+            PrefabInputPlaceholders = go.GetComponentsInChildren<TextMeshProUGUI>().Where(x => x.name == "Placeholder")
+                                        .ToArray();
             ButtonTexts = PrefabButtons.Select(x => x.GetComponentInChildren<TextMeshProUGUI>()).ToArray();
             Close();
         }
@@ -106,11 +110,13 @@ namespace Pyro.Nc.UI.UI_Screen
             }
         }
 
-        public static void PopDualInputOption(string text, string buttonText,
+        public static void PopDualInputOption(string text, string buttonText, string placeholder1, string placeholder2,
             params Action<PopupHandler>[] optionFuncs)
         {
-            var handler = Globals.DualTextInputPopupHandler;
+            PopupHandler handler = Globals.DualTextInputPopupHandler;
             handler.ButtonTexts[0].text = buttonText;
+            handler.PrefabInputPlaceholders[0].text = placeholder1;
+            handler.PrefabInputPlaceholders[1].text = placeholder2;
             handler.RemoveListeners();
             handler.AddListeners(optionFuncs);
             handler.Pop(text);

@@ -16,10 +16,11 @@ public class FileController : ControllerBase
         {
             return;
         }
-        var file = $"{Folder}users.txt";
-        if (System.IO.File.Exists(file))
+
+        try
         {
-            List<User> list = new List<User>();
+            var file = $"{Folder}users.txt";
+            Users = new List<User>();
             var fs = System.IO.File.OpenRead(file);
             var ss = new StreamReader(fs);
             var str = ss.ReadToEnd();
@@ -28,17 +29,16 @@ public class FileController : ControllerBase
             {
                 var arr = line.Split("*");
                 var user = new User(arr[0], arr[1]);
-                list.Add(user);
+                Users.Add(user);
             }
-            Users = list;
             ss.Dispose();
         }
-        else
+        catch (Exception e)
         {
-            Users = new List<User>();
+            Console.WriteLine(e);
         }
     }
-    
+
     [HttpGet("all")]
     public IEnumerable<string> GetAllFiles([FromQuery] string userName, [FromQuery] string password)
     {
@@ -49,7 +49,12 @@ public class FileController : ControllerBase
         }
         var dir = $"{Folder}{user.Name}";
         Directory.CreateDirectory(dir);
-        return Directory.EnumerateFiles(dir);
+        return Directory.EnumerateFiles(dir).Select(f =>
+        {
+            var fi = new FileInfo(f);
+
+            return fi.Name;
+        });
     }
     
     [HttpGet("users")]
@@ -66,7 +71,7 @@ public class FileController : ControllerBase
         {
             return NotFound();
         }
-        var dir = $"{Folder}{user.Name}";
+        var dir = $"{Folder}{user.Name}\\";
         Directory.CreateDirectory(dir);
         return File(System.IO.File.ReadAllBytes($"{dir}{fileName}"), "text/plain");
     }
@@ -81,7 +86,7 @@ public class FileController : ControllerBase
         }
         var dir = $"{Folder}{user.Name}";
         Directory.CreateDirectory(dir);
-        var filePath = dir + $"/{fileName}";
+        var filePath = dir + $"\\{fileName}";
         if (System.IO.File.Exists(filePath))
         {
             System.IO.File.Delete(filePath);
@@ -92,7 +97,7 @@ public class FileController : ControllerBase
     }
 
     [HttpPost("{fileName}")]
-    public async Task<IActionResult> AddFile([FromQuery] string userName, [FromQuery] string password, string fileName, [FromBody] string text)
+    public async Task<IActionResult> AddFile([FromQuery] string userName, [FromQuery] string password, string fileName)
     {
         var user = Users.SingleOrDefault(x => x.Name == userName && x.Password == password);
         if (user == null)
@@ -102,8 +107,8 @@ public class FileController : ControllerBase
         
         var dir = $"{Folder}{user.Name}";
         Directory.CreateDirectory(dir);
-        var filePath = dir + $"/{fileName}";
-        await System.IO.File.WriteAllTextAsync(filePath, text);
+        var filePath = dir + $"\\{fileName}";
+        await System.IO.File.WriteAllTextAsync(filePath, await HttpContext.Request.Body.ReadStreamAsString());
         return Ok();
     }    
     [HttpPost("register")]
@@ -112,7 +117,7 @@ public class FileController : ControllerBase
         var user = new User(userName, password);
         if (Users.Exists(x => x.Name == userName))
         {
-            return Conflict();
+            return Accepted();
         }
         Users.Add(user);
         var dir = $"{Folder}{user.Name}";

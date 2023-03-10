@@ -12,22 +12,70 @@ using UnityEngine.SceneManagement;
 
 namespace Pyro.Nc.UI.Entry;
 
-public class EntryHandler : MonoBehaviour
+public class EntryHandler : LoadingScreenView
 {
+    public bool IsWaiting { get; set; }
     public static PUser User { get; private set; }
     public static Session Session { get; private set; }
     public static ThreadTaskQueue TaskQueue { get; private set; }
     private static string URL = "https://pyronetserver.azurewebsites.net";
+    public override void Initialize()
+    {
+        //redundant
+    }
+
+    public override void FixedUpdate()
+    {
+        if (IsWaiting)
+        {
+            base.FixedUpdate();
+        }
+    }
+
 
     private async void Start()
     {
+        SetText("Prompting user for login info...");
+        IsWaiting = true;
         if (!LocalRoaming.OpenOrCreate("PyroNc\\LoginInfo").Exists("login.json"))
         {
-            PopupHandler.PopDualInputOption("Welcome to Pyro Nc", "Log in", async ph => await Login(ph));
+            PopupHandler.PopDualInputOption("Welcome to Pyro Nc", "Register / Log in", "Username", "Password", async ph =>
+            {
+                bool isFinished = false;
+                while (!isFinished)
+                {
+                    try
+                    {
+                        SetText("Querying login info from server using data provided...");
+                        IsWaiting = true;
+                        SetText("Logging in...");
+                        await Login(ph);
+                        IsWaiting = false;
+                        SetText("Done!");
+                        SceneManager.LoadSceneAsync("MainScene");
+                        isFinished = true;
+                    }
+                    catch (Exception e)
+                    {
+                        Push(e.Message);
+                        IsWaiting = true;
+                        SetText("An error has occured!");
+                        await Task.Delay(200);
+                        SetText("Retrying...");
+                    }
+                }
+                IsWaiting = false;
+            });
         }
-
-        await Login(null);
-        SceneManager.LoadScene("MainScene");
+        else
+        {
+            SetText("Reading login info...");
+            IsWaiting = true;
+            await Login(null);
+            IsWaiting = false;
+            SetText("Done!");
+            SceneManager.LoadSceneAsync("MainScene");
+        }
     }
 
     public async Task Login(PopupHandler ph)
@@ -36,8 +84,11 @@ public class EntryHandler : MonoBehaviour
         var user = lr.ReadFileAs<PUser>("login.json");
         if (user is null)
         {
+            SetText("Registering user...");
             user = Register(ph);
+            SetText("Logging in...");
             await Login(ph);
+            SetText("Done!");
         }
         else
         {
@@ -47,11 +98,37 @@ public class EntryHandler : MonoBehaviour
                 return;
             }
         }
-
+        IsWaiting = true;
+        SetText("Registering for file service...");
+        for (int i = 0;; i++)
+        {
+            try
+            {
+                var ok = await NetHelpers.PostWithDetails($"{URL}/files/register?userName={user.Name}&password={user.Password}");
+                if (ok.IsSuccessStatusCode)
+                {
+                    break;
+                }
+                SetText($"[{(int) ok.StatusCode}]: " + ok.ReasonPhrase);
+                await Task.Delay(200);
+                SetText("Registering for file service...");
+            }
+            catch (Exception e)
+            {
+                SetText($"Error: {e.Message}");
+            }
+        }
+        SetText("Done!");
+        IsWaiting = true;
+        SetText("Requesting session creation...");
         Session s = await NetHelpers.GetJson<Session>($"{URL}/session/random?userName={user.Name}");
+        SetText("Done!");
         User = user;
         Session = s;
+        SetText("Activating session...");
         ActivateSession(user, s);
+        IsWaiting = false;
+        SetText("Done!");
     }
 
     public PUser Register(PopupHandler ph)

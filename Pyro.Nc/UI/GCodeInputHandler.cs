@@ -16,6 +16,7 @@ using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Parsing.SyntacticalCommands;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.Simulation.Machines;
+using Pyro.Nc.UI.Entry;
 using Pyro.Nc.UI.Programs;
 using Pyro.Nc.UI.UI_Screen;
 using Pyro.Net;
@@ -52,7 +53,6 @@ namespace Pyro.Nc.UI
         {
             base.Show();
             ViewHandler.Active = true;
-            CloseButton.Instance.Show();
             Focus();
         }
 
@@ -60,7 +60,6 @@ namespace Pyro.Nc.UI
         {
             base.Hide();
             ViewHandler.Active = false;
-            CloseButton.Instance.Hide();
         }
 
         public void Focus()
@@ -85,9 +84,14 @@ namespace Pyro.Nc.UI
             HasSaved = false;
         }
 
+        public async Task ApplyChangesToFileServerSide(string fn, string content)
+        {
+            Push($"[{EntryHandler.User.Name}] - Updating file '{fn}' with a length of '{content.Length}' bytes.");
+            await NetHelpers.Post($"https://pyronetserver.azurewebsites.net/files/{fn}?userName={EntryHandler.User.Name}&password={EntryHandler.User.Password}", content);
+        }
         public override async Task InitializeAsync()
         {
-            //Text.onValueChanged.AddListener(_ => ApplySuggestions());
+            InvokeRepeating(nameof(UpdateViewV2), 0, 0.1f);
             Button.onClick.AddListener(async () => await Call(Text.text, true));
             Simulation2DButton.onClick.AddListener(async () => await Call(Text.text, true, true));
             Text.onValueChanged.AddListener(_ =>
@@ -95,22 +99,37 @@ namespace Pyro.Nc.UI
                 ApplyColors();
             });
             Globals.GCodeInputHandler = this;
-            //base.Initialize();
-            await NetHelpers.Post($"{Address}/register?userName=joki&password=xx3");
-            InvokeRepeating(nameof(UpdateViewV2), 0, 0.1f);
-            //PopupHandler.PopInputOption("Name your program:", "Ok", Option);
+            LocalRoaming roaming = LocalRoaming.OpenOrCreate("PyroNc\\GCode");
+            var user = EntryHandler.User;
+            var addr = $"https://pyronetserver.azurewebsites.net";
+            var allFiles = await NetHelpers.GetJson<string[]>($"{addr}/files/all?userName={user.Name}&password={user.Password}");
+            Push($"Queried a total of '{allFiles.Length}' files for user '{user.Name}'!");
+            foreach (var file in allFiles)
+            {
+                Push($"Reading data for file: '{file}'...");
+                var fileData = await NetHelpers.GetData($"{addr}/files/{file}?userName={user.Name}&password={user.Password}");
+                Push($"Finished downloading file: '{file}' with a length of '{fileData.Length}' bytes.");
+                if (roaming.Exists(file))
+                {
+                    await roaming.ModifyFileAsync($"{file}", fileData);
+                }
+            }
         }
 
-        private void Option(PopupHandler ph)
+        private async Task Option(PopupHandler ph)
         {
             if (HasSaved)
             {
                 return;
             }
-
+            
             var local = LocalRoaming.OpenOrCreate("PyroNc\\GCode");
             var txt = ph.PrefabInputs[0].text;
-            local.ModifyFile(txt, Text.text);
+            if (txt.StartsWith("Server-"))
+            {
+                await ApplyChangesToFileServerSide(txt, Text.text);
+            }
+            await local.ModifyFileAsync(txt, Text.text);
             fileName = txt;
             HasSaved = true;
             Globals.Loader.Load();
@@ -119,12 +138,25 @@ namespace Pyro.Nc.UI
 
         public async Task Call(string text, bool reset, bool is2d = false)
         {
+            MachineBase.CurrentMachine.SimControl.ResetSimulation();
+            MachineBase.CurrentMachine.StateControl.FreeControl();
+            InsertGCodeIntoQueue(text, is2d);
+            await MachineBase.CurrentMachine.Runner.ExecuteAll();
+            Hide();
+        }
+
+        public void InsertGCodeIntoQueue(string text, bool is2d = false)
+        {
             var variables = text.ToUpper(CultureInfo.InvariantCulture)
                                 .Split('\n')                                      //lines
                                 .Select(x => x.Trim().ToUpper().FindVariables()); //line commands
             var cmnds = variables.Select(x => x.CollectCommands());//.SelectMany(y => y);
             var arr = cmnds.ToList();
             var lines = arr;
+            if (!lines.Last().Exists(x => x.IsMatch(typeof(M02)) || x.IsMatch(typeof(M30))))
+            {
+                throw new MissingEndOfProgramException();
+            }
             //Globals.Tool.Values.IsReset = false;
             for (int i = 0; i < arr.Count; i++)
             {
@@ -169,9 +201,11 @@ namespace Pyro.Nc.UI
                     }
                 }
             }
+        }
 
-            await MachineBase.CurrentMachine.Runner.ExecuteAll();
-            Hide();
+        public void InsertGCodeIntoQueue(bool is2d)
+        {
+            InsertGCodeIntoQueue(Text.text, is2d);
         }
 
         public void ApplySuggestions()
@@ -244,7 +278,7 @@ namespace Pyro.Nc.UI
             }
         }
 
-        public void UpdateViewV2()
+        public async void UpdateViewV2()
         {
             if (!IsActive)
             {
@@ -257,14 +291,18 @@ namespace Pyro.Nc.UI
                 if (string.IsNullOrEmpty(fileName))
                 {
                     PopupHandler.PopInputOption(Globals.Localisation.Find(Localisation.MapKey.GCodeNameProgram), 
-                                                "Ok", Option);
+                                                "Ok", async ph => await Option(ph));
                 }
                 else
                 {
                     if (IsFileLocal)
                     {
                         var local = LocalRoaming.OpenOrCreate("PyroNc\\GCode");
-                        local.ModifyFile(fileName, Text.text);
+                        await local.ModifyFileAsync(fileName, Text.text);
+                        if (fileName.StartsWith("Server-"))
+                        {
+                            await ApplyChangesToFileServerSide(fileName, Text.text);
+                        }
                         HasSaved = true;
                     }
                     else

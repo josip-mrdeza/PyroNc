@@ -48,6 +48,12 @@ namespace Pyro.Threading
             var tds = new ThreadDelegateStore(a, val);
             await InvokeOrEnqueue(tds);
         }
+        
+        public async ValueTask Run(Action a)
+        {
+            var tds = new ThreadDelegateStore(a, null);
+            await InvokeOrEnqueue(tds);
+        }
 
         public async ValueTask<TOut> Run<TOut>(Func<TOut> fn)
         {

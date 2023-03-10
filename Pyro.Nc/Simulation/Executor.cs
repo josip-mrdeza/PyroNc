@@ -22,6 +22,7 @@ public class Executor : MachineComponent
         {
             if (Machine.StateControl.State == MachineState.Resetting)
             {
+                MachineBase.CurrentMachine.StateControl.FreeControl();
                 break;
             }
             await ExecuteOne();

@@ -53,7 +53,7 @@ public class MachineStateControl
         var runner = MachineBase.CurrentMachine.Runner;
         runner.Queue.Clear();
         ResetUI();
-        State = MachineState.Idle;
+        State = MachineState.Resetting;
         CommandHelper.PreviousModal = null;
         MachineBase.CurrentMachine.EventSystem.SystemReset();
         MachineBase.CurrentMachine.EventSystem.PEvents.Fire(Locals.EventConstants.SimulationReset);

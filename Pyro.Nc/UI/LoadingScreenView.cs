@@ -27,18 +27,18 @@ public class LoadingScreenView : View
         //Globals.OnLog += OnLogHandler;
     }
 
-    private void FixedUpdate()
+    public virtual void FixedUpdate()
     {
         ImageTr.Rotate(new Vector3(0, 0, 1), step);
     }
 
-    private void OnLoadedScriptHandler(InitializerRoot root, TimeSpan span, int index)
+    public virtual void OnLoadedScriptHandler(InitializerRoot root, TimeSpan span, int index)
     {
         SetText($"Loaded {root.name} in {span.TotalMilliseconds.Round().ToString(CultureInfo.InvariantCulture)}ms.");
         SetAdditionalText($"Script: {index.ToString()}/{Globals.Initializer.Scripts.Count.ToString()}");
     }
 
-    private void OnCompletedInitializationHandler(MonoInitializer initializer, TimeSpan span)
+    public virtual void OnCompletedInitializationHandler(MonoInitializer initializer, TimeSpan span)
     {
         SetText("Completed initialization!");
         SetText("Removing event subscribers...");

@@ -1,6 +1,8 @@
 using System;
+using System.Threading.Tasks;
 using Pyro.IO.Events;
 using Pyro.Nc.Configuration;
+using Pyro.Net;
 using UnityEngine;
 
 namespace Pyro.Nc.Simulation.Machines;
@@ -56,5 +58,6 @@ public class MachineEventSystem : MachineComponent
         var pos = Machine.ToolControl.SelectedTool.Position;
         OnPositionChanged?.Invoke(null, pos);
         PEvents.Fire(Locals.EventConstants.PositionChange, pos);
+        //Machine.Queue.FireAndForget(async () => await NetworkEvent.InvokeEvent(MachineBase.SimulationId, "null", pos.ToString()));
     }
 }

@@ -158,7 +158,8 @@ namespace Pyro.Nc.Parsing
             List<BaseCommand> commands = new List<BaseCommand>();
             string[] commandString = null;
             string id = null;
-            Exception exception = null; 
+            Exception exception = null;
+            int line = 0;
             for (var index = 0; index < arrOfCommands.Count; index++)
             {
                 try
@@ -177,10 +178,19 @@ namespace Pyro.Nc.Parsing
                         id = id.Replace($"${bc.Name}", bc.Value.ToString());
                         continue;
                     }
-                    if (ScrapNotation(id, commands) || ScrapToolChange(id, commands) || ScrapSpindleSpeedSetter(id, commands) || ScrapFeedRateSetter(id, commands)) { continue; }
-                    if (SynCommandHelper.PopulateIfValid(id, ref commandString, commands))
+
+                    if (ScrapNotation(id, commands) || ScrapToolChange(id, commands) ||
+                        ScrapSpindleSpeedSetter(id, commands) || ScrapFeedRateSetter(id, commands))
                     {
-                        return commands;
+                        continue;
+                    }
+                    // if (SynCommandHelper.PopulateIfValid(id, ref commandString, commands))
+                    // {
+                    //     return commands;
+                    // }
+                    if (SynCommandHelper.HandleForLoopCondition(id, commandString, commands))
+                    {
+                        continue;
                     }
                     var command = (BaseCommand) Storage.TryGetCommand(id).Copy();
                     if (command is null) { continue; }

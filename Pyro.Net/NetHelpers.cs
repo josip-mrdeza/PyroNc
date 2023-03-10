@@ -11,7 +11,7 @@ namespace Pyro.Net
     {
         private static HttpClient Client = new HttpClient()
         {
-            Timeout = TimeSpan.FromSeconds(2)
+            Timeout = TimeSpan.FromSeconds(30)
         };
 
         public static async Task<bool> Ping(this string addr)
@@ -39,6 +39,18 @@ namespace Pyro.Net
             return content.DeserializeUtf8JsonInto<T>();
         }
 
+        public static async Task<byte[]> GetData(string addr)
+        {
+            var resp = await Client.GetAsync(addr);
+            if (!resp.IsSuccessStatusCode)
+            {
+                return default;
+            }
+            var content = await resp.Content.ReadAsByteArrayAsync();
+
+            return content;
+        }
+
         public static async Task<bool> PostJson<T>(this T obj, string addr)
         {
             return (await Client.PostAsync(addr, new StringContent(obj.SerializeToUtf8Json(),
@@ -48,6 +60,11 @@ namespace Pyro.Net
         public static async Task<bool> Post(string addr)
         {
             return (await Client.PostAsync(addr, new StringContent(""))).IsSuccessStatusCode;
+        }
+        
+        public static async Task<HttpResponseMessage> PostWithDetails(string addr)
+        {
+            return await Client.PostAsync(addr, new StringContent(""));
         }
         
         public static async Task<bool> Post(string addr, string content)

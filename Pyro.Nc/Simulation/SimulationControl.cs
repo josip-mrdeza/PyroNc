@@ -1,7 +1,9 @@
+
 using Pyro.Nc.Configuration;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Simulation.Machines;
 using Pyro.Nc.Simulation.Workpiece;
+using UnityEngine;
 
 namespace Pyro.Nc.Simulation;
 
@@ -13,15 +15,16 @@ public class SimulationControl : MachineComponent
     public void ResetSimulation()
     {
         var controller = Globals.Workpiece;
+        controller.ResetColors();
         controller.ResetVertices();
-        controller.ResetColors();
-        controller.ResetColors();
         var machine = MachineBase.CurrentMachine;
         machine.ChangeTool(0);
         machine.ToolControl.SelectedTool.Position = Globals.ReferencePointParser.BeginPoint;
         machine.StateControl.ResetControl();
         ResetSpindle();
         SoftResetCodeSimulation();
+        machine.SetTrans(Vector3.zero);
+        machine.Runner.Queue.Clear();
     }
 
     public void SoftResetCodeSimulation()

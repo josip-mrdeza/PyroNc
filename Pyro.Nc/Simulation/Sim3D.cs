@@ -37,6 +37,10 @@ namespace Pyro.Nc.Simulation
 {
     public static class Sim3D
     {
+        [StoreAsJson]
+        public static int WaitStep { get; set; }
+        [StoreAsJson]
+        public static bool KeepTraceLines { get; set; }
         /// <summary>
         /// Sets the tool's current destination and path.
         /// </summary>
@@ -334,15 +338,32 @@ namespace Pyro.Nc.Simulation
             var isCutting = MachineBase.CurrentMachine.Runner.CurrentContext is G01;
             var dict = await Task.Run(async () => await ToolBase.CompileLineHashCut(points));
             toolBase.Renderer.positionCount = points.Length;
+            if (KeepTraceLines)
+            {
+                Vector3[] arr = new Vector3[toolBase.Renderer.positionCount];
+                toolBase.Renderer.GetPositions(arr);
+                List<Vector3> vs = arr.ToList();
+                vs.AddRange(points);     
+                toolBase.Renderer.positionCount = vs.Count;
+                var arr2 = vs.ToArray();
+                toolBase.Renderer.SetPositions(arr2);
+            }
+            else
+            {
+                toolBase.Renderer.SetPositions(points);
+            }
+
+            var instance = UI_3D.Instance;
             for (var i = 0; i < points.Length; i++)
             {
                 if (MachineBase.CurrentMachine.StateControl.IsResetting)
                 {
+                    MachineBase.CurrentMachine.StateControl.FreeControl();
                     return;
                 }
                 var point = points[i];
+                var diff = Vector3.Distance(point, toolBase.Position);
                 toolBase.Position = point;
-                toolBase.Renderer.SetPositions(points);
                 if (isCutting)
                 {
                     if (MachineBase.CuttingType == CutType.Legacy)
@@ -364,7 +385,10 @@ namespace Pyro.Nc.Simulation
                 {
                     if (!dict.TryGetValue(point, out var list))
                     {
-                        await FinishMove();
+                        if (WaitStep != 0)
+                        {
+                            await FinishMove(true);
+                        }
                         continue;
                     }
                     var wp = MachineBase.CurrentMachine.Workpiece;
@@ -378,8 +402,24 @@ namespace Pyro.Nc.Simulation
                             throw new RapidFeedCollisionException(point);
                         }
                     }
+
+                    continue;
                 }
-                await FinishMove();
+
+                var feedPerMin = (float) MachineBase.CurrentMachine.SpindleControl.FeedRate;
+                var minutes = diff / feedPerMin;
+                try
+                {
+                    instance.IncrementTimeDisplay(TimeSpan.FromMinutes(minutes));
+                }
+                catch
+                {
+                     //ignored
+                }
+                if (WaitStep != 0)
+                {
+                    await FinishMove();
+                }
             }
             
             if (MachineBase.CuttingType == CutType.VertexBoxHash)
@@ -393,10 +433,13 @@ namespace Pyro.Nc.Simulation
             }
         }
 
-        public static async Task FinishMove()
+        public static async Task FinishMove(bool skipYield = false)
         {
-            await Task.Delay(MachineBase.CurrentMachine.ToolControl.SelectedTool.Values.FastMoveTick);
-            await Task.Yield();
+            await Task.Delay(WaitStep);
+            if (!skipYield)
+            {
+                await Task.Yield();
+            }
         }
         public static void Remesh()
         {

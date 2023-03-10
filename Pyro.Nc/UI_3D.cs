@@ -76,4 +76,9 @@ public class UI_3D : InitializerRoot
     {
         Time.Time = ts;
     }
+
+    public void IncrementTimeDisplay(TimeSpan ts)
+    {
+        Time.Time += ts;
+    }
 }
