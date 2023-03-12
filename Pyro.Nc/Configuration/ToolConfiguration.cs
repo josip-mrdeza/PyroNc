@@ -25,7 +25,7 @@ namespace Pyro.Nc.Configuration
             Id = id;
             Radius = radius;
             Index = index;
-            ToolColor = new Color(r /= 255, g /= 255, b /= 255, a /= 255);
+            ToolColor = new Color(r / 255, g / 255, b / 255, a / 255);
             VerticalMargin = verticalMargin;
             R = r;
             G = g;

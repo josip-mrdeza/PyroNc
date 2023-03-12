@@ -11,7 +11,18 @@ namespace Pyro.Nc.Configuration.Startup
 {
     public abstract class InitializerRoot : MonoBehaviour
     {
-        protected bool IsInitialized;
+        public bool IsInitialized;
+
+        private async void Start()
+        {
+            if (ActivateByDefault)
+            {
+                await InitializeComplete();
+            }
+        }
+
+        public bool ActivateByDefault;
+
         public virtual void Initialize()
         {
             

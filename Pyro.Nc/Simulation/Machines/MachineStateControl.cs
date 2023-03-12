@@ -65,5 +65,6 @@ public class MachineStateControl
     {
         ViewHandler.ShowOne("3DView");
         UI_3D.Instance.SetTimeDisplay(new TimeSpan());
+        UI_3D.Instance.SetMessage("Reset");
     }
 }

@@ -31,7 +31,7 @@ namespace Pyro.Nc.Configuration.Startup
             
             var lr = LocalRoaming.OpenOrCreate("PyroNc\\Configuration\\Json");
             Assembly.GetAssembly(typeof(MonoInitializer)).TraverseAssemblyAndCreateJsonFiles(lr);
-            JsonConfigCreator.AssignJsonStoresToStaticInstances(typeof(Globals), JsonConfigCreator.Stores, lr, (parent, field, value) =>
+            JsonConfigCreator.AssignJsonStoresToStaticInstances(JsonConfigCreator.Stores, lr, (parent, field, value) =>
             {
                 Globals.Console.Push($"[{parent}] - Loaded config for property '{field}' with a value of '{value}'!");
             }, s => Globals.Console.Push(s));

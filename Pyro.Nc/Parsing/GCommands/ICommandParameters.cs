@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Pyro.Math;
@@ -8,6 +9,7 @@ namespace Pyro.Nc.Parsing.GCommands
     public interface ICommandParameters
     {
         public Dictionary<string, float> Values { get; set; }
+        public Dictionary<string, Func<float>> VarValues { get; set; }
         //public Dictionary<string, string> VariableToValueMap { get; set; }
 
         public float GetValue(string s);

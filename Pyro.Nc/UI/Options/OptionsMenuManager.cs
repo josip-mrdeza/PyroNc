@@ -25,8 +25,8 @@ public class OptionsMenuManager : View
         RightOptions = new List<OptionBase>();
         var rectTr = gameObject.transform as RectTransform;
         var rect = rectTr.sizeDelta;
-        LeftPoint = new Vector2(-rect.x / 2, rect.y);
-        RightPoint = new Vector2(rect.x / 2, rect.y);
+        LeftPoint = new Vector2(-rect.x / 2, rect.y/2);
+        RightPoint = new Vector2(rect.x / 2, rect.y/2);
         //Button.onClick.AddListener(Test);
     }
 
@@ -49,5 +49,10 @@ public class OptionsMenuManager : View
         {
             option.Position += new Vector2(0, right);
         }
+    }
+
+    public override void UpdateView()
+    {
+        Refresh();
     }
 }

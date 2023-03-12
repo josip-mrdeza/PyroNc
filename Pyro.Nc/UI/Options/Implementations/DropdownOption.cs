@@ -9,9 +9,9 @@ namespace Pyro.Nc.UI.Options.Implementations;
 public class DropdownOption : OptionBase
 {
     public static GameObject Prefab;
-    private TMP_Dropdown _dropdown;
-    private TextMeshProUGUI _text;
-    private List<string> _source;
+    public TMP_Dropdown _dropdown;
+    public TextMeshProUGUI _text;
+    public List<string> _source;
     
     public List<TMP_Dropdown.OptionData> ExtendedSource
     {

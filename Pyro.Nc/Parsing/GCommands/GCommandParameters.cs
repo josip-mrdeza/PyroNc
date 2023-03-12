@@ -13,11 +13,26 @@ namespace Pyro.Nc.Parsing
     public class GCommandParameters : ICommandParameters
     {
         public Dictionary<string, float> Values { get; set; }
+        public Dictionary<string, Func<float>> VarValues { get; set; }
+
         public float GetValue(string s)
         {
             if (Values.ContainsKey(s))
             {
+                var value = Values[s];
+                if (float.IsNaN(value))
+                {
+                    if (VarValues.ContainsKey(s))
+                    {
+                        return VarValues[s].Invoke();
+                    }
+                }
                 return Values[s];
+            }
+
+            if (VarValues.ContainsKey(s))
+            {
+                return VarValues[s].Invoke();
             }
             return Single.NaN;
         }
@@ -68,6 +83,7 @@ namespace Pyro.Nc.Parsing
                 {"J", 0},
                 {"K", 0}
             };
+            VarValues = new Dictionary<string, Func<float>>();
             LineSmoothness = smoothness;
         }
         
@@ -83,6 +99,7 @@ namespace Pyro.Nc.Parsing
                 {"K", 0},
                 {"R", 0}
             };
+            VarValues = new Dictionary<string, Func<float>>();
         }
         
         public GCommandParameters(float x, float y, float z, float radius, CircleSmoothness smoothness)

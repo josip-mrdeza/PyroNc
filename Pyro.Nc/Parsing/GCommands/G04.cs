@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Pyro.IO;
+using Pyro.Nc.Exceptions;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation.Tools;
 
@@ -17,11 +18,11 @@ namespace Pyro.Nc.Parsing.GCommands
 
         public override async Task Execute(bool draw)
         {
-            var flag0 = Parameters.Values.TryGetValue("S", out var ms);
-            ms *= 1000f;
-            if (!flag0)
+            string parameter = "P";
+            var hasParameter = Parameters.Values.TryGetValue(parameter, out var ms);
+            if (!hasParameter)
             {
-                Parameters.Values.TryGetValue("P", out ms);
+                throw new ParameterMissingException(parameter);
             }
 
             Machine.StateControl.PauseControl();

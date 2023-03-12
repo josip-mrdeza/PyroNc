@@ -106,39 +106,51 @@ public static class JsonConfigCreator
         }
     }
 
-    public static void AssignJsonStoresToStaticInstances(Type globals, List<StoreAsJson> parts, LocalRoaming roaming, Action<string, string, object> onCompleteEach, Action<string> onFailed)
+    public static void AssignJsonStoresToStaticInstances(List<StoreAsJson> parts, LocalRoaming roaming, Action<string, string, object> onCompleteEach, Action<string> onFailed)
     {
         foreach (var store in parts)
         {
-            try
-            {
-                var typeData = roaming.ReadFileAs<StoreJsonPart[]>($"{store.Parent.Name}.json");
-                var type = store.Parent;
-                var obj = typeData.FirstOrDefault(x => x.Name == store.Name);
-                Type t = Type.GetType(obj.TypeAsString);
-                var val = (JsonElement)obj.Value;
-                var o = val.Deserialize(t);
-                object field = type.GetMember(store.Name)[0];
-                if (field is FieldInfo fi)
-                {
-                    fi.SetValue(null, o);
-                    onCompleteEach?.Invoke(type.Name, fi.Name, o);
-                }
-                else
-                {
-                    var prop = (field as PropertyInfo);
-                    prop.SetValue(null, o);
-                    onCompleteEach?.Invoke(type.Name, prop.Name, o);
-                }
-            }
-            catch(IndexOutOfRangeException)
-            {
-                onFailed?.Invoke($"~[{store.Name}] - Potential Duplicate (Inherited Member)!~");
-            }
-            catch (Exception e)
-            {
-                onFailed?.Invoke($"~[{store.Name}, '{store.Parent.Name}'] - {e.Message}!~");
-            }
+            AssignSingleJsonStoreToStaticInstance(roaming, onCompleteEach, onFailed, store);
+        }
+    }
+
+    public static void AssignSingleJsonStoreToStaticInstance(LocalRoaming roaming, Action<string, string, object> onCompleteEach, Action<string> onFailed,
+        StoreAsJson store, object valueOverride = null)
+    {
+        try
+        {
+            var typeData = roaming.ReadFileAs<StoreJsonPart[]>($"{store.Parent.Name}.json");
+            var type = store.Parent;
+            var obj = typeData.FirstOrDefault(x => x.Name == store.Name);
+            AssignJsonStore(onCompleteEach, store, obj, type, valueOverride);
+        }
+        catch (IndexOutOfRangeException)
+        {
+            onFailed?.Invoke($"~[{store.Name}] - Potential Duplicate (Inherited Member)!~");
+        }
+        catch (Exception e)
+        {
+            onFailed?.Invoke($"~[{store.Name}, '{store.Parent.Name}'] - {e.Message}!~");
+        }
+    }
+
+    private static void AssignJsonStore(Action<string, string, object> onCompleteEach, StoreAsJson store, StoreJsonPart obj,
+        Type type, object valueOverride = null)
+    {
+        Type t = Type.GetType(obj.TypeAsString);
+        var val = (JsonElement)obj.Value;
+        var o = valueOverride ?? val.Deserialize(t!);
+        object field = type.GetMember(store.Name)[0];
+        if (field is FieldInfo fi)
+        {
+            fi.SetValue(null, o);
+            onCompleteEach?.Invoke(type.Name, fi.Name, o);
+        }
+        else
+        {
+            var prop = (field as PropertyInfo);
+            prop.SetValue(null, o);
+            onCompleteEach?.Invoke(type.Name, prop.Name, o);
         }
     }
 }     

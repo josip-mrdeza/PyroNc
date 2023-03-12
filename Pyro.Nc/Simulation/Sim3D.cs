@@ -111,30 +111,30 @@ namespace Pyro.Nc.Simulation
             var workpiece = MachineBase.CurrentMachine.Workpiece;
             var min = workpiece.MinValues;
             var max = workpiece.MaxValues;
-            //vertex = tool.Cube.transform.TransformVector(vertex);
-            if (vertex.x < min.x - 0.2f)
+            var safetyMargin = 0.2f;
+            if (vertex.x < min.x - safetyMargin)
             {
                 d.X = -vertex.x;
             }
-            else if (vertex.x > max.x + 0.2f)
+            else if (vertex.x > max.x + safetyMargin)
             {
                 d.X = vertex.x;
             }
             //
-            if (vertex.y < min.y - 0.2f)
+            if (vertex.y < min.y - safetyMargin)
             {
                 d.Y = -vertex.y;
             }
-            else if (vertex.y > max.y + 0.2f)
+            else if (vertex.y > max.y + safetyMargin)
             {
                 d.Y = vertex.y;
             }
             //
-            if (vertex.z < min.z - 0.2f)
+            if (vertex.z < min.z - safetyMargin)
             {
                 d.Z = -vertex.z;
             }
-            else if (vertex.z > max.z + 0.2f)
+            else if (vertex.z > max.z + safetyMargin)
             {
                 d.Z = vertex.z;
             }
@@ -336,8 +336,15 @@ namespace Pyro.Nc.Simulation
         public static async Task Traverse(this ToolBase toolBase, Vector3[] points, bool draw, bool logStats = true)
         {
             var isCutting = MachineBase.CurrentMachine.Runner.CurrentContext is G01;
-            var dict = await Task.Run(async () => await ToolBase.CompileLineHashCut(points));
             toolBase.Renderer.positionCount = points.Length;
+            Dictionary<Vector3, List<int>> dict = null;
+            if (MachineBase.CuttingType == CutType.LineHash)    
+            {
+                dict = await Task.Run(async () => await ToolBase.CompileLineHashCut(points));
+            }
+            var boxHash = MachineBase.CurrentMachine.Workpiece.VertexBoxHash;
+            var maxMapping = new Dictionary<int, int>();
+            var boxes = GenerateVertexBoxHashRequirements(isCutting, boxHash, WorkpieceControl.Step);
             if (KeepTraceLines)
             {
                 Vector3[] arr = new Vector3[toolBase.Renderer.positionCount];
@@ -376,7 +383,7 @@ namespace Pyro.Nc.Simulation
                     }
                     else
                     {
-                        //toolBase.Cut(boxes, maxMapping);
+                        toolBase.Cut(boxes, maxMapping);
                     }
 
                     MachineBase.CurrentMachine.Workpiece.UpdateVertices();
@@ -431,6 +438,22 @@ namespace Pyro.Nc.Simulation
             {
                 //Remesh();
             }
+        }
+
+        private static KeyValuePair<Vector3Range, List<Algorithms.VertexMap>>[] GenerateVertexBoxHashRequirements(bool isCutting,
+            Dictionary<Vector3Range, List<Algorithms.VertexMap>> boxHash, float radius)
+        {
+            KeyValuePair<Vector3Range, List<Algorithms.VertexMap>>[] boxes = null;
+            if (isCutting && MachineBase.CuttingType == CutType.VertexBoxHash)
+            {
+                boxes = boxHash.Where(x => x.Key.End.y >= radius).ToArray();
+                var sum = boxes.Sum(x => x.Value.Count);
+                var eff = MachineBase.CurrentMachine.Workpiece.Vertices.Count / (double)sum * 100;
+                Globals.Console.Push($"Cutting with {sum.ToString()} points!\n" +
+                                     $"    --Efficiency: {eff.Round().ToString(CultureInfo.InvariantCulture)}% ({(eff / 100).Round().ToString(CultureInfo.InvariantCulture)}x less iterations)");
+            }
+
+            return boxes;
         }
 
         public static async Task FinishMove(bool skipYield = false)

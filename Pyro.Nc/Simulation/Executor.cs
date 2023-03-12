@@ -42,6 +42,7 @@ public class Executor : MachineComponent
             {
                 //Globals.GCodeInputHandler.SelectText(command.Line);
             }
+            UI_3D.Instance.SetMessage(command.ToString());
             await command.ExecuteFinal(true, false);
             stateControl.FreeControl();
             CurrentContext = null;

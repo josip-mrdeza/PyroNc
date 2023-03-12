@@ -40,7 +40,7 @@ namespace Pyro.Nc.UI
         public Button Button;
         public Button Simulation2DButton;
         public GCodePainter Painter;
-        public int Line;
+        public int Line = -1;
         private const string Address = "https://pyronetserver.azurewebsites.net/files";
         private PointerEventData _data;
         private bool HasSaved;
@@ -148,15 +148,15 @@ namespace Pyro.Nc.UI
         public void InsertGCodeIntoQueue(string text, bool is2d = false)
         {
             var variables = text.ToUpper(CultureInfo.InvariantCulture)
-                                .Split('\n')                                      //lines
-                                .Select(x => x.Trim().ToUpper().FindVariables()); //line commands
-            var cmnds = variables.Select(x => x.CollectCommands());//.SelectMany(y => y);
+                                .Split('\n')                                                  //lines
+                                .Select(x => x.Trim().ToUpper().FindVariables(false)); //line commands
+            var cmnds = variables.Select(x => x.CollectCommands());                           //.SelectMany(y => y);
             var arr = cmnds.ToList();
             var lines = arr;
-            if (!lines.Last().Exists(x => x.IsMatch(typeof(M02)) || x.IsMatch(typeof(M30))))
-            {
-                throw new MissingEndOfProgramException();
-            }
+            // if (!lines.Last().Exists(x => x.IsMatch(typeof(M02)) || x.IsMatch(typeof(M30))))
+            // {
+            //     throw new MissingEndOfProgramException();
+            // }
             //Globals.Tool.Values.IsReset = false;
             for (int i = 0; i < arr.Count; i++)
             {
@@ -188,8 +188,7 @@ namespace Pyro.Nc.UI
                             j--;
                         }
 
-                        //await command.ExecuteFinal(true, true);
-                        MachineBase.CurrentMachine.Runner.Queue.Enqueue(command);
+                        MachineBase.CurrentMachine.Runner.Queue.Enqueue(loop);
 
                         continue;
                     }
@@ -262,8 +261,8 @@ namespace Pyro.Nc.UI
                 }
                 foreach (var line in lines)
                 {
-                    var variables = line.Trim().ToUpper().FindVariables();
-                    commands = variables.CollectCommands();
+                    var variables = line.Trim().ToUpper().FindVariables(true);
+                    commands = variables.CollectCommands(true);
                 }
                 return commands!.Select(x => $"{x.GetType().Name}: \"{x.Description}\", " +
                                            $"({x.Parameters?.Values.Values.Count(v => !float.IsNaN(v)).ToString()}) {x.AdditionalInfo}");

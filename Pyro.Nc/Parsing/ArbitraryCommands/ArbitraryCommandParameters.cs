@@ -12,6 +12,7 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
     public class ArbitraryCommandParameters : ICommandParameters
     {
         public Dictionary<string, float> Values { get; set; } = new Dictionary<string, float>();
+        public Dictionary<string, Func<float>> VarValues { get; set; }
 
         public float GetValue(string s)
         {

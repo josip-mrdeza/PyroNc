@@ -38,19 +38,22 @@ public class ForLoopGCode : BaseCommand
 
         for (CurrentIndex = StartIndex; CurrentIndex < Iterations; CurrentIndex++)
         {
+            SetVariableValue(CurrentIndex);
             foreach (var command in ContainedCommands)
             {
                 try
                 {
+                    UI_3D.Instance.SetMessage($"[ForLoop]: " + command.ToString());
                     await command.ExecuteFinal(draw);
                 }
                 catch (Exception e)
                 {
                     Globals.Console.Push(Globals.Localisation.Find(Localisation.MapKey.GenericHandledError, $"[ForLoop] - {e}"));
+
+                    throw;
                 }
             }
         }
-        
         DeleteVariableValue();
         Globals.Console.Push("[ForLoop] - Deleted temporary index variable STARTINDEX!");
     }
@@ -61,10 +64,12 @@ public class ForLoopGCode : BaseCommand
         if (varMap.ContainsKey(VariableName))
         {
             varMap[VariableName] = value;
+            Globals.Console.Push($"Updated variable '{VariableName}' with value: {value}");
         }
         else
         {
             varMap.Add(VariableName, value);
+            Globals.Console.Push($"Added variable '{VariableName}' with value: {value}");
         }
     }
 

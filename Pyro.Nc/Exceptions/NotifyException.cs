@@ -15,19 +15,15 @@ namespace Pyro.Nc.Exceptions
     public class NotifyException : Exception
     {
         public static BaseCommand CurrentContext => MachineBase.CurrentMachine.Runner.CurrentContext;
-        public NotifyException(string message, bool asWarning = false) : base(message)
+        public NotifyException(string message, bool isSuggesting = false) : base(message)
         {
-            Globals.Comment.PushComment(base.GetBaseException().GetType().Name + ": " + message, asWarning ? Color.yellow : Color.red);
-            if (asWarning)
+            Globals.Comment.PushComment(base.GetBaseException().GetType().Name + ": " + message, isSuggesting ? Color.yellow : Color.red);
+            UI_3D.Instance.SetMessage(message);
+            MachineBase.CurrentMachine.Pause();
+            if (!isSuggesting)
             {
-                return;
+                PopupHandler.PopText(message);
             }
-
-            MachineBase.CurrentMachine.EventSystem.PEvents.Fire(Locals.EventConstants.ProgramEnd);
-            var mach = MachineBase.CurrentMachine;
-            mach.SetSpindleSpeed(0);
-            mach.SetFeedRate(0);
-            PopupHandler.PopText(message);
             MachineBase.CurrentMachine.Queue.Run(async () =>
             {
                 await NetHelpers.Post("https://pyronetserver.azurewebsites.net/events/invoke?id=Exception&sequence=Pyro", $"Line {Globals.GCodeInputHandler.Line}-{message}");

@@ -44,24 +44,27 @@ namespace Pyro.Nc.Parsing.GCommands
             var parameters = (Parameters as GCommandParameters);
             Vector3 point;
             var trans = ToolBase.Values.TransPosition;
+            var x = parameters.GetValue("X");
+            var y = parameters.GetValue("Y");
+            var z = parameters.GetValue("Z");
             if (Machine.SimControl.Movement == MovementType.Incremental)
             {
-                if ((ResolveNan(parameters.X, 0) == 0 && ResolveNan(parameters.Y, 0) == 0 && ResolveNan(parameters.Z, 0) == 0))
+                if ((ResolveNan(x, 0) == 0 && ResolveNan(y, 0) == 0 && ResolveNan(z, 0) == 0))
                 {
                     throw new LinearInterpolationParameterMismatchException(this);
                 }
 
                 var pos = ToolBase.Position;
-                point = new Vector3(pos.x + ResolveNan(parameters.X, 0),
-                                    pos.y + ResolveNan(parameters.Y, 0), 
-                                    pos.z + ResolveNan(parameters.Z, 0));
+                point = new Vector3(pos.x + ResolveNan(x, 0),
+                                    pos.y + ResolveNan(y, 0), 
+                                    pos.z + ResolveNan(z, 0));
             }
             else
             {
                 var pos = ToolBase.Position;
-                point = new Vector3((parameters.X + trans.x).FixNan(pos.x),
-                                    (parameters.Y + trans.y).FixNan(pos.y),
-                                    (parameters.Z + trans.z).FixNan(pos.z));
+                point = new Vector3((x + trans.x).FixNan(pos.x),
+                                    (y + trans.y).FixNan(pos.y),
+                                    (z + trans.z).FixNan(pos.z));
 
             }
 

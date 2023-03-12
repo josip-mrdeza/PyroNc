@@ -11,5 +11,15 @@ namespace Pyro.Nc.Parsing.MCommands
         {
         }
         public override string Description => Locals.M01;
+
+        public override Task Execute(bool draw)
+        {
+            if (true) //uvesti sistemsku varijablu
+            {
+                base.Execute(draw);
+            }
+
+            return Task.CompletedTask;
+        }
     }
 }

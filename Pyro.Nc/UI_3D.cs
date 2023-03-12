@@ -6,6 +6,7 @@ using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.Simulation.Machines;
 using Pyro.Nc.UI;
+using TMPro;
 using UnityEngine;
 
 namespace Pyro.Nc;
@@ -18,6 +19,7 @@ public class UI_3D : InitializerRoot
     public ValueDisplayer Trans;
 
     public TimeValueDisplayer Time;
+    public TextMeshProUGUI CodeDisplay;
 
     private TimeSpan Previous;
 
@@ -32,6 +34,7 @@ public class UI_3D : InitializerRoot
         Position = tr.Find("Position_Display").GetComponent<ValueDisplayer>();
         Trans = tr.Find("Trans_Display").GetComponent<ValueDisplayer>();
         Time = tr.Find("Time_Display").GetComponent<TimeValueDisplayer>();
+        CodeDisplay = tr.Find("GCode_Displayer").GetComponent<TextMeshProUGUI>();
         var mach = MachineBase.CurrentMachine;
         var machineEventSystem = mach.EventSystem;
         machineEventSystem.OnPositionChanged += (_, pos)=> SetPositionDisplay(pos);
@@ -42,6 +45,11 @@ public class UI_3D : InitializerRoot
         machineEventSystem.TransChanged();
         machineEventSystem.FeedRateChanged();
         machineEventSystem.SpindleSpeedChanged();
+    }
+
+    public void SetMessage(string s)
+    {
+        CodeDisplay.text = s;
     }
     
     public void SetPositionDisplay(Vector3 v)

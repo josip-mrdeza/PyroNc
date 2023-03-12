@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -7,6 +8,18 @@ namespace Pyro.Nc.UI.Options;
 
 public class OptionBase : MonoBehaviour
 {
+    private void Awake()
+    {
+        List<RectTransform> children = new List<RectTransform>();
+        var cc = transform.childCount;
+        for (int i = 0; i < cc; i++)
+        {
+            children.Add((RectTransform) transform.GetChild(i));
+        }
+
+        _children = children.ToArray();
+    }
+
     public float Width
     {
         get => _width;
@@ -26,6 +39,7 @@ public class OptionBase : MonoBehaviour
         }
     }
     internal RectTransform _uiTransform;
+    internal RectTransform[] _children;
     internal float _height;
     internal float _width;
     internal Vector2 Position
@@ -48,6 +62,10 @@ public class OptionBase : MonoBehaviour
         _uiTransform.sizeDelta = sizeDelta;
         _width = sizeDelta.x;
         _height = sizeDelta.y;
+        foreach (var child in _children)
+        {
+            child.sizeDelta = sizeDelta;
+        }
     }
     public void Move(Vector2 position)
     {

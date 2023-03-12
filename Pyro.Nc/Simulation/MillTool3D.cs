@@ -113,7 +113,7 @@ namespace Pyro.Nc.Simulation
                 VertexToTriangleMapping = cache.ReadFileAs<Dictionary<int, int[][]>>("CachedVertexMapping.map");
                 return;
             }
-            Parallel.For((long)0, vertLength, new ParallelOptions(){MaxDegreeOfParallelism = 5},
+            Parallel.For((long)0, vertLength, new ParallelOptions(){MaxDegreeOfParallelism =4 },
                          () =>
                          {
                              return new List<int[]>();
