@@ -26,13 +26,15 @@ public static class JsonConfigCreator
             {
                 continue;
             }
-            var props = type.GetRuntimeProperties().Cast<MemberInfo>().ToArray();
-            var fields = type.GetRuntimeFields().Cast<MemberInfo>();
-            var members = props.Concat(fields).ToArray();
+            var props = type.GetRuntimeProperties().ToArray();
             List<StoreJsonPart> parts = new List<StoreJsonPart>();
-            for (var i = 0; i < members.Length; i++)
+            for (var i = 0; i < props.Length; i++)
             {
-                var prop = members[i];
+                var prop = props[i];
+                if (prop is null)
+                {
+                    continue;
+                }
                 var attr = prop.GetCustomAttribute<StoreAsJson>();
                 if (attr == null)
                 {
@@ -42,27 +44,13 @@ public static class JsonConfigCreator
                 attr.Parent = type;
                 Stores.Add(attr);
                 object propBaseValue;
-                if (prop is FieldInfo info)
+                if (prop.PropertyType == typeof(string))
                 {
-                    if (info.FieldType == typeof(string))
-                    {
-                        propBaseValue = "";
-                    }
-                    else
-                    {
-                        propBaseValue = Activator.CreateInstance(info.FieldType);
-                    }
+                    propBaseValue = "";
                 }
                 else
                 {
-                    if ((prop as PropertyInfo).PropertyType == typeof(string))
-                    {
-                        propBaseValue = "";
-                    }
-                    else
-                    {
-                        propBaseValue = Activator.CreateInstance((prop as PropertyInfo).PropertyType);
-                    }
+                    propBaseValue = prop.GetValue(null);
                 }
 
                 parts.Add(new StoreJsonPart(attr.Name, propBaseValue));
@@ -134,35 +122,29 @@ public static class JsonConfigCreator
         }
     }
 
-    private static void AssignJsonStore(Action<string, string, object> onCompleteEach, StoreAsJson store, StoreJsonPart obj,
+    private static void AssignJsonStore(Action<string, string, object> onCompleteEach, StoreAsJson store,
+        StoreJsonPart obj,
         Type type, object valueOverride = null)
     {
         Type t = Type.GetType(obj.TypeAsString);
         var val = (JsonElement)obj.Value;
         var o = valueOverride ?? val.Deserialize(t!);
         object field = type.GetMember(store.Name)[0];
-        if (field is FieldInfo fi)
-        {
-            fi.SetValue(null, o);
-            onCompleteEach?.Invoke(type.Name, fi.Name, o);
-        }
-        else
-        {
-            var prop = (field as PropertyInfo);
-            prop.SetValue(null, o);
-            onCompleteEach?.Invoke(type.Name, prop.Name, o);
-        }
+        var prop = (field as PropertyInfo);
+        prop.SetValue(null, o);
+        onCompleteEach?.Invoke(type.Name, prop.Name, o);
     }
 }     
 
 [AttributeUsage(AttributeTargets.Property)]
 public class StoreAsJson : Attribute
 {
-    public StoreAsJson([CallerMemberName] string name = "defaultName", Type type = null)
+    public StoreAsJson([CallerMemberName] string name = "defaultName", object defaultValue = null)
     {
         Name = name;
-        _type = type;
+        DefaultValue = defaultValue;
     }
+    public object DefaultValue { get; }
     public string Name { get; }
     public Type Parent { get; internal set; }
     public Type VariableType

@@ -16,7 +16,19 @@ namespace Pyro.Nc.Configuration
         public float B { get; set; }
         public float A { get; set; }
 
-        public Color ToolColor;
+        public Color _ToolColor;
+
+        public void RefreshColor()
+        {
+            _ToolColor = new Color(R / 255, G / 255, B / 255, A / 255);
+        }
+
+        public Color GetColor()
+        {
+            RefreshColor();
+
+            return _ToolColor;
+        }
         
         [JsonConstructor]
         public ToolConfiguration(string name,string id, float radius, int index, float verticalMargin, float r, float g, float b, float a)
@@ -25,7 +37,7 @@ namespace Pyro.Nc.Configuration
             Id = id;
             Radius = radius;
             Index = index;
-            ToolColor = new Color(r / 255, g / 255, b / 255, a / 255);
+            _ToolColor = new Color(r / 255, g / 255, b / 255, a / 255);
             VerticalMargin = verticalMargin;
             R = r;
             G = g;
@@ -39,7 +51,7 @@ namespace Pyro.Nc.Configuration
             Id = id;
             Radius = radius;
             Index = index;
-            ToolColor = color;
+            _ToolColor = color;
             VerticalMargin = verticalMargin;
             R = color.r * 255;
             G = color.g * 255;

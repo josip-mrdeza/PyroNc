@@ -17,7 +17,7 @@ namespace Pyro.Nc.Simulation
 {
     public static class ToolHelper
     {
-        private static ToolSetter Setter;
+        private static T Setter;
         public static ToolValues GetDefaultsOrCreate(this ToolBase toolBase)
         {
             return Globals.DefaultsManager.Values.Mutate(x =>
@@ -31,7 +31,7 @@ namespace Pyro.Nc.Simulation
         public static async Task<ToolConfiguration> ChangeTool(this ToolBase toolBase, int index)
         {
             ThrowNoToolException(toolBase);
-            Setter = new ToolSetter(toolBase, new ArbitraryCommandParameters());
+            Setter = new T(toolBase, new ArbitraryCommandParameters());
             Setter.Parameters.AddValue("value", index);
             await Setter.ExecuteFinal(true);
 

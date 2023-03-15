@@ -54,6 +54,10 @@ public class MachineBase : InitializerRoot
         StateControl = new MachineStateControl();
         SimControl = new SimulationControl();
         ToolControl = gameObject.AddComponent<ToolControl>();
+        if (ToolControl.SelectedTool == null)
+        {
+            Push("~[MachineBase]: ToolControl.SelectedTool is null!~");
+        }
         ToolControl.SelectedTool.Initialize();
         SpindleControl.FeedRate.SetUpperValue(400);
         SpindleControl.SpindleSpeed.SetUpperValue(4000);
@@ -64,10 +68,17 @@ public class MachineBase : InitializerRoot
         };
         SpindleControl.FeedRate.SetUpperValue(350);
         SpindleControl.SpindleSpeed.SetUpperValue(4000);
-        SimulationId = EntryHandler.User.Name;
-        JogEvent = NetworkEvent.ListenToEvent($"{SimulationId}_jog", "null");
-        JogEvent.OnEvent += OnRemoteJog;
-        Push($"Listening for jog events on: {JogEvent.Id} [{JogEvent.IsActive}]");
+        if (EntryHandler.User == null)
+        {
+            Push("~[MillMachine]: User has not been logged in, can't listen to events!~");
+        }
+        else
+        {
+            SimulationId = EntryHandler.User.Name;
+            JogEvent = NetworkEvent.ListenToEvent($"{SimulationId}_jog", "null");
+            JogEvent.OnEvent += OnRemoteJog;
+            Push($"Listening for jog events on: {JogEvent.Id} [{JogEvent.IsActive}]");
+        }
     }
 
     private void OnRemoteJog(object o, NetworkEventArgs args)
@@ -124,7 +135,7 @@ public class MachineBase : InitializerRoot
 
     public void SetTrans(Vector3 trans)
     {
-        ToolControl.SelectedTool.Values.TransPosition = trans;
+        SimControl.Trans = trans;
         EventSystem.TransChanged();
     }
 

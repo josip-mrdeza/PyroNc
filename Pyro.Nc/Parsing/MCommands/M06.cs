@@ -38,12 +38,13 @@ namespace Pyro.Nc.Parsing.MCommands
             }
             
             var rpp = Globals.ReferencePointParser.ToolMountReferencePoint;
-            var g0ToToolSetPosition = ToolBase.Values.Storage.FetchGCommand("G00") as G00;
-            g0ToToolSetPosition.Parameters = new GCommandParameters(rpp.x, rpp.y, rpp.z);
-            Globals.Rules.Try(g0ToToolSetPosition);
-            Expire();
-            await g0ToToolSetPosition.ExecuteFinal(draw);
-            var toolSetter = new ToolSetter(ToolBase, new ArbitraryCommandParameters()
+            // var g0ToToolSetPosition = ToolBase.Values.Storage.FetchGCommand("G00") as G00;
+            // g0ToToolSetPosition.Parameters = new GCommandParameters(rpp.x, rpp.y, rpp.z);
+            // Globals.Rules.Try(g0ToToolSetPosition);
+            // Expire();
+            // await g0ToToolSetPosition.ExecuteFinal(draw);
+            ToolBase.Position = rpp;
+            var toolSetter = new T(ToolBase, new ArbitraryCommandParameters()
             {
                 Values = new Dictionary<string, float>()
                 {

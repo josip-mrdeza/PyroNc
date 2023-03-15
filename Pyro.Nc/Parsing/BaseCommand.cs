@@ -61,6 +61,7 @@ namespace Pyro.Nc.Parsing
         public ToolBase ToolBase { get; set; }
 
         public Group Family { get; set; }
+        public virtual string CommandID { get; internal set; }
 
         /// <summary>
         /// The command's unique description.
@@ -310,9 +311,15 @@ namespace Pyro.Nc.Parsing
             lock (Builder)
             {
                 Builder.Clear();
-                Builder.Append(GetType().Name);
+                Builder.Append(this.GetType().Name);
                 foreach (var value in Parameters.Values)
                 {
+                    if (value.Key == "value")
+                    {
+                        Builder.Append(' ');
+                        Builder.Append(value.Value);
+                        continue;
+                    }
                     if (!Single.IsNaN(value.Value))
                     {
                         Builder.Append(' ');
@@ -332,7 +339,41 @@ namespace Pyro.Nc.Parsing
                         Builder.Append(value.Value);
                     }
                 }
-                
+
+                if (Parameters.VarValues != null)
+                {
+                    foreach (var value in Parameters.VarValues)
+                    {
+                        var val = value.Value();
+                        if (value.Key == "value")
+                        {
+                            Builder.Append(' ');
+                            Builder.Append(val);
+
+                            continue;
+                        }
+
+                        if (!Single.IsNaN(val))
+                        {
+                            Builder.Append(' ');
+                            if (value.Key == "Y")
+                            {
+                                Builder.Append("Z");
+                            }
+                            else if (value.Key == "Z")
+                            {
+                                Builder.Append("Y");
+                            }
+                            else
+                            {
+                                Builder.Append(value.Key);
+                            }
+
+                            Builder.Append(val);
+                        }
+                    }
+                }
+
                 return Builder.ToString();
             }
         }

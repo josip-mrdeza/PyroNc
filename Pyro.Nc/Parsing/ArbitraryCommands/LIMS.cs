@@ -5,9 +5,9 @@ using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
-    public class Lims : BaseCommand
+    public class LIMS : BaseCommand
     {
-        public Lims(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
+        public LIMS(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
         {
             
         }

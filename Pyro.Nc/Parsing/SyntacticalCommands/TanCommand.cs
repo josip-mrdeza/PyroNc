@@ -5,9 +5,9 @@ using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Parsing.SyntacticalCommands;
 
-public class TanCommand : TrigCommand
+public class TAN : TrigCommand
 {
-    public TanCommand(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
+    public TAN(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
     {
     }
 }

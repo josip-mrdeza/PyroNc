@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 namespace Pyro.Nc.Configuration;
 
 public interface IPyroPlugin

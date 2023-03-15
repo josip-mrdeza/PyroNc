@@ -16,6 +16,7 @@ using Pyro.Nc.Parsing.MCommands;
 using Pyro.Nc.Parsing.SyntacticalCommands;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.Simulation.Machines;
+using Pyro.Nc.UI.Colors;
 using Pyro.Nc.UI.Entry;
 using Pyro.Nc.UI.Programs;
 using Pyro.Nc.UI.UI_Screen;
@@ -49,6 +50,15 @@ namespace Pyro.Nc.UI
         private Vector2 LeftTop;
         private int len;
 
+        [StoreAsJson]
+        public static PyroColor GCommandColor { get; set; } = new PyroColor(200, 52, 235, 152);
+        [StoreAsJson]
+        public static PyroColor MCommandColor { get; set; } = new PyroColor(200, 255, 255, 0);
+
+        [StoreAsJson]
+        public static PyroColor ArbCommandColor { get; set; } = new PyroColor(200, 252, 3, 144);
+        [StoreAsJson]
+        public static PyroColor ParamsCommandColor { get; set; } = new PyroColor(200, 177, 3, 252);
         public override void Show()
         {
             base.Show();
@@ -94,10 +104,6 @@ namespace Pyro.Nc.UI
             InvokeRepeating(nameof(UpdateViewV2), 0, 0.1f);
             Button.onClick.AddListener(async () => await Call(Text.text, true));
             Simulation2DButton.onClick.AddListener(async () => await Call(Text.text, true, true));
-            Text.onValueChanged.AddListener(_ =>
-            {
-                ApplyColors();
-            });
             Globals.GCodeInputHandler = this;
             LocalRoaming roaming = LocalRoaming.OpenOrCreate("PyroNc\\GCode");
             var user = EntryHandler.User;
@@ -109,10 +115,8 @@ namespace Pyro.Nc.UI
                 Push($"Reading data for file: '{file}'...");
                 var fileData = await NetHelpers.GetData($"{addr}/files/{file}?userName={user.Name}&password={user.Password}");
                 Push($"Finished downloading file: '{file}' with a length of '{fileData.Length}' bytes.");
-                if (roaming.Exists(file))
-                {
-                    await roaming.ModifyFileAsync($"{file}", fileData);
-                }
+                await roaming.ModifyFileAsync($"{file}", fileData);
+                Push("Wrote file to disk.");
             }
         }
 
@@ -125,15 +129,15 @@ namespace Pyro.Nc.UI
             
             var local = LocalRoaming.OpenOrCreate("PyroNc\\GCode");
             var txt = ph.PrefabInputs[0].text;
-            if (txt.StartsWith("Server-"))
-            {
-                await ApplyChangesToFileServerSide(txt, Text.text);
-            }
-            await local.ModifyFileAsync(txt, Text.text);
+            local.ModifyFile(txt, Text.text);
             fileName = txt;
             HasSaved = true;
             Globals.Loader.Load();
             Globals.Loader.ShowOnScreen();
+            if (txt.StartsWith("Server"))
+            {
+                await ApplyChangesToFileServerSide(txt, Text.text);
+            }
         }
 
         public async Task Call(string text, bool reset, bool is2d = false)
@@ -168,9 +172,9 @@ namespace Pyro.Nc.UI
                     command.Line = i;
                     command.Is2DSimulation = is2d;
 
-                    if (command is ForLoopGCode loop)
+                    if (command is FORLOOP loop)
                     {
-                        if (!lines.Exists(l => l.Exists(c => c.GetType() == typeof(EndForGCode))))
+                        if (!lines.Exists(l => l.Exists(c => c.GetType() == typeof(ENDFORLOOP))))
                         {
                             throw new ForLoopNoEndException();
                         }
@@ -178,7 +182,7 @@ namespace Pyro.Nc.UI
                         for (int j = i + 1; j < lines.Count; j++)
                         {
                             var lineNested = lines[j];
-                            if (lineNested.Exists(x => x.GetType() == typeof(EndForGCode)))
+                            if (lineNested.Exists(x => x.GetType() == typeof(ENDFORLOOP)))
                             {
                                 break;
                             }
@@ -238,13 +242,14 @@ namespace Pyro.Nc.UI
                 Display.transform.localPosition = nPos;
             }
         }
+        
 
         private void UpdateDisplaySize(int length)
         {
             len = length > 0 ? length : 1;
             var rtr1 = (Display.transform as RectTransform);
             var rtr2 = SuggestionDisplay.transform as RectTransform;
-            var size = rtr1.sizeDelta = new Vector2(500, 50 * length * 1.5f);
+            var size = rtr1.sizeDelta = new Vector2(500, 50 * length * 2f);
             rtr2.sizeDelta = rtr1.sizeDelta;
             LeftTop = new Vector2(-size.x / 2, size.y / 2);
         }
@@ -297,8 +302,8 @@ namespace Pyro.Nc.UI
                     if (IsFileLocal)
                     {
                         var local = LocalRoaming.OpenOrCreate("PyroNc\\GCode");
-                        await local.ModifyFileAsync(fileName, Text.text);
-                        if (fileName.StartsWith("Server-"))
+                        local.ModifyFile(fileName, Text.text);
+                        if (fileName.StartsWith("Server"))
                         {
                             await ApplyChangesToFileServerSide(fileName, Text.text);
                         }
@@ -306,7 +311,7 @@ namespace Pyro.Nc.UI
                     }
                     else
                     {
-                        var req = NetHelpers.Post($"{Address}/{fileName}", Text.text);
+                        //var req = NetHelpers.Post($"{Address}/{fileName}", Text.text);
                         HasSaved = true;
                     }
                 }
@@ -318,7 +323,13 @@ namespace Pyro.Nc.UI
 
         public override void UpdateView()
         {
-            //ApplyColors();
+            try
+            {
+                ApplyColors();
+            }
+            catch (Exception e)
+            {
+            }
         }
 
         private void ApplyColors()
@@ -330,18 +341,20 @@ namespace Pyro.Nc.UI
             var first = Text.textComponent.firstVisibleCharacter;
             var txt = Text.textComponent.textInfo;
             var last = txt.lineInfo[txt.lineCount-1].lastVisibleCharacterIndex;
-            var lines = Text.text.Substring(first, last).Split(new char[]{'\n'}, StringSplitOptions.RemoveEmptyEntries);
+            var lines = Text.text.Substring(first, last+1).Split(new char[]{'\n'});
             int index = 0;
+            var c = 0;
             for (int i = 0; i < lines.Length; i++)
             {
                 try
                 {
                     var line = lines[i];
                     var words = line.Split(' ');
+                    c  += line.Count(x => x == '\n');
                     foreach (var word in words)
                     {
                         PaintWords(word, index);
-                        index += word.Length + 1;
+                        index += word.Length + 1 + c;
                     }
                 }
                 catch (Exception e)
@@ -355,11 +368,10 @@ namespace Pyro.Nc.UI
         private void PaintWords(string word, int fci)
         {
             var isParameter = RegexPatterns.CompleteParameterCheck.IsMatch(word);
-            var lci = fci + word.Length + 1;
+            var lci = fci + word.Length;
             if (isParameter)
             {
-                SetCharacterColors(fci, lci,
-                                   new Color32(177, 3, 252, 200));
+                SetCharacterColors(fci, lci, ParamsCommandColor);
 
                 return;
             }
@@ -367,8 +379,7 @@ namespace Pyro.Nc.UI
             var isGCommand = RegexPatterns.CompleteGFunctionCheck.IsMatch(word);
             if (isGCommand)
             {
-                SetCharacterColors(fci, lci,
-                                   new Color32(52, 235, 152, 200));
+                SetCharacterColors(fci, lci, GCommandColor);
 
                 return;
             }
@@ -376,8 +387,7 @@ namespace Pyro.Nc.UI
             var isMCommand = RegexPatterns.CompleteMFunctionCheck.IsMatch(word);
             if (isMCommand)
             {
-                SetCharacterColors(fci, lci,
-                                   new Color32(255, 255, 0, 200));
+                SetCharacterColors(fci, lci, MCommandColor);
 
                 return;
             }
@@ -391,7 +401,7 @@ namespace Pyro.Nc.UI
                 return;
             }
 
-            SetCharacterColors(fci, lci, new Color32(255, 0, 0, 200));
+            SetCharacterColors(fci, lci, ArbCommandColor);
         }
 
         public int GetLineNumber()
@@ -433,6 +443,7 @@ namespace Pyro.Nc.UI
         
         public Vector3? GetLocalCaretPosition()
         {
+            //max 16 lines
             if (Text.isFocused)
             {
                 var textInfo = Text.textComponent.textInfo;
@@ -472,19 +483,16 @@ namespace Pyro.Nc.UI
             var str = Text.text;
             StringBuilder builder = new StringBuilder();
             var split = str.Split('\n');
-            for (int i = 1; i < split.Length + 1; i++)
+            for (int i = step; i < split.Length + 1; i+=step)
             {
                 var s = split[i - 1];
                 if (!string.IsNullOrEmpty(s))
                 {
                     builder.Append("N");
-                    builder.Append(i * 10);
+                    builder.Append(i);
                     builder.Append(' ');
-                    if (s[0] == 'N')
-                    {
-                        s = s.Remove(0, s.IndexOf(' '));
-                    }
-                    builder.AppendLine(s);
+                    builder.Append(s);
+                    builder.AppendLine();
                 }
             }
             Text.text = builder.ToString();

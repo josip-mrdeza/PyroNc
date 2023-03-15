@@ -15,7 +15,7 @@ public static class RegexPatterns
         new Regex(@"[gG]{1}?\d{1,3}", RegexOptions.Compiled);
 
     public static Regex CompleteMFunctionCheck =
-        new Regex(@"[gG]{1}?\d{1,3}", RegexOptions.Compiled);
+        new Regex(@"[mM]{1}?\d{1,3}", RegexOptions.Compiled);
 
     //public static Regex CompleteArbitraryFunctionCheck = CreateArbCmdRegex();
 

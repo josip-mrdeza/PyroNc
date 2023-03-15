@@ -335,7 +335,7 @@ namespace Pyro.Nc.Simulation
         [CustomMethod(nameof(Traverse))]
         public static async Task Traverse(this ToolBase toolBase, Vector3[] points, bool draw, bool logStats = true)
         {
-            var isCutting = MachineBase.CurrentMachine.Runner.CurrentContext is G01;
+            var isCutting = MachineBase.CurrentMachine.SimControl.IsInCuttingMode;
             toolBase.Renderer.positionCount = points.Length;
             Dictionary<Vector3, List<int>> dict = null;
             if (MachineBase.CuttingType == CutType.LineHash)    

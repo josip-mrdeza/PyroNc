@@ -22,7 +22,7 @@ namespace Pyro.Nc.Parsing.Rules
 
         public override void FixValidity(List<BaseCommand> list)
         {
-            var sc = list.FirstOrDefault(c => c.IsMatch(typeof(SpindleSpeedSetter)));
+            var sc = list.FirstOrDefault(c => c.IsMatch(typeof(S)));
             if (sc is null)
             {
                 return;

@@ -9,9 +9,9 @@ using Pyro.Nc.UI;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands;
 
-public class SubProgramCall : BaseCommand                                        
+public class SPCALL : BaseCommand                                        
 {
-    public SubProgramCall(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
+    public SPCALL(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
     {
     }
 

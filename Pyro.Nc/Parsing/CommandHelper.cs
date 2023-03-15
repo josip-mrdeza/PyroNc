@@ -406,7 +406,7 @@ namespace Pyro.Nc.Parsing
                             return;
                         }
                     }
-                    command.AdditionalInfo += $"\n[Using->{drc.Name}:{drc.Value}]";
+                    command.AdditionalInfo += $"\n[Using {drc.Name}={drc.Value}]";
                     char param = par[0];
                     if (param == 'Z')
                     {
@@ -472,7 +472,7 @@ namespace Pyro.Nc.Parsing
                     }
                     else //GOTTA BE AN SPF
                     {
-                        var spf = new SubProgramCall(mcall.ToolBase, mcall.Parameters);
+                        var spf = new SPCALL(mcall.ToolBase, mcall.Parameters);
                         spf.Name = cmd;
                         mcall.NextSubroutine = spf;
                     }
@@ -634,10 +634,7 @@ namespace Pyro.Nc.Parsing
                 {
                     return false;
                 }
-                var notation = Storage.FetchArbitraryCommand("N").Copy() as Notation;
-                notation!.Number = num;
-                commands.Add(notation);
-
+                
                 return true;
             }
 

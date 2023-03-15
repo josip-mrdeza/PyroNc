@@ -54,6 +54,10 @@ public class UI_3D : InitializerRoot
     
     public void SetPositionDisplay(Vector3 v)
     {
+        if (MachineBase.CurrentMachine == null)
+        {
+            return;
+        }
         var valuet = MachineBase.CurrentMachine.SimControl.Unit == UnitType.Imperial ? "in" : "mm";
         Position.Value.text = 
             $"X = {v.x.Round().ToString(CultureInfo.InvariantCulture)}{valuet}" +

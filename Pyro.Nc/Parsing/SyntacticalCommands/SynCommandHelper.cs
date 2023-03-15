@@ -36,9 +36,9 @@ public static class SynCommandHelper
         var parameters = new ArbitraryCommandParameters();
         TrigCommand command = id switch
         {
-            "SinCommand" => new SinCommand(tool, parameters),
-            "CosCommand" => new CosCommand(tool, parameters),
-            "TanCommand" => new TanCommand(tool, parameters),
+            "SinCommand" => new SIN(tool, parameters),
+            "CosCommand" => new COS(tool, parameters),
+            "TanCommand" => new TAN(tool, parameters),
             _            => null
         };
         if (command == null)
@@ -68,7 +68,7 @@ public static class SynCommandHelper
             }
 
             r.Reset();
-            var command = new ForLoopGCode(i, iterations, reg2.Value.Replace("=", ""));
+            var command = new FORLOOP(i, iterations, reg2.Value.Replace("=", ""));
             commands.Add(command);
             var loop = command;
             if (CommandHelper.VariableMap.ContainsKey(loop.VariableName))
@@ -85,7 +85,7 @@ public static class SynCommandHelper
 
         if (id.StartsWith("ENDFOR"))
         {
-            var command = new EndForGCode();
+            var command = new ENDFORLOOP();
             commands.Add(command);
             return true;
         }

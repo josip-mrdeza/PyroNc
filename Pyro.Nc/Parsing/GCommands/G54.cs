@@ -10,14 +10,12 @@ namespace Pyro.Nc.Parsing.GCommands
     {
         public G54(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
         {
-            
+            AdditionalInfo = $"\n{Machine.SimControl.WorkOffsets[0].ToString()}";
         }
 
         public override async Task Execute(bool draw)
         {
-            //??
-            ToolBase.Values.WorkOffsets[0] = new Vector3(Parameters.GetValue("X"), Parameters.GetValue("Y"), Parameters.GetValue("Z"));
-            await Machine.EventSystem.PEvents.FireAsync("WorkOffsetChange_0");
+            Machine.SimControl.WorkOffset = Machine.SimControl.WorkOffsets[0];
         }
     }
 }

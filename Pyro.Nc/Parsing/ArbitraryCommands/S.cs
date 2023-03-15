@@ -8,9 +8,9 @@ using UnityEngine;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
-    public class SpindleSpeedSetter : BaseCommand
+    public class S : BaseCommand
     {
-        public SpindleSpeedSetter(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
+        public S(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
         {
         }
 

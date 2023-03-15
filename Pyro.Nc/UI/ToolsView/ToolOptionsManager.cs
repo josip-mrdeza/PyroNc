@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Pyro.IO;
 using Pyro.Nc.Configuration;
+using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Machines;
 using Pyro.Nc.UI.UI_Screen;
 using TMPro;
 using UnityEngine;
@@ -55,7 +57,7 @@ public class ToolOptionsManager : MonoBehaviour
         ColorG.text = (config.G).ToString();
         ColorB.text = (config.B).ToString();
         VerticalMargin.text = config.VerticalMargin.ToString();
-        Img.color = config.ToolColor;
+        Img.color = config.GetColor();
     }
 
     private void LateUpdate()
@@ -104,6 +106,7 @@ public class ToolOptionsManager : MonoBehaviour
             //lr.AddFile($"ToolConfig_Backup_{DateTime.Now.ToShortDateString()}.json", arr);
             arr[index] = conf;
             Roaming.ModifyFile("ToolConfig.json", arr);
+            MachineBase.CurrentMachine.ToolControl.Manager.Tools = arr.ToList();
         }
         catch (Exception e)
         {

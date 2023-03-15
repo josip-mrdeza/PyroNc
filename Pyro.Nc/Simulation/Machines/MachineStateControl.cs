@@ -52,7 +52,7 @@ public class MachineStateControl
     {
         var runner = MachineBase.CurrentMachine.Runner;
         runner.Queue.Clear();
-        ResetUI();
+        //ResetUI();
         State = MachineState.Resetting;
         CommandHelper.PreviousModal = null;
         MachineBase.CurrentMachine.EventSystem.SystemReset();
@@ -66,5 +66,6 @@ public class MachineStateControl
         ViewHandler.ShowOne("3DView");
         UI_3D.Instance.SetTimeDisplay(new TimeSpan());
         UI_3D.Instance.SetMessage("Reset");
+        SingleButton.Begun = false;
     }
 }

@@ -162,7 +162,7 @@ public class ToolBase : InitializerRoot
         var v3dFinal = workpiece.transform.InverseTransformPoint(v3dPrep);
         var index = map.Index;
         workpiece.Vertices[index] = v3dFinal;
-        workpiece.Colors[index] = toolConfig.ToolColor; 
+        workpiece.Colors[index] = toolConfig.GetColor(); 
     }
 
     public void LineHashCut(Dictionary<Vector3, List<int>> dictionary, Vector3 point)
@@ -178,6 +178,8 @@ public class ToolBase : InitializerRoot
         {
             return;
         }
+
+        var color = ToolConfig.GetColor();
         foreach (var i in list)
         {
             var v = tr.TransformPoint(vertices[i]);
@@ -217,7 +219,7 @@ public class ToolBase : InitializerRoot
                 v.y = pos.y;
             }
             vertices[i] = tr.InverseTransformPoint(v);
-            colors[i] = ToolConfig.ToolColor;
+            colors[i] = color;
         }
     }
 

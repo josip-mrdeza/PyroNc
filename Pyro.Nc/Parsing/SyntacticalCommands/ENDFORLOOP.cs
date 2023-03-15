@@ -6,11 +6,13 @@ using Pyro.Nc.Simulation;
 
 namespace Pyro.Nc.Parsing.SyntacticalCommands;
 
-public class EndForGCode : BaseCommand
+public class ENDFORLOOP : BaseCommand
 {
-    public EndForGCode() : base(Globals.Tool, new ArbitraryCommandParameters())
+    public ENDFORLOOP() : base(Globals.Tool, new ArbitraryCommandParameters())
     {
     }
+
+    public override string Description => "Ends the for loop context.";
 
     public override async Task Execute(bool draw)
     {

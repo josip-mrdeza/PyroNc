@@ -3,9 +3,9 @@ using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Parsing.SyntacticalCommands;
 
-public class SinCommand : TrigCommand
+public class SIN : TrigCommand
 {
-    public SinCommand(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
+    public SIN(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
     {
     }
 }

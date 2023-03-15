@@ -22,7 +22,7 @@ namespace Pyro.Nc.Parsing.Rules
                 return;
             }
 
-            if (list.FirstOrDefault(x => x.IsMatch(typeof(SpindleSpeedSetter))) != null && list.FirstOrDefault(x => x.IsMatch(typeof(M03))) != null)
+            if (list.FirstOrDefault(x => x.IsMatch(typeof(S))) != null && list.FirstOrDefault(x => x.IsMatch(typeof(M03))) != null)
             {
                 list.Reverse();
             }

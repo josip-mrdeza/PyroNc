@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Pyro.IO;
+using Pyro.Math;
 using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.GCommands;
@@ -14,6 +15,7 @@ using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.Simulation.Tools;
 using Pyro.Nc.UI;
+using UnityEngine;
 
 namespace Pyro.Nc.Parsing
 {
@@ -161,7 +163,7 @@ namespace Pyro.Nc.Parsing
             ValueStorage strg = new ValueStorage();
             CommandHelper.Storage = strg;
             strg.CreateLocalLowDir();
-            string fullPath = $"{strg.StorageDirectory.FullName}\\{CommandIDPath}";
+            //string fullPath = $"{strg.StorageDirectory.FullName}\\{CommandIDPath}";
             var separator1 = "##G";
             var separator2 = "##M";
             var separator3 = "##A";
@@ -169,19 +171,67 @@ namespace Pyro.Nc.Parsing
             var typePrefixG = "Pyro.Nc.Parsing.GCommands.G";
             var typePrefixM = "Pyro.Nc.Parsing.MCommands.M";
             var typePrefixA = "Pyro.Nc.Parsing.ArbitraryCommands.";
-            string[] lines = File.ReadAllLines(fullPath);
-            var gcoms = lines.TakeWhile(x => x != separator1).Where(y => !y.Contains("##") && !y.Contains("//")).ToArray();
-            var mcoms = lines.SkipWhile(x => x != separator1).TakeWhile(y => y != separator2).Where(z => !z.Contains("##") && !z.Contains("//")).ToArray();
-            var acoms = lines.SkipWhile(x => x != separator2).TakeWhile(y => y != separator3).Where(z => !z.Contains("##") && !z.Contains("//")).ToArray();
+            //string[] lines = File.ReadAllLines(fullPath);
+            // var gcoms = lines.TakeWhile(x => x != separator1).Where(y => !y.Contains("##") && !y.Contains("//")).ToArray();
+            // var mcoms = lines.SkipWhile(x => x != separator1).TakeWhile(y => y != separator2).Where(z => !z.Contains("##") && !z.Contains("//")).ToArray();
+            // var acoms = lines.SkipWhile(x => x != separator2).TakeWhile(y => y != separator3).Where(z => !z.Contains("##") && !z.Contains("//")).ToArray();
 
-            strg.GCommands = gcoms.ToDictionary(k => int.Parse(k.Split(spaceSeparator)[0]), v => CreateGCommand(toolBase, typePrefixG, v, spaceSeparator)
-                                                );
-            strg.MCommands = mcoms.ToDictionary(k => int.Parse(k.Split(spaceSeparator)[0]), 
-                                                v => CreateMCommand(toolBase, typePrefixM, v, spaceSeparator));
-            strg.ArbitraryCommands = acoms.ToDictionary(k => k.Split(spaceSeparator)[1], 
-                                                        v => CreateOtherCommand(toolBase, typePrefixA, v, spaceSeparator));
-            
+            // strg.GCommands = gcoms.ToDictionary(k => int.Parse(k.Split(spaceSeparator)[0]), v => CreateGCommand(toolBase, typePrefixG, v, spaceSeparator)
+            //                                     );
+            // strg.MCommands = mcoms.ToDictionary(k => int.Parse(k.Split(spaceSeparator)[0]), 
+            //                                     v => CreateMCommand(toolBase, typePrefixM, v, spaceSeparator));
+            // strg.ArbitraryCommands = acoms.ToDictionary(k => k.Split(spaceSeparator)[1], 
+            //                                             v => CreateOtherCommand(toolBase, typePrefixA, v, spaceSeparator));
+            //AddCommandsFromPlugins();
+
+            var types = typeof(ValueStorage).Assembly.GetTypes().Where(x => x.GetInterface("ICommand") != null).ToArray();
+            strg.ArbitraryCommands = new Dictionary<string, BaseCommand>();
+            strg.GCommands = new Dictionary<int, BaseCommand>();
+            strg.MCommands = new Dictionary<int, BaseCommand>();
+            foreach (var type in types)
+            {
+                try
+                {
+                    switch (type.Namespace)
+                    {
+                        case "Pyro.Nc.Parsing.ArbitraryCommands":
+                        {
+                            var instance = (BaseCommand)Activator.CreateInstance(type, Globals.Tool, new ArbitraryCommandParameters());
+                            instance.Family = Group.Other;
+                            strg.ArbitraryCommands.Add(type.Name, instance);
+                            break;
+                        }
+                        case "Pyro.Nc.Parsing.GCommands":
+                        {
+                            var instance = (BaseCommand)Activator.CreateInstance(type, Globals.Tool, new GCommandParameters(Vector3.zero));
+                            instance.Family = Group.GCommand;
+                            strg.GCommands.Add((int) type.Name.Split('G')[1].ParseNumber(), instance);
+                            break;
+                        }
+                        case "Pyro.Nc.Parsing.MCommands":
+                        {
+                            var instance = (BaseCommand)Activator.CreateInstance(type, Globals.Tool, new MCommandParameters());
+                            instance.Family = Group.MCommand;
+                            strg.MCommands.Add((int) type.Name.Split('M')[1].ParseNumber(), instance);
+                            break;
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    
+                }
+            }
+
+            CommandHelper._cachedKvp ??= strg.ArbitraryCommands.FirstOrDefault(kvp => kvp.Value.GetType() == typeof(Comment));
+            return strg;
+        }
+
+        public static void AddCommandsFromPlugins()
+        {
             var types = CustomAssemblyManager.Self.ImportedAssemblies.Select(x => x.GetTypes()).SelectMany(t => t).ToArray();
+            var toolBase = Globals.Tool;
+            var strg = toolBase.Values.Storage;
             foreach (var type in types)
             {
                 if (type.BaseType == typeof(BaseCommand))
@@ -196,7 +246,9 @@ namespace Pyro.Nc.Parsing
                             {
                                 continue;
                             }
-                            strg.GCommands.Add(key, Activator.CreateInstance(type, toolBase, new GCommandParameters(0, 0, 0)) as BaseCommand); 
+
+                            strg.GCommands.Add(
+                                key, Activator.CreateInstance(type, toolBase, new GCommandParameters(0, 0, 0)) as BaseCommand);
                         }
                         else if (str[0] == 'M' && char.IsDigit(str[1]))
                         {
@@ -205,7 +257,9 @@ namespace Pyro.Nc.Parsing
                             {
                                 continue;
                             }
-                            strg.MCommands.Add(key, Activator.CreateInstance(type, toolBase, new MCommandParameters()) as BaseCommand); 
+
+                            strg.MCommands.Add(
+                                key, Activator.CreateInstance(type, toolBase, new MCommandParameters()) as BaseCommand);
                         }
                         else
                         {
@@ -213,19 +267,18 @@ namespace Pyro.Nc.Parsing
                             {
                                 continue;
                             }
-                            strg.ArbitraryCommands.Add(type.Name, Activator.CreateInstance(type, toolBase, new ArbitraryCommandParameters()) as BaseCommand);
+
+                            strg.ArbitraryCommands.Add(
+                                type.Name,
+                                Activator.CreateInstance(type, toolBase, new ArbitraryCommandParameters()) as BaseCommand);
                         }
                     }
                     catch (Exception e)
                     {
-                        Globals.Console.Push("An error has occured whilst adding commands to the database:", e.Message);
-                        //Globals.Console.Push($"Descriptive look: {e}");
+                        Globals.Console.Push($"~[PLUGIN::COMMAND_ADDITION] - {e.Message}!~");
                     }
                 }
             }
-            
-            CommandHelper._cachedKvp ??= strg.ArbitraryCommands.FirstOrDefault(kvp => kvp.Value.GetType() == typeof(Comment));
-            return strg;
         }
 
         private static BaseCommand CreateGCommand(ToolBase toolBase, string typePrefixG, string v, char spaceSeparator)
@@ -239,6 +292,7 @@ namespace Pyro.Nc.Parsing
                 type = Type.GetType(typeFullName);
                 instance = type is null ? null
                     : Activator.CreateInstance(type, toolBase, new GCommandParameters(0, 0, 0)) as BaseCommand;
+                instance.CommandID = v.Split(spaceSeparator)[1];
                 instance.Family = Group.GCommand;
             }
             catch (Exception e)
@@ -260,6 +314,7 @@ namespace Pyro.Nc.Parsing
                 typeFullName = typePrefixM + v.Split(spaceSeparator)[0]; 
                 type = Type.GetType(typeFullName);
                 instance = type is null ? null : Activator.CreateInstance(type, toolBase, new MCommandParameters()) as BaseCommand;
+                instance.CommandID = v.Split(spaceSeparator)[1];
                 instance.Family = Group.MCommand;
             }
             catch (Exception e)
@@ -282,6 +337,7 @@ namespace Pyro.Nc.Parsing
                 type = Type.GetType(typeFullName);
                 instance = type is null ? null
                     : Activator.CreateInstance(type, toolBase, new ArbitraryCommandParameters()) as BaseCommand;
+                instance.CommandID = v.Split(spaceSeparator)[1];
                 instance.Family = Group.Other;
             }
             catch (Exception e)

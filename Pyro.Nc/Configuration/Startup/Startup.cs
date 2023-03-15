@@ -43,9 +43,6 @@ namespace Pyro.Nc.Configuration.Startup
         {
             LocalRoaming roaming = LocalRoaming.OpenOrCreate("PyroNc\\Configuration");
             await CreateManagersFromMemory(roaming);
-            var customAssemblyManager = new CustomAssemblyManager();
-            await customAssemblyManager.InitAsync();
-            Startup.Managers.Add(customAssemblyManager);
         }
 
         private async Task CreateManagersFromMemory(LocalRoaming roaming)

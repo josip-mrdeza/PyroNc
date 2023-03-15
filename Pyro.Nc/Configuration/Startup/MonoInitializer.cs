@@ -60,6 +60,8 @@ namespace Pyro.Nc.Configuration.Startup
             PyroConsoleView.PushTextStatic(Globals.Localisation.Find(Localisation.MapKey.MonoInitializerCompleteFull, 
                                                                      stopwatch.Elapsed.TotalMilliseconds.Round().ToString()));
             OnCompletedInitialization?.Invoke(this, stopwatch.Elapsed);
+            Resources.UnloadUnusedAssets();
+            GC.Collect();
         }
 
         public event Action<InitializerRoot, TimeSpan, int> OnLoadedScript;

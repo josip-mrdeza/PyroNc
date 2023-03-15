@@ -3,9 +3,9 @@ using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Parsing.SyntacticalCommands;
 
-public class CosCommand : TrigCommand
+public class COS : TrigCommand
 {
-    public CosCommand(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
+    public COS(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
     {
     }
 }

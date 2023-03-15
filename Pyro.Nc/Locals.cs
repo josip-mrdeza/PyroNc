@@ -71,7 +71,7 @@ namespace Pyro.Nc
 
         public static class IntConstants
         {
-            public const int ControlWaitDelay = 50;
+            public const int ControlWaitDelay = 7;
         }
     }
 }

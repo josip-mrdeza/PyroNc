@@ -8,9 +8,9 @@ using Pyro.Nc.Simulation.Tools;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
-    public class FeedRateSetter : BaseCommand
+    public class F : BaseCommand
     {
-        public FeedRateSetter(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
+        public F(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
         {
             Machine.SpindleControl.FeedRate.SetUpperValue(350);
         }

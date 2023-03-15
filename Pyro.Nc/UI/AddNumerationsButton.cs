@@ -17,10 +17,11 @@ public class AddNumerationsButton : MonoBehaviour
         {
             PopupHandler.PopInputOption("Renumber blocks", "Renumber", p =>
             {
+                throw new NotImplementedException();
                 var step = int.Parse(p.PrefabInputs[0].text);
                 Globals.GCodeInputHandler.AddNumerations(step);
                 Globals.Console.Push($"[AddNumerationsButton]: Added Ns with a step of '{step}'!");
-            });
+            }, true);
         });
     }
 }

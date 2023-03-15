@@ -1,4 +1,5 @@
 using Pyro.Nc.Configuration.Startup;
+using Pyro.Nc.Parsing.SyntacticalCommands;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.Simulation.Machines;
 using UnityEngine.UI;
@@ -8,7 +9,7 @@ namespace Pyro.Nc.UI;
 public class SingleButton : MonoInitializer
 {
     public Button btn;
-    public bool Begun;
+    public static bool Begun;
     public void Start()
     {
         btn = GetComponent<Button>();
@@ -18,7 +19,14 @@ public class SingleButton : MonoInitializer
             {
                 if (MachineBase.CurrentMachine.Runner.Queue.Count > 0)
                 {
-                    await MachineBase.CurrentMachine.Runner.ExecuteOne();
+                    if (MachineBase.CurrentMachine.Runner.CurrentContext is FORLOOP)
+                    {
+                        MachineBase.CurrentMachine.StateControl.FreeControl();
+                    }
+                    else
+                    {
+                        await MachineBase.CurrentMachine.Runner.ExecuteOne();
+                    }
                 }
                 else
                 {

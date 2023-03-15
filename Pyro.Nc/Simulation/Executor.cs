@@ -53,7 +53,7 @@ public class Executor : MachineComponent
     {
         var bc = BaseCommand.Create<G01>();
         bc.Parameters = new GCommandParameters(position);
-        Machine.ChangeTool(20);
+        Machine.ChangeTool(6);
         Machine.SetSpindleSpeed(500);
         Machine.SetFeedRate(200);
         Queue.Enqueue(bc);

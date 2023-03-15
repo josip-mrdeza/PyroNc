@@ -54,6 +54,11 @@ public struct PyroColor
 
     public static implicit operator Color(PyroColor color)
     {
-        return new Color(color.R, color.G, color.B, color.A);
+        return new Color(color.R / 255f, color.G / 255f, color.B / 255f, color.A / 255f);
+    }
+    
+    public static implicit operator Color32(PyroColor color)
+    {
+        return (Color)color;
     }
 }

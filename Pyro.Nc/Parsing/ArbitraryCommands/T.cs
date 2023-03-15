@@ -10,9 +10,9 @@ using UnityEngine;
 
 namespace Pyro.Nc.Parsing.ArbitraryCommands
 {
-    public class ToolSetter : BaseCommand
+    public class T : BaseCommand
     {
-        public ToolSetter(ToolBase toolBase, ArbitraryCommandParameters parameters) : base(toolBase, parameters)
+        public T(ToolBase toolBase, ArbitraryCommandParameters parameters) : base(toolBase, parameters)
         {
             
         }

@@ -13,7 +13,7 @@ namespace Pyro.Nc.Parsing.Rules
 
         public override void FixValidity(List<BaseCommand> value)
         {
-            var sc = value.FirstOrDefault(c => c.IsMatch(typeof(ToolSetter)));
+            var sc = value.FirstOrDefault(c => c.IsMatch(typeof(T)));
             if (sc is null)
             {
                 return;

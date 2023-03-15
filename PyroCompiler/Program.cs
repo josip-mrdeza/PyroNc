@@ -1,5 +1,6 @@
 ﻿using System;
 using System.CodeDom.Compiler;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -10,22 +11,25 @@ namespace PyroCompiler
 {
     internal class Program
     {
+        //public static StreamWriter st;
         public static void Main(string[] args)
         {
             CompilerResults results = null;
+            //var process = Process.GetProcessesByName("PyroLogger").FirstOrDefault();
             Console.WriteLine("Compiling files...");
-            LocalRoaming roaming = LocalRoaming.OpenOrCreate("PyroNc\\Compiler\\References");
             try
             {
                 var assemblyName = args[0];
                 var pathToDirectory = args[1];
+                var lr = LocalRoaming.OpenOrCreate($"PyroNc\\Configuration\\Plugins\\{assemblyName}\\Dependencies");
                 results = CodeImport.ImportTextLibrary(assemblyName, pathToDirectory,
-                                                       roaming.Files.Select(f => f.Value.FullName).ToArray(),
+                                                       lr.Files.Select(f => f.Value.FullName).ToArray(),
                                                        args.Skip(2).ToArray());
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                Console.WriteLine($"~{e}~");
+                //st?.WriteLine(e);
             }
             finally
             {
@@ -33,11 +37,14 @@ namespace PyroCompiler
                 {
                     foreach (CompilerError error in results.Errors)
                     {
-                        Console.WriteLine(error);
+                        Console.WriteLine($"~{error.ErrorText}~");
+                        //st?.WriteLine(error.ErrorText);
                     }
                 }
             }
-            Console.WriteLine("Finished!");
+            //st?.WriteLine("Finished!");
+            //st?.Dispose();
+            Console.Write("Finished!");
         }
     }
 }

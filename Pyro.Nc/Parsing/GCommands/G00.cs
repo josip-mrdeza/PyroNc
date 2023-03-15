@@ -43,7 +43,7 @@ namespace Pyro.Nc.Parsing.GCommands
         {
             var parameters = (Parameters as GCommandParameters);
             Vector3 point;
-            var trans = ToolBase.Values.TransPosition;
+            var trans = Machine.SimControl.WorkOffset + Machine.SimControl.Trans;
             var x = parameters.GetValue("X");
             var y = parameters.GetValue("Y");
             var z = parameters.GetValue("Z");

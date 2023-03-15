@@ -49,7 +49,7 @@ public class MachineEventSystem : MachineComponent
 
     public void TransChanged()
     {
-        OnTransChanged?.Invoke(null, Machine.ToolControl.SelectedTool.Values.TransPosition);
+        OnTransChanged?.Invoke(null, Machine.SimControl.Trans);
         PEvents.Fire(Locals.EventConstants.TransPositionChange);
     }
 

@@ -35,7 +35,6 @@ namespace Pyro.Nc.Parsing.GCommands
         {
             Execute2D(false);
         }
-
         protected void Execute2D(bool reverse)
         {
             ToolBase.TraverseFinal2D(GetArc3D(reverse).Points.ToArray());
@@ -50,9 +49,9 @@ namespace Pyro.Nc.Parsing.GCommands
 
             var parameters = (Parameters as GCommandParameters);
             var pos = ToolBase.Position;
-            var trans = ToolBase.Values.TransPosition;
+            var trans = Machine.SimControl.WorkOffset + Machine.SimControl.Trans;
 
-            //var transPosition = pos + trans;
+            //var transPosition = pos + trans; 
 
             Vector3 endPoint;
             if (float.IsNaN(parameters.X) && float.IsNaN(parameters.Z))

@@ -19,7 +19,6 @@ namespace Pyro.Nc.Simulation
             Destination = new Target(new Vector3());
             TokenSource = new CancellationTokenSource();
             FastMoveTick = TimeSpan.FromMilliseconds(1f);
-            WorkOffsets = new Vector3[4];
             ExactStopCheck = true;
         }
 
@@ -27,15 +26,12 @@ namespace Pyro.Nc.Simulation
         {
             Destination = new Target(new Vector3());
             FastMoveTick = TimeSpan.FromMilliseconds(1f);
-            WorkOffsets = new Vector3[4];
             ExactStopCheck = false;
         }
         public ValueStorage Storage { get; set; }
         [JsonIgnore] public Path CurrentPath { get; set; }
         [JsonIgnore] public Target Destination { get; set; }
         public bool ExactStopCheck { get; set; }
-        [JsonIgnore] public Vector3 TransPosition { get; set; }
-        [JsonIgnore] public Vector3[] WorkOffsets { get; set; }
         public float Radius => Globals.Tool is null ? 0 : Globals.Tool.ToolConfig.Radius;
         public TimeSpan FastMoveTick { get; set; }
         [JsonIgnore] public CancellationTokenSource TokenSource { get; set; }
