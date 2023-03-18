@@ -9,6 +9,7 @@ using Pyro.IO;
 using Pyro.Math;
 using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Serializable;
+using Pyro.Nc.Simulation.Tools;
 using Pyro.Nc.UI;
 using UnityEngine;
 using Vector3 = UnityEngine.Vector3;
@@ -93,7 +94,7 @@ public class WorkpieceControl : InitializerRoot
         OriginalColors = Enumerable.Repeat(Color.white, _vertices.Count).ToList();
         _colors = Enumerable.Repeat(Color.white, _vertices.Count).ToList();
         var tr = transform;
-        var maxs = Vertices.Select(x => tr.TransformPoint(x)).Max(v1 => v1.x, v2 => v2.y, v3 => v3.z).ToArray();
+        var maxs = Vertices.Select(x => tr.TransformPoint(x)).MaxOf(v1 => v1.x, v2 => v2.y, v3 => v3.z).ToArray();
         var xx = maxs[0];
         var yy = maxs[1];
         var zz = maxs[2];
@@ -118,6 +119,7 @@ public class WorkpieceControl : InitializerRoot
     {
         _current.vertices = _vertices.GetInternalArray();
         _current.colors = _colors.GetInternalArray();
+        _current.RecalculateNormals();
     }
 
     public void UpdateVerticesAndGenerateHash(List<Vector3Range> affectedRanges)
@@ -214,7 +216,7 @@ public class WorkpieceControl : InitializerRoot
     }
     public void GenerateVertexBoxHashes(float step, HashmapGenerationReason reason)
     {
-        if (step == 0)
+        if (step == 0 || Sim3D.CuttingType != CutType.VertexBoxHash)
         {
             return;
         }

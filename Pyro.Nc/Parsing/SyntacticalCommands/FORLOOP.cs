@@ -97,6 +97,7 @@ public class FORLOOP : BaseCommand
         SetVariableValue(CurrentIndex);
         foreach (var command in ContainedCommands)
         {
+            Machine.StateControl.BorrowControl();
             try
             {
                 CurrentLoopContext = command;
@@ -110,8 +111,6 @@ public class FORLOOP : BaseCommand
 
                 throw;
             }
-            
-            Machine.StateControl.BorrowControl();
             await Machine.StateControl.WaitForControl();
         } 
     }

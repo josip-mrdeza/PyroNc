@@ -10,7 +10,7 @@ namespace Pyro.IO
 {
     public static class LINQExt
     {
-        public static IEnumerable<float> Max<T>(this IEnumerable<T> source, params Func<T, float>[] functions)
+        public static IEnumerable<float> MaxOf<T>(this IEnumerable<T> source, params Func<T, float>[] functions)
         {
             using var e = source.GetEnumerator();
             var shared = ArrayPool<float>.Shared;

@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Pyro.Nc.Simulation;
 using UnityEngine;
 
 namespace Pyro.Nc.Serializable
 {
     [Serializable]
-    public class SerializableMesh
+    public class SerializableMesh : IDisposable
     {
         public int[] Triangles;
         public Vector3[] Vertices;
@@ -43,33 +44,44 @@ namespace Pyro.Nc.Serializable
         {
             List<Vector3> vector3s = new List<Vector3>();
             List<int> trigs = new List<int>();
+            var sep = new char[]
+            {
+                ' '
+            };
             foreach (var line in text)
             {
-                var splitLine = line.Split(' ');
-
-                switch (splitLine[0])
+                try
                 {
-                    case "v":
+                    var splitLine = line.Split(sep, StringSplitOptions.RemoveEmptyEntries);
+
+                    switch (splitLine[0])
                     {
-                        Vector3 v = new Vector3();
-                        v.x = float.Parse(splitLine[1]);
-                        v.y = float.Parse(splitLine[2]);
-                        v.z = float.Parse(splitLine[3]);
-                        vector3s.Add(v);
-                        break;
-                    }
+                        case "v":
+                        {
+                            Vector3 v = new Vector3();
+                            v.x = float.Parse(splitLine[1]);
+                            v.y = float.Parse(splitLine[2]);
+                            v.z = float.Parse(splitLine[3]);
+                            vector3s.Add(v);
+                            break;
+                        }
                     
-                    case "f":
-                    {
-                        trigs.Add(int.Parse(splitLine[1]) - 1);
-                        trigs.Add(int.Parse(splitLine[2]) - 1);
-                        trigs.Add(int.Parse(splitLine[3]) - 1);
-                        //reverse
-                        trigs.Add(int.Parse(splitLine[3]) - 1);
-                        trigs.Add(int.Parse(splitLine[2]) - 1);
-                        trigs.Add(int.Parse(splitLine[1]) - 1);
-                        break;
+                        case "f":
+                        {
+                            trigs.Add(int.Parse(splitLine[1]) - 1);
+                            trigs.Add(int.Parse(splitLine[2]) - 1);
+                            trigs.Add(int.Parse(splitLine[3]) - 1);
+                            //reverse
+                            trigs.Add(int.Parse(splitLine[3]) - 1);
+                            trigs.Add(int.Parse(splitLine[2]) - 1);
+                            trigs.Add(int.Parse(splitLine[1]) - 1);
+                            break;
+                        }
                     }
+                }
+                catch (Exception e)
+                {
+                    Globals.Console.Push(e.Message);
                 }
             }
 
@@ -84,6 +96,13 @@ namespace Pyro.Nc.Serializable
         public static SerializableMesh CreateFromObjText(string text)
         {
             return CreateFromObjLines(text.Split('\n'));
+        }
+
+        public void Dispose()
+        {
+            this.Triangles = null;
+            this.Vertices = null;
+            this.UVs = null;
         }
     }
 }

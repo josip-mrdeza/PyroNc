@@ -172,7 +172,6 @@ public class ToolBase : InitializerRoot
         var vertices = control.Vertices;
         var colors = control.Colors;
         var pos = Position;
-        bool drilling = machine.Runner.CurrentContext is Cycle; ;
         var tr = control.transform;
         if (!dictionary.TryGetValue(point, out var list))
         {
@@ -180,8 +179,9 @@ public class ToolBase : InitializerRoot
         }
 
         var color = ToolConfig.GetColor();
-        foreach (var i in list)
+        for (var index = 0; index < list.Count; index++)
         {
+            var i = list[index];
             var v = tr.TransformPoint(vertices[i]);
             if (v.y < pos.y)
             {
@@ -192,7 +192,7 @@ public class ToolBase : InitializerRoot
                 throw new CollisionWithToolShankException();
             }
 
-            if (drilling && ToolConfig.Index == 4 && !CreateRadiusCircle(v, pos, ToolConfig.Radius, out var result))
+            if (false && !CreateRadiusCircle(v, pos, ToolConfig.Radius-0.3f, out var result))
             {
                 var max = machine.Workpiece.MaxValues;
                 if (result.x > max.x)
@@ -203,6 +203,7 @@ public class ToolBase : InitializerRoot
                 {
                     result.x = 0;
                 }
+
                 if (result.y > max.z)
                 {
                     result.y = max.z;
@@ -210,16 +211,17 @@ public class ToolBase : InitializerRoot
                 else if (result.y < 0)
                 {
                     result.y = 0;
-                } 
+                }
+
                 v = new Vector3(result.x, pos.y, result.y);
-                Push("Opted for driling.");
             }
             else
             {
                 v.y = pos.y;
             }
+
             vertices[i] = tr.InverseTransformPoint(v);
-            colors[i] = color;
+            colors[i] = color * 3f;
         }
     }
 

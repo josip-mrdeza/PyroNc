@@ -74,21 +74,29 @@ public class Arc3D
         {
             //(startDegree, endDegree) = (endDegree, startDegree);
         }
-        
+
         var averageDepth = Operations.Average(start.y, end.y);
-        if (System.Math.Abs(startDegree - endDegree) < 0.001f)
-        {
-            startDegree += 360f;
-        }
 
-        if (startDegree < 0)
+        if (start == end)
         {
-            startDegree += 360f;
-        }
+            if (!isReverse)
+            {
+                var enddg = startDegree - 360;
+                for (float i = startDegree; i >= enddg; i--)
+                {
+                    yield return new Vector3((i.Cos() * radius) + center.x, averageDepth, (i.Sin() * radius) + center.z);
+                }
+            }
+            else
+            {
+                var enddg = startDegree + 360;
+                for (float i = startDegree; i < enddg; i++)
+                {
+                    yield return new Vector3((i.Cos() * radius) + center.x, averageDepth, (i.Sin() * radius) + center.z);
+                }
+            }
 
-        if (endDegree < 0)
-        {
-            endDegree += 360f;
+            yield break;
         }
         //return points with a circle of radius R.
         if (!isReverse)

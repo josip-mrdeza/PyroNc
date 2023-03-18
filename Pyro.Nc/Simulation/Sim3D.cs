@@ -38,9 +38,15 @@ namespace Pyro.Nc.Simulation
     public static class Sim3D
     {
         [StoreAsJson]
-        public static int WaitStep { get; set; }
+        public static bool RealtimeCutting { get; set; }
+        [StoreAsJson]
+        public static float WaitStep { get; set; }
         [StoreAsJson]
         public static bool KeepTraceLines { get; set; }
+        [StoreAsJson]
+        public static CutType CuttingType { get; set; } = CutType.LineHash;
+
+        private static TimeSpan WaitStep_Time => TimeSpan.FromMilliseconds(WaitStep);
         /// <summary>
         /// Sets the tool's current destination and path.
         /// </summary>
@@ -338,7 +344,7 @@ namespace Pyro.Nc.Simulation
             var isCutting = MachineBase.CurrentMachine.SimControl.IsInCuttingMode;
             toolBase.Renderer.positionCount = points.Length;
             Dictionary<Vector3, List<int>> dict = null;
-            if (MachineBase.CuttingType == CutType.LineHash)    
+            if (CuttingType == CutType.LineHash)    
             {
                 dict = await Task.Run(async () => await ToolBase.CompileLineHashCut(points));
             }
@@ -373,11 +379,11 @@ namespace Pyro.Nc.Simulation
                 toolBase.Position = point;
                 if (isCutting)
                 {
-                    if (MachineBase.CuttingType == CutType.Legacy)
+                    if (CuttingType == CutType.Legacy)
                     {
                         toolBase.CutLegacy();
                     }
-                    else if (MachineBase.CuttingType == CutType.LineHash)
+                    else if (CuttingType == CutType.LineHash)
                     {
                         toolBase.LineHashCut(dict, point); //works wonders
                     }
@@ -385,7 +391,16 @@ namespace Pyro.Nc.Simulation
                     {
                         toolBase.Cut(boxes, maxMapping);
                     }
-
+                    var feedPerMin = (float) MachineBase.CurrentMachine.SpindleControl.FeedRate;
+                    var minutes = diff / feedPerMin;
+                    try
+                    {
+                        instance.IncrementTimeDisplay(TimeSpan.FromMinutes(minutes));
+                    }
+                    catch
+                    {
+                        //ignored
+                    }
                     MachineBase.CurrentMachine.Workpiece.UpdateVertices();
                 }
                 else
@@ -394,7 +409,17 @@ namespace Pyro.Nc.Simulation
                     {
                         if (WaitStep != 0)
                         {
-                            await FinishMove(true);
+                            var feedPerMin = (float) MachineBase.CurrentMachine.SpindleControl.FeedRate;
+                            var minutes = diff / feedPerMin;
+                            try
+                            {
+                                instance.IncrementTimeDisplay(TimeSpan.FromMinutes(minutes));
+                            }
+                            catch
+                            {
+                                //ignored
+                            }
+                            await FinishMove(true, 0);
                         }
                         continue;
                     }
@@ -412,24 +437,13 @@ namespace Pyro.Nc.Simulation
 
                     continue;
                 }
-
-                var feedPerMin = (float) MachineBase.CurrentMachine.SpindleControl.FeedRate;
-                var minutes = diff / feedPerMin;
-                try
-                {
-                    instance.IncrementTimeDisplay(TimeSpan.FromMinutes(minutes));
-                }
-                catch
-                {
-                     //ignored
-                }
                 if (WaitStep != 0)
                 {
-                    await FinishMove();
+                    await FinishMove(false, diff);
                 }
             }
             
-            if (MachineBase.CuttingType == CutType.VertexBoxHash)
+            if (CuttingType == CutType.VertexBoxHash)
             {
                 MachineBase.CurrentMachine.Workpiece.GenerateVertexBoxHashes(WorkpieceControl.Step,
                                                                              HashmapGenerationReason.UpdatedVertices);
@@ -444,7 +458,7 @@ namespace Pyro.Nc.Simulation
             Dictionary<Vector3Range, List<Algorithms.VertexMap>> boxHash, float radius)
         {
             KeyValuePair<Vector3Range, List<Algorithms.VertexMap>>[] boxes = null;
-            if (isCutting && MachineBase.CuttingType == CutType.VertexBoxHash)
+            if (isCutting && CuttingType == CutType.VertexBoxHash)
             {
                 boxes = boxHash.Where(x => x.Key.End.y >= radius).ToArray();
                 var sum = boxes.Sum(x => x.Value.Count);
@@ -456,12 +470,26 @@ namespace Pyro.Nc.Simulation
             return boxes;
         }
 
-        public static async Task FinishMove(bool skipYield = false)
+        public static async Task FinishMove(bool skipYield = false, float distTravelled = 0f)
         {
-            await Task.Delay(WaitStep);
-            if (!skipYield)
+            if (RealtimeCutting && distTravelled > 0)
             {
-                await Task.Yield();
+                var feedPerSec = (float) MachineBase.CurrentMachine.SpindleControl.FeedRate * 60;
+                //mm / sec
+                //mm per sec / mm = sec
+                await Task.Delay(TimeSpan.FromSeconds(feedPerSec / distTravelled));
+                if (!skipYield)
+                {
+                    await Task.Yield();
+                }  
+            }
+            else
+            {
+                await Task.Delay(WaitStep_Time);
+                if (!skipYield)
+                {
+                    await Task.Yield();
+                }
             }
         }
         public static void Remesh()
@@ -514,6 +542,8 @@ namespace Pyro.Nc.Simulation
         /// <param name="logStats">Whether to log the (averageTimeForCut) and (totalCut).</param>
         public static async Task Traverse(this ToolBase toolBase, Arc3D arc, bool draw, bool logStats = true)
         {
+            var arr = arc.Points.ToArray();
+            Globals.Console.Push($"[Traverse(ARC3D)]: Arc with R={arc.Radius} contains {arr.Length} points.");
             await toolBase.TraverseFinal(arc.Points.ToArray(), draw, logStats);
         }
         /// <summary>

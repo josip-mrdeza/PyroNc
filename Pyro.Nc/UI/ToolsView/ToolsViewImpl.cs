@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.Nc.Configuration;
 using Pyro.Nc.UI.Options;
@@ -14,7 +15,7 @@ public class ToolsViewImpl : MonoBehaviour
     public static ToolsViewImpl Instance;
     public OptionBase.Side _side;
     public List<OptionBase> Options;
-    public void Start()
+    public async void Start()
     {
         if (Options != null)
         {
@@ -28,6 +29,13 @@ public class ToolsViewImpl : MonoBehaviour
         Instance = this;
         var go = gameObject;
         LocalRoaming r = LocalRoaming.OpenOrCreate("PyroNc");
+        if (!r.Exists("ToolConfig.json"))
+        {
+            for (int i = 0;!r.Exists("ToolConfig.json") || i < 5; i++)
+            {
+                await Task.Delay(100);
+            }
+        }
         var tc = r.ReadFileAs<ToolConfiguration[]>("ToolConfig.json");
         Options = new List<OptionBase>();
         for (var i = 0; i < tc.Length; i++)

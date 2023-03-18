@@ -8,13 +8,13 @@ namespace Pyro.Nc.Configuration;
 
 public static class RegexPatterns
 {
-    public static Regex CompleteParameterCheck =
-        new Regex(@"[xXyYzZiIjJdD]{1}?((\d+[,.]{1}\d+)|(\d+)|(\(.+\))|(\$\w+))", RegexOptions.Compiled);
+    public static readonly Regex CompleteParameterCheck =
+        new Regex(@"[xXyYzZiIjJdD]{1}?-?((\d+[,.]{1}\d+)|(\d+)|(\(.+\))|(\$\w+))", RegexOptions.Compiled);
 
-    public static Regex CompleteGFunctionCheck =
+    public static readonly Regex CompleteGFunctionCheck =
         new Regex(@"[gG]{1}?\d{1,3}", RegexOptions.Compiled);
 
-    public static Regex CompleteMFunctionCheck =
+    public static readonly Regex CompleteMFunctionCheck =
         new Regex(@"[mM]{1}?\d{1,3}", RegexOptions.Compiled);
 
     //public static Regex CompleteArbitraryFunctionCheck = CreateArbCmdRegex();

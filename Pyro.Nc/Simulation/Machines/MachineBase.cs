@@ -11,6 +11,7 @@ using Pyro.Nc.Configuration;
 using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Serializable;
 using Pyro.Nc.Simulation.Tools;
 using Pyro.Nc.Simulation.Workpiece;
 using Pyro.Nc.UI.Entry;
@@ -35,9 +36,7 @@ public class MachineBase : InitializerRoot
     public MachineType CncType { get; protected set; }
     public ThreadTaskQueue Queue { get; private set; }
     public NetworkEvent JogEvent { get; private set; }
-
-    [StoreAsJson]
-    public static CutType CuttingType { get; set; }
+    
     [StoreAsJson]
     public static bool Test { get; set; }
     [StoreAsJson]
@@ -110,6 +109,22 @@ public class MachineBase : InitializerRoot
         ToolControl.SelectedTool.ToolConfig = configuration;
         var id = configuration.Id;
         var mesh = Resources.Load<Mesh>($"Tools/{id}");
+        if (mesh == null)
+        {
+            LocalRoaming lr = LocalRoaming.OpenOrCreate("PyroNc\\CustomTools");
+            if (lr.Exists(configuration.Id) || lr.Exists($"{configuration.Id}.obj"))
+            {
+                var txt = lr.ReadFileAsText(configuration.Id);
+                if (string.IsNullOrEmpty(txt))
+                {
+                    txt = lr.ReadFileAsText($"{configuration.Id}.obj");
+                }
+
+                using SerializableMesh sm = SerializableMesh.CreateFromObjText(txt);
+                mesh = sm.ToMesh();
+            }
+        }
+
         ToolControl.Filter.mesh = mesh;
         EventSystem.ToolChanged();
     }

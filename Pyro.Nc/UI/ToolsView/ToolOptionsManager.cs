@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using Pyro.IO;
 using Pyro.Nc.Configuration;
@@ -26,6 +27,7 @@ public class ToolOptionsManager : MonoBehaviour
     public TMP_InputField ColorB;
     public Image Img;
     public TMP_InputField VerticalMargin;
+    public TMP_InputField ToolLength;
     public Button _Button;
     public TextMeshProUGUI BtnText;
     public Button ClearButton;
@@ -42,7 +44,7 @@ public class ToolOptionsManager : MonoBehaviour
 
     private void ClearAll()
     {
-        Set(new ToolConfiguration(string.Empty, string.Empty, 0,-1,0,0,0,0,0));
+        Set(new ToolConfiguration(string.Empty, string.Empty, 0,-1,0,0, 0,0,0,255));
         CurrentToolConfiguration = null;
     }
 
@@ -51,12 +53,13 @@ public class ToolOptionsManager : MonoBehaviour
         CurrentToolConfiguration = config;
         Tool_ID.text = config.Name;
         Mesh_ID.text = config.Id;
-        Radius.text = config.Radius.ToString();
-        ColorA.text = (config.A).ToString();
-        ColorR.text = (config.R).ToString();
-        ColorG.text = (config.G).ToString();
-        ColorB.text = (config.B).ToString();
-        VerticalMargin.text = config.VerticalMargin.ToString();
+        Radius.text = config.Radius.ToString(CultureInfo.InvariantCulture);
+        ColorA.text = (config.A).ToString(CultureInfo.InvariantCulture);
+        ColorR.text = (config.R).ToString(CultureInfo.InvariantCulture);
+        ColorG.text = (config.G).ToString(CultureInfo.InvariantCulture);
+        ColorB.text = (config.B).ToString(CultureInfo.InvariantCulture);
+        VerticalMargin.text = config.VerticalMargin.ToString(CultureInfo.InvariantCulture);
+        ToolLength.text = config.ToolLength.ToString(CultureInfo.InvariantCulture);
         Img.color = config.GetColor();
     }
 
@@ -96,6 +99,8 @@ public class ToolOptionsManager : MonoBehaviour
             var conf = CurrentToolConfiguration;
             conf.Id = Mesh_ID.text;
             conf.Radius = float.Parse(Radius.text);
+            conf.VerticalMargin = float.Parse(VerticalMargin.text);
+            conf.ToolLength = float.Parse(ToolLength.text);
             conf.A = float.Parse(ColorA.text);
             conf.R = float.Parse(ColorR.text);
             conf.G = float.Parse(ColorG.text);
@@ -107,6 +112,10 @@ public class ToolOptionsManager : MonoBehaviour
             arr[index] = conf;
             Roaming.ModifyFile("ToolConfig.json", arr);
             MachineBase.CurrentMachine.ToolControl.Manager.Tools = arr.ToList();
+            foreach (var tool in MachineBase.CurrentMachine.ToolControl.Manager.Tools)
+            {
+                tool.RefreshToolLength();
+            }
         }
         catch (Exception e)
         {
@@ -118,13 +127,14 @@ public class ToolOptionsManager : MonoBehaviour
     {
         try
         {
-            var conf = new ToolConfiguration(Tool_ID.text, Mesh_ID.text, 0, 0, 0, 0, 0, 0, 0);
+            var conf = new ToolConfiguration(Tool_ID.text, Mesh_ID.text, 0, 0, 0, 0, 0, 0, 0, 0);
             conf.Radius = float.Parse(Radius.text.FixEmptyString<float>());
             conf.A = float.Parse(ColorA.text.FixEmptyString<float>());
             conf.R = float.Parse(ColorR.text.FixEmptyString<float>());
             conf.G = float.Parse(ColorG.text.FixEmptyString<float>());
             conf.B = float.Parse(ColorB.text.FixEmptyString<float>());
             conf.VerticalMargin = float.Parse(VerticalMargin.text.FixEmptyString<float>());
+            conf.ToolLength = float.Parse(ToolLength.text.FixEmptyString<float>());
             var arr = Roaming.ReadFileAs<List<ToolConfiguration>>("ToolConfig.json");
             conf.Index = arr.Count;
             if (arr.Exists(x => x.Name == conf.Name))

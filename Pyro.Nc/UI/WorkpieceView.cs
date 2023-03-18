@@ -35,6 +35,9 @@ public class WorkpieceView : View
         Length.Text = (scale.x).ToString(CultureInfo.InvariantCulture);
         Width.Text = (scale.z).ToString(CultureInfo.InvariantCulture);
         Height.Text = (scale.y).ToString(CultureInfo.InvariantCulture);
+        Length.InvokeEvent(Length.Text);
+        Width.InvokeEvent(Width.Text);
+        Height.InvokeEvent(Height.Text);
     }
 
     private void OnLengthChanged(string s)
