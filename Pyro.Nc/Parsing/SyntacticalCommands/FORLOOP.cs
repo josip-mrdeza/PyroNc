@@ -27,11 +27,7 @@ public class FORLOOP : BaseCommand
     public int Iterations { get; }
     public List<BaseCommand> ContainedCommands { get; }
     public BaseCommand CurrentLoopContext { get; private set; }
-
-    public static implicit operator G01(FORLOOP flgc)
-    {
-        return new G01(null, null);
-    }
+    
     public override async Task Execute(bool draw)
     {
         SetVariableValue(StartIndex);
@@ -78,9 +74,11 @@ public class FORLOOP : BaseCommand
         {
             try
             {
+                Machine.StateControl.BorrowControl();
                 CurrentLoopContext = command;
                 UI_3D.Instance.SetMessage($"[ForLoop ({VariableName}={CurrentIndex})]: " + command.ToString());
                 await command.ExecuteFinal(draw);
+                Machine.StateControl.FreeControl();
             }
             catch (Exception e)
             {
@@ -97,7 +95,6 @@ public class FORLOOP : BaseCommand
         SetVariableValue(CurrentIndex);
         foreach (var command in ContainedCommands)
         {
-            Machine.StateControl.BorrowControl();
             try
             {
                 CurrentLoopContext = command;
@@ -111,6 +108,7 @@ public class FORLOOP : BaseCommand
 
                 throw;
             }
+            Machine.StateControl.BorrowControl();
             await Machine.StateControl.WaitForControl();
         } 
     }

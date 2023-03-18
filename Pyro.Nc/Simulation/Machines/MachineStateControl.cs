@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace Pyro.Nc.Simulation.Machines;
 
-public class MachineStateControl
+public class MachineStateControl : MachineComponent
 {
     public MachineState State { get; protected set; }
 
@@ -32,6 +32,7 @@ public class MachineStateControl
         State = MachineState.Executing;
         Application.targetFrameRate = 240;
         QualitySettings.vSyncCount = 0;
+        Machine.Push("[MachineStateControl]: Borrowed control, FPS=240");
     }
 
     public void FreeControl()
@@ -39,6 +40,7 @@ public class MachineStateControl
         State = MachineState.Idle;
         Application.targetFrameRate = 60;
         QualitySettings.vSyncCount = 0;
+        Machine.Push("[MachineStateControl]: Freed control, FPS=60");
     }
 
     public void PauseControl()
@@ -46,6 +48,7 @@ public class MachineStateControl
         State = MachineState.Paused;
         Application.targetFrameRate = 60;
         QualitySettings.vSyncCount = 0;
+        Machine.Push("[MachineStateControl]: Paused control, FPS=60");
     }
 
     public void ResetControl()
