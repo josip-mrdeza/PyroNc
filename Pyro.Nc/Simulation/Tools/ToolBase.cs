@@ -243,7 +243,7 @@ public class ToolBase : InitializerRoot
             foreach (var point in points)
             {
                 var horizontalDistance = Vector2.Distance(new Vector2(vertex.x, vertex.z), new Vector2(point.x, point.z));
-                if (horizontalDistance > radius)
+                if (horizontalDistance > radius-radius*0.05f)
                 {
                     continue;
                 }

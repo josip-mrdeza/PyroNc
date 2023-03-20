@@ -27,27 +27,36 @@ public class MachineStateControl : MachineComponent
         }
     }
 
+    public void LockFpsToExecutionMode()
+    {
+        Application.targetFrameRate = 240;
+        QualitySettings.vSyncCount = 0;
+    }
+
+    public void LockFpsToIdleMode()
+    {
+        Application.targetFrameRate = 60;
+        QualitySettings.vSyncCount = 0;
+    }
+
     public void BorrowControl()
     {
         State = MachineState.Executing;
-        Application.targetFrameRate = 240;
-        QualitySettings.vSyncCount = 0;
+        LockFpsToExecutionMode();
         Machine.Push("[MachineStateControl]: Borrowed control, FPS=240");
     }
 
     public void FreeControl()
     {
         State = MachineState.Idle;
-        Application.targetFrameRate = 60;
-        QualitySettings.vSyncCount = 0;
+        LockFpsToIdleMode();
         Machine.Push("[MachineStateControl]: Freed control, FPS=60");
     }
 
     public void PauseControl()
     {
         State = MachineState.Paused;
-        Application.targetFrameRate = 60;
-        QualitySettings.vSyncCount = 0;
+        LockFpsToIdleMode();
         Machine.Push("[MachineStateControl]: Paused control, FPS=60");
     }
 
@@ -60,8 +69,12 @@ public class MachineStateControl : MachineComponent
         CommandHelper.PreviousModal = null;
         MachineBase.CurrentMachine.EventSystem.SystemReset();
         MachineBase.CurrentMachine.EventSystem.PEvents.Fire(Locals.EventConstants.SimulationReset);
-        Application.targetFrameRate = 60;
-        QualitySettings.vSyncCount = 0;
+        LockFpsToIdleMode();
+    }
+
+    public void SetAwaitCompletion()
+    {
+        State = MachineState.WaitingForCompletion;
     }
 
     public void ResetUI()

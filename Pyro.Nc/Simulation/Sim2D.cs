@@ -6,6 +6,7 @@ using Pyro.Math;
 using Pyro.Math.Geometry;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation.Tools;
+using Pyro.Nc.UI;
 using UnityEngine;
 
 namespace Pyro.Nc.Simulation;
@@ -44,10 +45,6 @@ public static class Sim2D
 
     public static void TraverseFinal2D(this ToolBase toolBase, Vector3[] points)
     {
-        /*toolBase.SetupTranslation(points);
-        var arr = new Vector3[toolBase.LineRenderer.positionCount];
-        toolBase.LineRenderer.GetPositions(arr);
-        var nextArr = arr.Concat(points);
-        toolBase.LineRenderer.SetPositions(nextArr.ToArray());*/
+        Sim2DView.Instance.AddPoints(points);
     }
 }

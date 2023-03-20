@@ -20,7 +20,7 @@ namespace Pyro.Nc.Configuration.Startup
 
         public override async Task InitializeAsync()
         {
-            gameObject.AddComponent<PDispatcher>();
+            //gameObject.AddComponent<PDispatcher>();
             QualitySettings.shadows = ShadowQuality.All;
             QualitySettings.shadowProjection = ShadowProjection.CloseFit;
             QualitySettings.SetQualityLevel(5);

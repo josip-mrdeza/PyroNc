@@ -32,7 +32,10 @@ public class Executor : MachineComponent
     {
         var stateControl = Machine.StateControl;
         await stateControl.WaitForControl();
-
+        if (stateControl.IsResetting)
+        {
+            return;
+        }
         if (Queue.Count > 0)
         {
             var command = Queue.Dequeue();

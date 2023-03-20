@@ -43,11 +43,11 @@ namespace Pyro.Nc.UI.Programs
 
         public override void UpdateView()
         {
-            if (Input.GetMouseButtonDown(3))
-            {
-                var mousePos = (Vector2) Input.mousePosition;
-                
-            }
+            // if (Input.GetMouseButtonDown(3))
+            // {
+            //     var mousePos = (Vector2) Input.mousePosition;
+            //     
+            // }
         }
     }
 }

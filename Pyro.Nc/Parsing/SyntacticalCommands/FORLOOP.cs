@@ -74,16 +74,26 @@ public class FORLOOP : BaseCommand
         {
             try
             {
+                if (Machine.StateControl.IsResetting)
+                {
+                    CurrentLoopContext = null;
+                    return;
+                }
                 Machine.StateControl.BorrowControl();
                 CurrentLoopContext = command;
                 UI_3D.Instance.SetMessage($"[ForLoop ({VariableName}={CurrentIndex})]: " + command.ToString());
                 await command.ExecuteFinal(draw);
+                if (Machine.StateControl.IsResetting)
+                {
+                    CurrentLoopContext = null;
+                    return;
+                }
                 Machine.StateControl.FreeControl();
             }
             catch (Exception e)
             {
                 Globals.Console.Push(
-                    Globals.Localisation.Find(Localisation.MapKey.GenericHandledError, $"~[ForLoop ({VariableName}={CurrentIndex})]: {e}"));
+                    Globals.Localisation.Find(Localisation.MapKey.GenericHandledError, $"~[ForLoop ({VariableName}={CurrentIndex})]: {e}!~"));
 
                 throw;
             }
@@ -107,6 +117,11 @@ public class FORLOOP : BaseCommand
                     Globals.Localisation.Find(Localisation.MapKey.GenericHandledError, $"[ForLoop ({VariableName}={CurrentIndex})]: {e}"));
 
                 throw;
+            }
+            if (Machine.StateControl.IsResetting)
+            {
+                CurrentLoopContext = null;
+                return;
             }
             Machine.StateControl.BorrowControl();
             await Machine.StateControl.WaitForControl();

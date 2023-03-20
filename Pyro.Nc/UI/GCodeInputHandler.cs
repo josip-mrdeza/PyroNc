@@ -142,6 +142,10 @@ namespace Pyro.Nc.UI
 
         public async Task Call(string text, bool reset, bool is2d = false)
         {
+            if (MachineBase.CurrentMachine.StateControl.IsExecuting)
+            {
+                return;
+            }
             MachineBase.CurrentMachine.SimControl.ResetSimulation();
             MachineBase.CurrentMachine.StateControl.FreeControl();
             InsertGCodeIntoQueue(text, is2d);

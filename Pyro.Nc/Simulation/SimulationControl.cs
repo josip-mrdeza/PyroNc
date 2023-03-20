@@ -47,20 +47,19 @@ public class SimulationControl : MachineComponent
         }
     }
     
-    public void ResetSimulation()
+    public async void ResetSimulation()
     {
+        var machine = MachineBase.CurrentMachine;
+        machine.StateControl.ResetControl();
         var controller = Globals.Workpiece;
         controller.ResetColors();
         controller.ResetVertices();
-        var machine = MachineBase.CurrentMachine;
         machine.ChangeTool(0);
         machine.ToolControl.SelectedTool.Position = Globals.ReferencePointParser.BeginPoint;
-        machine.StateControl.ResetControl();
         machine.StateControl.ResetUI();
         ResetSpindle();
         SoftResetCodeSimulation();
         machine.SetTrans(Vector3.zero);
-        machine.Runner.Queue.Clear();
     }
 
     public void SoftResetCodeSimulation()

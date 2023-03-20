@@ -371,7 +371,6 @@ namespace Pyro.Nc.Simulation
             {
                 if (MachineBase.CurrentMachine.StateControl.IsResetting)
                 {
-                    MachineBase.CurrentMachine.StateControl.FreeControl();
                     return;
                 }
                 var point = points[i];
@@ -474,10 +473,8 @@ namespace Pyro.Nc.Simulation
         {
             if (RealtimeCutting && distTravelled > 0)
             {
-                var feedPerSec = (float) MachineBase.CurrentMachine.SpindleControl.FeedRate * 60;
-                //mm / sec
-                //mm per sec / mm = sec
-                await Task.Delay(TimeSpan.FromSeconds(feedPerSec / distTravelled));
+                var feedPerSec = (float) MachineBase.CurrentMachine.SpindleControl.FeedRate / 60;
+                await Task.Delay(TimeSpan.FromMilliseconds(distTravelled / feedPerSec));
                 if (!skipYield)
                 {
                     await Task.Yield();

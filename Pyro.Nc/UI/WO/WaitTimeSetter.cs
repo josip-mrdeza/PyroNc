@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Reflection;
+using Pyro.IO;
 using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Simulation;
 using TMPro;
@@ -11,8 +13,8 @@ public class WaitTimeSetter : InitializerRoot
     private PropertyInfo info;
     public override void Initialize()
     {
-        Input = GetComponent<TMP_InputField>();
-        Input.onValueChanged.Invoke(Sim3D.WaitStep.ToString());
+        Input = GetComponentInChildren<TMP_InputField>();
+        Input.text = Sim3D.WaitStep.ToString();
         Input.onValueChanged.AddListener(OnChanged);
     }
 
@@ -24,5 +26,9 @@ public class WaitTimeSetter : InitializerRoot
         }
 
         Sim3D.WaitStep = f;
+        var arr = CutTypeSetter.lr.ReadFileAs<List<StoreJsonPart>>("Sim3D.json");
+        var sjp = arr.Find(x => x.Name == nameof(Sim3D.WaitStep));
+        sjp.Value = f;
+        CutTypeSetter.SetFileContents(arr);
     }
 }

@@ -144,6 +144,10 @@ public class MachineBase : InitializerRoot
     public void SetSpindleSpeed(float rpm)
     {
         SpindleControl.SpindleSpeed.Set(rpm);
+        if (rpm > 360)
+        {
+            rpm = 360;
+        }
         ToolControl.SelectedTool.Body.angularVelocity = new Vector3(0, rpm * 0.10472f, 0);
         EventSystem.SpindleSpeedChanged();
     }

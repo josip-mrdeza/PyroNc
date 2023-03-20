@@ -2,6 +2,7 @@ using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Parsing.SyntacticalCommands;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.Simulation.Machines;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace Pyro.Nc.UI;
@@ -22,9 +23,11 @@ public class SingleButton : MonoInitializer
                     if (MachineBase.CurrentMachine.Runner.CurrentContext is FORLOOP)
                     {
                         MachineBase.CurrentMachine.StateControl.FreeControl();
+                        MachineBase.CurrentMachine.StateControl.LockFpsToExecutionMode();
                     }
                     else
                     {
+                        MachineBase.CurrentMachine.StateControl.LockFpsToExecutionMode();
                         await MachineBase.CurrentMachine.Runner.ExecuteOne();
                     }
                 }
@@ -38,6 +41,8 @@ public class SingleButton : MonoInitializer
                 MachineBase.CurrentMachine.StateControl.ResetUI();
                 Globals.GCodeInputHandler.InsertGCodeIntoQueue(false);
                 Begun = true;
+                MachineBase.CurrentMachine.StateControl.FreeControl();
+                MachineBase.CurrentMachine.StateControl.LockFpsToExecutionMode();
                 await MachineBase.CurrentMachine.Runner.ExecuteOne();
             }
         });

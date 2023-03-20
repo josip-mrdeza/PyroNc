@@ -255,7 +255,6 @@ namespace Pyro.Nc.Parsing
         /// <see cref="Expire"/> method.This is not allowed.</exception>
         public void Expire()
         {
-            MachineBase.CurrentMachine.StateControl.FreeControl();
             Mark3DSimulation();
         }
         /// <summary>

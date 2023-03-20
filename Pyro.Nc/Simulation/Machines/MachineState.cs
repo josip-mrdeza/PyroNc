@@ -5,5 +5,6 @@ public enum MachineState
     Idle,
     Executing,
     Paused,
-    Resetting
+    Resetting,
+    WaitingForCompletion
 }
