@@ -80,6 +80,7 @@ public class MachineStateControl : MachineComponent
     public void ResetUI()
     {
         ViewHandler.ShowOne("3DView");
+        Sim2DView.Instance?.Clear();
         UI_3D.Instance.SetTimeDisplay(new TimeSpan());
         UI_3D.Instance.SetMessage("Reset");
         SingleButton.Begun = false;

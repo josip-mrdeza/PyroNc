@@ -9,6 +9,7 @@ using Pyro.IO;
 using Pyro.Math;
 using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Serializable;
+using Pyro.Nc.Simulation.Algos;
 using Pyro.Nc.Simulation.Tools;
 using Pyro.Nc.UI;
 using UnityEngine;
@@ -216,7 +217,7 @@ public class WorkpieceControl : InitializerRoot
     }
     public void GenerateVertexBoxHashes(float step, HashmapGenerationReason reason)
     {
-        if (step == 0 || Sim3D.CuttingType != CutType.VertexBoxHash)
+        if (step == 0 || Sim3D.CuttingType != (CutType) VertexBoxHashAlgorithm.AlgorithmId)
         {
             return;
         }

@@ -10,4 +10,9 @@ public class WorkpieceCollisionException : NotifyException
                                                                               .Format(command.ToString(), v.ToString()))
     {
     }
+
+    public WorkpieceCollisionException(string s) : base(s)
+    {
+        
+    }
 }

@@ -43,17 +43,17 @@ namespace Pyro.Nc.Configuration
 
                     using SerializableMesh sm = SerializableMesh.CreateFromObjText(txt);
                     mesh = sm.ToMesh();
-                }
-                var verts = mesh.vertices;
-                if (verts.Length == 0)
-                {
-                    return;
-                }
-                var max = verts.Max(var => var.z);
-                var min = verts.Min(var => var.z);
+                    var verts = mesh.vertices;
+                    if (verts.Length == 0)
+                    {
+                        return;
+                    }
+                    var max = verts.Max(var => var.z);
+                    var min = verts.Min(var => var.z);
 
-                var diff = System.Math.Abs(max - min);
-                ToolLength = diff;
+                    var diff = System.Math.Abs(max - min);
+                    ToolLength = diff;
+                }
             }
             else
             {

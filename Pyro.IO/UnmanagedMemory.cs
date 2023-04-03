@@ -18,8 +18,8 @@ public class UnmanagedMemory<T> : IDisposable
     private bool _freedMemory;
     private long _size;
     private long _length;
-    private bool _isArray;
-    private static MemberInfo[] StructureInfo;
+    private readonly bool _isArray;
+    private static MemberInfo[] _structureInfo;
 
     public UnmanagedMemory(T value, long size, bool isArray = false, long length = 0)
     {
@@ -41,9 +41,9 @@ public class UnmanagedMemory<T> : IDisposable
     public UnmanagedMemory(long size, bool isArray = false, long length = 0)
     {
         Setup(size, length);
-        if (StructureInfo is null)
+        if (_structureInfo is null)
         {
-            StructureInfo = typeof(T).GetMembers();
+            _structureInfo = typeof(T).GetMembers();
         }
         //TODO make this work for structs with multiple correlated items of the same type.
         throw new NotImplementedException();

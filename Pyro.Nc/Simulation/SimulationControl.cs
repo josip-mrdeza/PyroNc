@@ -43,6 +43,14 @@ public class SimulationControl : MachineComponent
             {
                 return loop.CurrentLoopContext is G01;
             }
+
+            if (currentContext is Cycle cycle)
+            {
+                if (cycle.CurrentContext is G01)
+                {
+                    return true;
+                }
+            }
             return currentContext is G01;
         }
     }

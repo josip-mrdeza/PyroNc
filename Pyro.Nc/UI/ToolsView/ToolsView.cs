@@ -1,8 +1,8 @@
-namespace Pyro.Nc.UI.WO;
+namespace Pyro.Nc.UI.ToolsView;
 
-public class WorkOffsetView : View
+public class ToolsView : View
 {
-    public static WorkOffsetView Instance;
+    public static ToolsView Instance;
     public override void Initialize()
     {
         base.Initialize();

@@ -50,6 +50,10 @@ public class DEF : BaseCommand
     public static void ClearVariableMap()
     {
         CommandHelper.VariableMap.Clear();
+        foreach (var systemVariable in CommandHelper.SysStorage.Variables)
+        {
+            CommandHelper.VariableMap.Add(systemVariable.Id.ToString(), systemVariable.Value);
+        }
     }
 
     public static object CreateVariableOfType(VariableType type, bool isArray, string value = "", int verticalLength = 0, int horizontalLength = 0)

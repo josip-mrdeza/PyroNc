@@ -32,6 +32,7 @@ public class MachineBase : InitializerRoot
     public Executor Runner { get; private set; }
     public MachineStateControl StateControl { get; private set; }
     public SimulationControl SimControl { get; private set; }
+    public DistanceTracker Tracker { get; private set; }
     public ClickHandler ClickHandler => ClickHandler.Instance;
     public MachineType CncType { get; protected set; }
     public ThreadTaskQueue Queue { get; private set; }
@@ -53,6 +54,7 @@ public class MachineBase : InitializerRoot
         StateControl = new MachineStateControl();
         SimControl = new SimulationControl();
         ToolControl = gameObject.AddComponent<ToolControl>();
+        Tracker = gameObject.AddComponent<DistanceTracker>();
         if (ToolControl.SelectedTool == null)
         {
             Push("~[MachineBase]: ToolControl.SelectedTool is null!~");
@@ -65,8 +67,6 @@ public class MachineBase : InitializerRoot
             Push($"Jogging to: {v.ToString()}!");
             await Runner.Jog(v);
         };
-        SpindleControl.FeedRate.SetUpperValue(350);
-        SpindleControl.SpindleSpeed.SetUpperValue(4000);
         if (EntryHandler.User == null)
         {
             Push("~[MillMachine]: User has not been logged in, can't listen to events!~");
@@ -84,12 +84,12 @@ public class MachineBase : InitializerRoot
     {
         Queue.Run(async arg =>
         {                                            
-            var v3Str = arg.StringData.Value;
-            var v3Split = v3Str.Split(',');
+            string v3Str = arg.StringData.Value;
+            string[] v3Split = v3Str.Split(',');
             Vector3 v3 = new Vector3((float) v3Split[0].ParseNumber(), (float) v3Split[1].ParseNumber(), (float) v3Split[2].ParseNumber());
-            var pos = CurrentMachine.ToolControl.SelectedTool.Position;
-            var totalMove = v3;
-            var destination = pos + totalMove;
+            Vector3 pos = CurrentMachine.ToolControl.SelectedTool.Position;
+            Vector3 totalMove = v3;
+            Vector3 destination = pos + totalMove;
             CurrentMachine.ToolControl.SelectedTool.Position = destination;
             CurrentMachine.Push($"[REMOTE-JOG] - Jogging to {destination.ToString()}...");
         }, args);

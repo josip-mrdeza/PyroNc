@@ -44,6 +44,11 @@ public class WorkpieceView : View
     {
         if (float.TryParse(s, out float x))
         {
+            if (x == 0)
+            {
+                x = 100;
+                Length.Text = "100";
+            }
             var workpiece = MachineBase.CurrentMachine.Workpiece;
             ref var max = ref workpiece.MaxValues;
             max.x = x;
@@ -61,6 +66,11 @@ public class WorkpieceView : View
     {
         if (float.TryParse(s, out float z))
         {
+            if (z == 0)
+            {
+                z = 100;
+                Width.Text = "100";
+            }
             var workpiece = MachineBase.CurrentMachine.Workpiece;
             ref var max = ref workpiece.MaxValues;
             max.z = z;
@@ -78,6 +88,11 @@ public class WorkpieceView : View
     {
         if (float.TryParse(s, out float y))
         {
+            if (y == 0)
+            {
+                y = 100;
+                Height.Text = "100";
+            }
             var workpiece = MachineBase.CurrentMachine.Workpiece;
             ref var max = ref workpiece.MaxValues;
             max.y = y;          

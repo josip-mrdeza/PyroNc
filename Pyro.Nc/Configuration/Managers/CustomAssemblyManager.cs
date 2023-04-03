@@ -15,7 +15,9 @@ using Pyro.IO.Builder;
 using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Parsing;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Algos;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace Pyro.Nc.Configuration.Managers;
 
@@ -23,6 +25,8 @@ public class CustomAssemblyManager : InitializerRoot
 {
     [StoreAsJson]
     public static bool EnablePluginUpdates { get; set; } = true;
+
+    public static Dictionary<int, IMillAlgorithm> Algorithms;
     public static CustomAssemblyManager Self;
     public List<Assembly> ImportedAssemblies;
     public List<IPyroPlugin> Plugins;
@@ -38,6 +42,40 @@ public class CustomAssemblyManager : InitializerRoot
         await Task.Run(CompilePlugins);
         InitializeAllPlugins();
         ValueStorage.AddCommandsFromPlugins();
+        Algorithms = FindAlgorithms();
+    }
+
+    private Dictionary<int, IMillAlgorithm> FindAlgorithms()
+    {
+        var algos = new Dictionary<int, IMillAlgorithm>();
+        List<Type> types = new List<Type>();
+        types.AddRange(ImportedAssemblies.SelectMany(x => x.GetTypes()));
+        types.AddRange(new Type[]
+        {
+            typeof(SimpleCutAlgorithm),
+            typeof(VertexBoxHashAlgorithm),
+            typeof(CompiledLineHashAlgorithm),
+            typeof(AdditiveCompiledLineHashCutAlgorithm)
+        });
+        foreach (var type in types)
+        {
+            if (type.GetInterface(nameof(IMillAlgorithm)) != null)
+            {
+                try
+                {
+                    var obj = (IMillAlgorithm)Activator.CreateInstance(type);
+                    var id = type.GetProperty(nameof(IMillAlgorithm.Id));
+                    var idValue = (int) id.GetValue(obj);
+                    algos.Add(idValue, obj);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError(e);
+                }
+            }
+        }
+
+        return algos;
     }
 
     private void CompilePlugins()

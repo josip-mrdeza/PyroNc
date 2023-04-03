@@ -12,7 +12,9 @@ using Pyro.Nc.Parsing.ArbitraryCommands;
 using Pyro.Nc.Parsing.SyntacticalCommands;
 using Pyro.Nc.Pathing;
 using Pyro.Nc.Simulation;
+using Pyro.Nc.Simulation.Machines;
 using Pyro.Nc.UI;
+using SharpMath.Expressions.Exceptions;
 using UnityEngine;
 
 namespace Pyro.Nc.Parsing
@@ -22,6 +24,7 @@ namespace Pyro.Nc.Parsing
         internal static ValueStorage Storage;
         internal static BaseCommand PreviousModal;
         internal static Dictionary<string, object> VariableMap = new Dictionary<string, object>();
+        internal static SystemVariableStorage SysStorage = new SystemVariableStorage();
         internal static string PreviousExceptionMessage;
         internal static MathParser ExpParser = new MathParser("", VariableMap);
         public static bool IsSuggesting { get; set; }
@@ -140,7 +143,6 @@ namespace Pyro.Nc.Parsing
                 var str = splitCode.Skip(indices[i]).Take(range).ToArray();
                 arrOfCommands.Add(str);
             }
-
             return arrOfCommands;
         }
         
@@ -406,7 +408,15 @@ namespace Pyro.Nc.Parsing
                             return;
                         }
                     }
-                    command.AdditionalInfo += $"\n[Using {drc.Name}={drc.Value}]";
+
+                    if (drc.Value is Func<float> func)
+                    {
+                        command.AdditionalInfo += $"\n[Using system variable {drc.Name}={func().ToString(CultureInfo.InvariantCulture)}]";
+                    }
+                    else
+                    {
+                        command.AdditionalInfo += $"\n[Using {drc.Name}={drc.Value}]";
+                    }
                     char param = par[0];
                     if (param == 'Z')
                     {
@@ -419,7 +429,7 @@ namespace Pyro.Nc.Parsing
                     command.Parameters.VarValues[char.ToUpperInvariant(param).ToString()] = () =>
                     {
                         var cpy = (string) reqStr.Clone();
-                        double d = 0;
+                        double d;
                         if (drc.Value is int)
                         {
                             d = (double) (int) drc.Value;
@@ -430,7 +440,18 @@ namespace Pyro.Nc.Parsing
                         }
                         else
                         {
-                            d = (float)drc.Value;
+                            if (drc.Value is float fl)
+                            {
+                                d = fl;
+                            }
+                            else if (drc.Value is Func<float> func)
+                            {
+                                d = func();
+                            }
+                            else
+                            {
+                                throw new ParserException($"[POPULATE]: Could not parse variable of type: {drc.Value.GetType().Name} with ID: {drc.Name}!");
+                            }
                         }
                         f = (float)d;
                         cpy = cpy.Replace($"${drc.Name}", f.ToString());
@@ -498,7 +519,7 @@ namespace Pyro.Nc.Parsing
                                                                        y => y.ToUpperInvariant()
                                                                              .Contains("CYCLE")) !=
                                                                    null)]);
-                var actualCycle = ExtractCycle(fullString);
+                var actualCycle = ExtractCycle(fullString); 
 
                 commands.Add(actualCycle);
 

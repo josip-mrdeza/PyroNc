@@ -9,5 +9,12 @@ namespace Pyro.Nc.Parsing.ArbitraryCommands
         public Cycle(ToolBase toolBase, ICommandParameters parameters) : base(toolBase, parameters)
         {
         }
+
+        public BaseCommand CurrentContext { get; private set; }
+        
+        public void SetOp(BaseCommand command)
+        {
+            CurrentContext = command;
+        }
     }
 }

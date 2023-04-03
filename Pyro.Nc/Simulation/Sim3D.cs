@@ -5,11 +5,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Runtime.Remoting.Contexts;
-using System.Threading;
 using System.Threading.Tasks;
 using Pyro.IO;
 using Pyro.IO.Events;
@@ -20,15 +15,12 @@ using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Configuration.Sim3D_Legacy;
 using Pyro.Nc.Configuration.Statistics;
 using Pyro.Nc.Exceptions;
-using Pyro.Nc.Parsing.ArbitraryCommands;
-using Pyro.Nc.Parsing.Cycles;
 using Pyro.Nc.Parsing.GCommands;
 using Pyro.Nc.Pathing;
+using Pyro.Nc.Simulation.Algos;
 using Pyro.Nc.Simulation.Machines;
 using Pyro.Nc.Simulation.Tools;
 using Pyro.Nc.Simulation.Workpiece;
-using Pyro.Nc.UI;
-using Pyro.Nc.UI.Debug;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 using Path = Pyro.Nc.Pathing.Path;
@@ -43,6 +35,7 @@ namespace Pyro.Nc.Simulation
         public static float WaitStep { get; set; }
         [StoreAsJson]
         public static bool KeepTraceLines { get; set; }
+
         [StoreAsJson]
         public static CutType CuttingType { get; set; } = CutType.LineHash;
 
@@ -83,7 +76,7 @@ namespace Pyro.Nc.Simulation
             //vertex = tool.Cube.transform.TransformVector(vertex);
             if (vertex.x < min.x)
             {
-                d.X = -vertex.x;
+                d.X = vertex.x;
             }
             else if (vertex.x > max.x)
             {
@@ -92,7 +85,7 @@ namespace Pyro.Nc.Simulation
             //
             if (vertex.y < min.y)
             {
-                d.Y = -vertex.y;
+                d.Y = vertex.y;
             }
             else if (vertex.y > max.y)
             {
@@ -101,7 +94,7 @@ namespace Pyro.Nc.Simulation
             //
             if (vertex.z < min.z)
             {
-                d.Z = -vertex.z;
+                d.Z = vertex.z;
             }
             else if (vertex.z > max.z)
             {
@@ -344,9 +337,15 @@ namespace Pyro.Nc.Simulation
             var isCutting = MachineBase.CurrentMachine.SimControl.IsInCuttingMode;
             toolBase.Renderer.positionCount = points.Length;
             Dictionary<Vector3, List<int>> dict = null;
-            if (CuttingType == CutType.LineHash)    
+            if (CuttingType == CutType.LineHash || CuttingType == CutType.LineHashAdditive)    
             {
-                dict = await Task.Run(async () => await ToolBase.CompileLineHashCut(points));
+                //dict = await Task.Run(async () => await ToolBase.CompileLineHashCut(points));
+                dict = await Task.Run(async () =>
+                {
+                    var algo = (CompiledLineHashAlgorithm) CustomAssemblyManager.Algorithms[(int)CuttingType];
+                    await algo.PrefixAsync(points);
+                    return algo.CompiledLine;
+                });
             }
             var boxHash = MachineBase.CurrentMachine.Workpiece.VertexBoxHash;
             var maxMapping = new Dictionary<int, int>();
@@ -378,18 +377,24 @@ namespace Pyro.Nc.Simulation
                 toolBase.Position = point;
                 if (isCutting)
                 {
-                    if (CuttingType == CutType.Legacy)
+                    if (dict.TryGetValue(point, out var list))
                     {
-                        toolBase.CutLegacy();
+                        var wp = MachineBase.CurrentMachine.Workpiece;
+                        var tr = wp.transform;
+                        var verts = wp.Vertices;
+                        foreach (var index in list)
+                        {
+                            var v = verts[index];
+                            if (MachineBase.CurrentMachine.ToolControl.SelectedTool.IsCollidingToolShankAt(
+                                    tr.TransformPoint(v)))
+                            {
+                                throw new CollisionWithToolShankException();
+                            }
+                        }
                     }
-                    else if (CuttingType == CutType.LineHash)
-                    {
-                        toolBase.LineHashCut(dict, point); //works wonders
-                    }
-                    else
-                    {
-                        toolBase.Cut(boxes, maxMapping);
-                    }
+
+                    IMillAlgorithm algo = CustomAssemblyManager.Algorithms[(int) CuttingType];
+                    await algo.MillAsync(toolBase, WorkpieceControl.Instance);
                     var feedPerMin = (float) MachineBase.CurrentMachine.SpindleControl.FeedRate;
                     var minutes = diff / feedPerMin;
                     try

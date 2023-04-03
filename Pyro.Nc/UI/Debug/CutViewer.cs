@@ -11,4 +11,10 @@ public static class CutViewer
         // UnityEngine.Debug.DrawLine(point - new Vector3(1, 0, 0), point + new Vector3(1, 0, 0), Color.blue, seconds);
         // UnityEngine.Debug.DrawLine(point - new Vector3(0, 0, 1), point + new Vector3(0, 0, 1), Color.blue, seconds);
     }
+    public static void ShowPoint(this Vector3 point, float seconds, Color color)
+    {
+        UnityEngine.Debug.DrawLine(point - new Vector3(0, 0.01f, 0), point + new Vector3(0, 0.01f, 0), color, seconds);
+        // UnityEngine.Debug.DrawLine(point - new Vector3(1, 0, 0), point + new Vector3(1, 0, 0), Color.blue, seconds);
+        // UnityEngine.Debug.DrawLine(point - new Vector3(0, 0, 1), point + new Vector3(0, 0, 1), Color.blue, seconds);
+    }
 }

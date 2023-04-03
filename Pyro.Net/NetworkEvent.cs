@@ -77,7 +77,7 @@ namespace Pyro.Net
                         {
                             await EventStream.ReadAsync(intBuffer, 0, 4);
                             var num = BitConverter.ToInt32(intBuffer, 0);
-                            if (num > 10_000)
+                            if (num > 4096)
                             {
                                 continue;
                             }

@@ -15,11 +15,6 @@ public class PyroPluginPrimjer_2 : IPyroPlugin
     /// </summary>
     public void InitializePlugin()
     {
-        //Kod za inicijalizaciju
-        MachineBase.CurrentMachine.EventSystem.OnPositionChanged += (_, pozicijaAlata) =>
-        {
-            Globals.Console.Push($"Alat se pomaknuo, sada je na poziciji: {pozicijaAlata.ToString()}");
-        };
     }
     /// <summary>
     /// Funkcija za periodicno ponavljanje koda

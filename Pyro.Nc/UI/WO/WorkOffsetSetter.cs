@@ -64,8 +64,18 @@ public class WorkOffsetSetter : InitializerRoot
             }
         }
 
-        X.text = wo.Value.x.ToString(CultureInfo.InvariantCulture);
-        Y.text = wo.Value.y.ToString(CultureInfo.InvariantCulture);
-        Z.text = wo.Value.z.ToString(CultureInfo.InvariantCulture);
+        var val = wo.Value;
+        if (val.x != 0)
+        {
+            X.text = val.x.ToString(CultureInfo.InvariantCulture);
+        }
+        if (val.y != 0)
+        {
+            Y.text = val.y.ToString(CultureInfo.InvariantCulture);
+        }
+        if (val.z != 0)
+        {
+            Z.text = val.z.ToString(CultureInfo.InvariantCulture);
+        }
     }
 }

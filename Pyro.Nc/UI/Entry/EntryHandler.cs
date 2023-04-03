@@ -1,4 +1,6 @@
 using System;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Pyro.IO;
@@ -39,33 +41,7 @@ public class EntryHandler : LoadingScreenView
         IsWaiting = true;
         if (!LocalRoaming.OpenOrCreate("PyroNc\\LoginInfo").Exists("login.json"))
         {
-            PopupHandler.PopDualInputOption("Welcome to Pyro Nc", "Register / Log in", "Username", "Password", async ph =>
-            {
-                bool isFinished = false;
-                while (!isFinished)
-                {
-                    try
-                    {
-                        SetText("Querying login info from server using data provided...");
-                        IsWaiting = true;
-                        SetText("Logging in...");
-                        await Login(ph);
-                        IsWaiting = false;
-                        SetText("Done!");
-                        SceneManager.LoadSceneAsync("MainScene");
-                        isFinished = true;
-                    }
-                    catch (Exception e)
-                    {
-                        Push(e.Message);
-                        IsWaiting = true;
-                        SetText("An error has occured!");
-                        await Task.Delay(200);
-                        SetText("Retrying...");
-                    }
-                }
-                IsWaiting = false;
-            });
+            OpenDialog();
         }
         else
         {
@@ -78,17 +54,48 @@ public class EntryHandler : LoadingScreenView
         }
     }
 
+    private void OpenDialog()
+    {
+        PopupHandler.PopDualInputOption("Welcome to Pyro Nc", "Register / Log in", "Username", "Password", async ph =>
+        {
+            bool isFinished = false;
+            while (!isFinished)
+            {
+                try
+                {
+                    SetText("Querying login info from server using data provided...");
+                    IsWaiting = true;
+                    SetText("Logging in...");
+                    await Login(ph);
+                    IsWaiting = false;
+                    SetText("Done!");
+                    SceneManager.LoadSceneAsync("MainScene");
+                    isFinished = true;
+                }
+                catch (Exception e)
+                {
+                    Push(e.Message);
+                    IsWaiting = true;
+                    SetText("An error has occured!");
+                    await Task.Delay(200);
+                    SetText("Retrying...");
+                }
+            }
+
+            IsWaiting = false;
+        });
+    }
+
     public async Task Login(PopupHandler ph)
     {
         var lr = LocalRoaming.OpenOrCreate("PyroNc\\LoginInfo");
         var user = lr.ReadFileAs<PUser>("login.json");
         if (user is null)
         {
-            SetText("Registering user...");
             user = Register(ph);
             SetText("Logging in...");
             await Login(ph);
-            SetText("Done!");
+            SetText("OK!");
         }
         else
         {
@@ -102,33 +109,54 @@ public class EntryHandler : LoadingScreenView
         SetText("Registering for file service...");
         for (int i = 0;; i++)
         {
+            HttpResponseMessage ok = null;
             try
             {
-                var ok = await NetHelpers.PostWithDetails($"{URL}/files/register?userName={user.Name}&password={user.Password}");
+                ok = await NetHelpers.PostWithDetails($"{URL}/files/register?userName={user.Name}&password={user.Password}");
+                SetText($"[{(int)ok.StatusCode}]: {ok.ReasonPhrase}");
                 if (ok.IsSuccessStatusCode)
                 {
                     break;
                 }
-                SetText($"[{(int) ok.StatusCode}]: " + ok.ReasonPhrase);
-                await Task.Delay(200);
-                SetText("Registering for file service...");
+
+                if (ok.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    SetText($"[{(int)ok.StatusCode}]: Failed-{ok.ReasonPhrase}");
+                    OpenDialog();
+                    lr.Delete("login.json");
+                    await Login(ph);
+                }
             }
             catch (Exception e)
             {
-                SetText($"Error: {e.Message}");
+                if (ok is null)
+                {
+                    SetText(e.Message);
+                }
+                var delay = 200;
+                var remaining = delay;
+                var inc = 10;
+                var str = $"[{(int)ok.StatusCode}]: {ok.ReasonPhrase}";
+                for (int j = 0; j < 20; j++)
+                {
+                    SetText($"{str}\nRetrying in {remaining}ms...");
+                    await Task.Delay(inc);
+                    remaining -= inc;
+                }       
+                SetText("Registering for file service...");
             }
         }
-        SetText("Done!");
+        SetText("OK!");
         IsWaiting = true;
         SetText("Requesting session creation...");
         Session s = await NetHelpers.GetJson<Session>($"{URL}/session/random?userName={user.Name}");
-        SetText("Done!");
+        SetText("OK!");
         User = user;
         Session = s;
         SetText("Activating session...");
         ActivateSession(user, s);
         IsWaiting = false;
-        SetText("Done!");
+        SetText("OK!");
     }
 
     public PUser Register(PopupHandler ph)

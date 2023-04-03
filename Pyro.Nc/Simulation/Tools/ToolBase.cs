@@ -84,6 +84,14 @@ public class ToolBase : InitializerRoot
         var vert = v.y >= pos.y;
         return vert && hor < ToolConfig.Radius;
     }
+
+    public bool IsCollidingToolShankAt(Vector3 v)
+    {
+        var pos = Position;
+        var hor = Vector2.Distance(new Vector2(v.x, v.z), new Vector2(pos.x, pos.z));
+        var vert = v.y >= pos.y + ToolConfig.VerticalMargin;
+        return vert && hor < ToolConfig.Radius;
+    }
     public void CutLegacy()
     {
         var control = MachineBase.CurrentMachine.Workpiece;
@@ -163,127 +171,6 @@ public class ToolBase : InitializerRoot
         var index = map.Index;
         workpiece.Vertices[index] = v3dFinal;
         workpiece.Colors[index] = toolConfig.GetColor(); 
-    }
-
-    public void LineHashCut(Dictionary<Vector3, List<int>> dictionary, Vector3 point)
-    {
-        var machine = MachineBase.CurrentMachine;
-        var control = machine.Workpiece;
-        var vertices = control.Vertices;
-        var colors = control.Colors;
-        var pos = Position;
-        var tr = control.transform;
-        if (!dictionary.TryGetValue(point, out var list))
-        {
-            return;
-        }
-
-        var color = ToolConfig.GetColor();
-        for (var index = 0; index < list.Count; index++)
-        {
-            var i = list[index];
-            var v = tr.TransformPoint(vertices[i]);
-            if (v.y < pos.y)
-            {
-                continue;
-            }
-            else if (v.y > pos.y + ToolConfig.VerticalMargin)
-            {
-                throw new CollisionWithToolShankException();
-            }
-
-            if (false && !CreateRadiusCircle(v, pos, ToolConfig.Radius-0.3f, out var result))
-            {
-                var max = machine.Workpiece.MaxValues;
-                if (result.x > max.x)
-                {
-                    result.x = max.x;
-                }
-                else if (result.x < 0)
-                {
-                    result.x = 0;
-                }
-
-                if (result.y > max.z)
-                {
-                    result.y = max.z;
-                }
-                else if (result.y < 0)
-                {
-                    result.y = 0;
-                }
-
-                v = new Vector3(result.x, pos.y, result.y);
-            }
-            else
-            {
-                v.y = pos.y;
-            }
-
-            vertices[i] = tr.InverseTransformPoint(v);
-            colors[i] = color * 3f;
-        }
-    }
-
-    public static async Task<Dictionary<Vector3, List<int>>> CompileLineHashCut(Vector3[] points)
-    {
-        Stopwatch s = Stopwatch.StartNew();
-        var machine = MachineBase.CurrentMachine;
-        var control = machine.Workpiece;
-        var vertices = control.Vertices;
-        var toolConfig = Globals.Tool.ToolConfig;
-        var radius = toolConfig.Radius;
-        Dictionary<Vector3, List<int>> vecToListHash = new Dictionary<Vector3, List<int>>();
-        var transform = await machine.Queue.Run(GetTransformMainThread, control);
-        var transformedVertices = await machine.Queue.Run(GetTransformedVerticesMainThread, vertices, transform);
-        var count = transformedVertices.Count;
-        for (var index = 0; index < count; index++)
-        {
-            var vertex = transformedVertices[index];
-            foreach (var point in points)
-            {
-                var horizontalDistance = Vector2.Distance(new Vector2(vertex.x, vertex.z), new Vector2(point.x, point.z));
-                if (horizontalDistance > radius-radius*0.05f)
-                {
-                    continue;
-                }
-
-                var verticalDistance = Vector2.Distance(new Vector2(0, vertex.y), new Vector2(0, point.y));
-                if (verticalDistance > toolConfig.VerticalMargin)
-                {
-                    continue;
-                }
-                if (!vecToListHash.TryGetValue(point, out var list))
-                {
-                    list = new List<int>();
-                    vecToListHash.Add(point, list);
-                }
-                list.Add(index); 
-            }
-        }
-        var sum = vecToListHash.Sum(x => x.Value.Count).ToString();
-        s.Stop();
-        Globals.Tool.Push($"[ToolBase] - Compiled vertices in '{s.Elapsed.TotalMilliseconds.Round().ToString(CultureInfo.InvariantCulture)}'ms\n" +
-                          $"    -Total buckets: '{vecToListHash.Count.ToString(CultureInfo.InvariantCulture)}',\n" +
-                          $"    -Total vertex sum: '{sum}',\n" +
-                          $"    -Execution complete on thread: '{Thread.CurrentThread.ManagedThreadId.ToString()}'.");
-        return vecToListHash;
-    }
-
-    private static List<Vector3> GetTransformedVerticesMainThread(List<Vector3> original, Transform tr)
-    {
-        List<Vector3> verts = original.ToList();
-        for (int i = 0; i < verts.Count; i++)
-        {
-            verts[i] = tr.TransformPoint(verts[i]);
-        }
-
-        return verts;
-    }
-
-    private static Transform GetTransformMainThread(WorkpieceControl control)
-    {
-        return control.transform;
     }
 
     private static bool CreateRadiusCircle(Vector3 vertex, Vector3 pos, float radius, out Vector2D v2dResult)

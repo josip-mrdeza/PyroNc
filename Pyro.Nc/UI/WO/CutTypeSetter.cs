@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Pyro.IO;
+using Pyro.Nc.Configuration.Managers;
 using Pyro.Nc.Configuration.Startup;
 using Pyro.Nc.Simulation;
 using Pyro.Nc.Simulation.Tools;
@@ -18,8 +19,7 @@ public class CutTypeSetter : InitializerRoot
     {
         Dropdown = GetComponentInChildren<TMP_Dropdown>();
         Dropdown.ClearOptions();
-        var type = typeof(CutType);
-        var enums = type.GetEnumNames();
+        var enums = CustomAssemblyManager.Algorithms.Values.Select(x => x.Name).ToArray();
         Dropdown.AddOptions(enums.ToList());
         Dropdown.value = (int) Sim3D.CuttingType;
         Dropdown.onValueChanged.AddListener(OnChanged);

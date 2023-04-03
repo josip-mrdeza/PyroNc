@@ -58,36 +58,43 @@ public class CYCLE81 : Cycle
         }
 
         var sdis = Parameters.GetValue("SDIS").Abs();
-        
+
         var currentPos = ToolBase.Position;
         currentPos.y = rfp + sdis;
         var g0 = new G00(ToolBase, new GCommandParameters(currentPos));
+        SetOp(g0);
         await g0.Execute(true);
 
         var dp = Parameters.GetValue("DP");
         var dpr = Parameters.GetValue("DPR");
-        
+        G01 g1 = null;
         if (!float.IsNaN(dpr))
         {
             currentPos.y = rfp - dp.Abs();
-            var g1 = new G01(ToolBase, new GCommandParameters(currentPos));
+            g1 = new G01(ToolBase, new GCommandParameters(currentPos));
+            SetOp(g1);
             await g1.Execute(true); 
         }
         else if (!float.IsNaN(dp))
         {
             currentPos.y = dp;
-            var g1 = new G01(ToolBase, new GCommandParameters(currentPos));
+            g1 = new G01(ToolBase, new GCommandParameters(currentPos));
+            SetOp(g1);
             await g1.Execute(true);
         }
 
         if (HoldAtBottom)
         {
             var dtp = Parameters.GetValue("DTB");
-            await Task.Delay(TimeSpan.FromSeconds(dtp));
+            var g04 = new G04(ToolBase, new GCommandParameters(default));
+            g04.Parameters.AddValue("P", dtp*1000);
+            SetOp(g04);
+            await g04.Execute(true);
         }
         
-        g0.Parameters.Values["Y"] = rtp;
-        await g0.Execute(true);
+        g1.Parameters.Values["Y"] = rtp;
+        SetOp(g1);
+        await g1.Execute(true);
     }
     
 }

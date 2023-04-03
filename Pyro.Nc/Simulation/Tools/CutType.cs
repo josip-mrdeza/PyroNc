@@ -4,5 +4,6 @@ public enum CutType
 {
     Legacy,
     VertexBoxHash,
-    LineHash
+    LineHash,
+    LineHashAdditive
 }

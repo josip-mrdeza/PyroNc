@@ -21,6 +21,10 @@ namespace Pyro.Nc.Configuration
             referencePointsTxt = LocalRoaming.OpenOrCreate("PyroNc\\Configuration").ReadFileAsText("referencePoints.txt").Split('\n');
             var valid = referencePointsTxt.Where(l => !l.StartsWith("//")).ToArray();
             PyroConsoleView.PushTextStatic(new string[]{""}.Concat(valid).ToArray());
+            if (valid.Length == 0)
+            {
+                return;
+            }
             _cachedValues = valid.Select(s => s.Split(':')[1])
                                  .Select(vc =>
                                  {
@@ -43,6 +47,10 @@ namespace Pyro.Nc.Configuration
 
         private void InitPerIndex(int index)
         {
+            if (_cachedValues == null || _cachedValues.Length == 0 || referencePointsTxt == null || referencePointsTxt.Length == 0)
+            {
+                Initialize();
+            }
             var valid = referencePointsTxt.Where(l => !l.StartsWith("//"));
             _cachedValues[index] = valid.SkipWhile(x => x.StartsWith("//"))
                                         .Skip(index)

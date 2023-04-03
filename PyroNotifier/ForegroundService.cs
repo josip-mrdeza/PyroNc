@@ -48,7 +48,7 @@ namespace PyroNotifier{
                         var ts = new TimeSpan(elapsed.Days, elapsed.Hours, elapsed.Minutes, elapsed.Seconds);
                         Notifier.SendNotification(2, "Waiting for events...", $"{ts.ToString()} elapsed",
                                                   69, false, true, 0, 100, true);
-                        await Task.Delay(500);
+                        await Task.Delay(1000);
                     }
                 });
                 Timer.Start();
