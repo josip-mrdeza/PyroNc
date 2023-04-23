@@ -78,6 +78,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroNetTests", "PyroNetTest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroController", "PyroController\PyroController.csproj", "{C0DDA369-CD6B-4E1A-91E8-8C68215A60CA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PyroNc_Website", "PyroNc_Website\PyroNc_Website.csproj", "{3B0A8DB0-7257-4A86-8499-1E8D225AB0FA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -240,5 +242,9 @@ Global
 		{C0DDA369-CD6B-4E1A-91E8-8C68215A60CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C0DDA369-CD6B-4E1A-91E8-8C68215A60CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C0DDA369-CD6B-4E1A-91E8-8C68215A60CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B0A8DB0-7257-4A86-8499-1E8D225AB0FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B0A8DB0-7257-4A86-8499-1E8D225AB0FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B0A8DB0-7257-4A86-8499-1E8D225AB0FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B0A8DB0-7257-4A86-8499-1E8D225AB0FA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

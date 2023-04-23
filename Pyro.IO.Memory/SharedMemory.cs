@@ -183,6 +183,11 @@ using System.Linq;
         /// <returns>A reference to an array of structures.</returns>
         public byte[] Read(string viewId, string structureUniqueId)
         {
+            var dft = "default";
+            if (viewId == null)
+            {
+                viewId = dft;
+            }
             var view = Views[viewId];
             if (view.CanRead)
             {
@@ -209,6 +214,11 @@ using System.Linq;
         /// <returns>A reference to an array of structures.</returns>
         public T Read<T>(string viewId, string structureUniqueId) where T : struct
         {
+            var dft = "default";
+            if (viewId == null)
+            {
+                viewId = dft;
+            }
             var view = Views[viewId];
             
             if (view.CanRead)
@@ -249,8 +259,12 @@ using System.Linq;
         /// <returns>A reference to an array of structures.</returns>
         public T Read<T>(string viewId, long offset) where T : unmanaged
         {
-            var view = Views[viewId];
-            
+            var dft = "default";
+            if (viewId == null)
+            {
+                viewId = dft;
+            }
+            var view = Views[viewId];            
             if (view.CanRead)
             {
                 view.Read(offset, out T val);
@@ -272,7 +286,12 @@ using System.Linq;
         /// <returns>A reference to an array of structures.</returns>
         public T[] Read<T>(string viewId, string structureUniqueId, int elementsInArray, int sizeOfEach) where T : unmanaged
         {
-            var view = Views[viewId];
+            var dft = "default";
+            if (viewId == null)
+            {
+                viewId = dft;
+            }
+            var view = Views[viewId];  
             if (view.CanRead)
             {
                 T[] arr = new T[elementsInArray];
@@ -295,6 +314,11 @@ using System.Linq;
         /// <returns>A reference to an array of structures.</returns>
         public T[] Read<T>(string viewId, string structureUniqueId, int elementsInArray) where T : unmanaged
         {
+            var dft = "default";
+            if (viewId == null)
+            {
+                viewId = dft;
+            }
             var view = Views[viewId];
             if (view.CanRead)
             {
@@ -322,6 +346,11 @@ using System.Linq;
         /// <returns>A reference to an array of structures.</returns>
         public T[] Read<T>(string viewId, long offset, int elementsInArray, int sizeOfEach) where T : unmanaged
         {
+            var dft = "default";
+            if (viewId == null)
+            {
+                viewId = dft;
+            }
             var view = Views[viewId];
             if (view.CanRead)
             {

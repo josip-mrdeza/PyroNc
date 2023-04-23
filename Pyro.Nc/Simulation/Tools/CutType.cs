@@ -5,5 +5,6 @@ public enum CutType
     Legacy,
     VertexBoxHash,
     LineHash,
-    LineHashAdditive
+    LineHashAdditive,
+    GpuLineHash
 }

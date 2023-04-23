@@ -55,7 +55,8 @@ public class CustomAssemblyManager : InitializerRoot
             typeof(SimpleCutAlgorithm),
             typeof(VertexBoxHashAlgorithm),
             typeof(CompiledLineHashAlgorithm),
-            typeof(AdditiveCompiledLineHashCutAlgorithm)
+            typeof(AdditiveCompiledLineHashCutAlgorithm),
+            typeof(GPUAcceleratedLineHashAlgorithm)
         });
         foreach (var type in types)
         {

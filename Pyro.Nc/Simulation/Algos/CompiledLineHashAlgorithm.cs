@@ -172,7 +172,7 @@ public class CompiledLineHashAlgorithm : MachineComponent, IMillAlgorithm
         return Task.CompletedTask;
     }
 
-    public async Task<Dictionary<Vector3, List<int>>> CompileSurfaceLine(Vector3[] toolPathPoints)
+    public virtual async Task<Dictionary<Vector3, List<int>>> CompileSurfaceLine(Vector3[] toolPathPoints)
     {
         Stopwatch s = Stopwatch.StartNew();
         Dictionary<Vector3, List<int>> vecToListHash = new Dictionary<Vector3, List<int>>();
@@ -214,7 +214,7 @@ public class CompiledLineHashAlgorithm : MachineComponent, IMillAlgorithm
         return vecToListHash;
     }
 
-    public async Task<Dictionary<Vector3, List<int>>> CompileLine(Vector3[] toolPathPoints)
+    public virtual async Task<Dictionary<Vector3, List<int>>> CompileLine(Vector3[] toolPathPoints)
     {
         Stopwatch s = Stopwatch.StartNew();
         Dictionary<Vector3, List<int>> vecToListHash = new Dictionary<Vector3, List<int>>();
@@ -256,7 +256,7 @@ public class CompiledLineHashAlgorithm : MachineComponent, IMillAlgorithm
         return vecToListHash;
     }
 
-    private bool IsInRangeToCut(Vector3 transformedVertex, Vector3 pathPoint, float radius, float verticalMargin)
+    protected bool IsInRangeToCut(Vector3 transformedVertex, Vector3 pathPoint, float radius, float verticalMargin)
     {
         var workpiecePoint2d = new Vector2(transformedVertex.x, transformedVertex.z);
         var pathPoint2d = new Vector2(pathPoint.x, pathPoint.z);
@@ -275,7 +275,7 @@ public class CompiledLineHashAlgorithm : MachineComponent, IMillAlgorithm
         return true;
     }
     
-    private bool IsInRangeToFix(Vector3 transformedVertex, Vector3 pathPoint, float radius, float verticalMargin)
+    protected bool IsInRangeToFix(Vector3 transformedVertex, Vector3 pathPoint, float radius, float verticalMargin)
     {
         var workpiecePoint2d = new Vector2(transformedVertex.x, transformedVertex.z);
         var pathPoint2d = new Vector2(pathPoint.x, pathPoint.z);
@@ -292,7 +292,7 @@ public class CompiledLineHashAlgorithm : MachineComponent, IMillAlgorithm
         return true;
     }
     
-    private static List<Vector3> GetTransformedVerticesMainThread(List<Vector3> original, Transform tr)
+    protected static List<Vector3> GetTransformedVerticesMainThread(List<Vector3> original, Transform tr)
     {
         List<Vector3> verts = original.ToList();
         for (int i = 0; i < verts.Count; i++)
@@ -303,7 +303,7 @@ public class CompiledLineHashAlgorithm : MachineComponent, IMillAlgorithm
         return verts;
     }
 
-    private static Transform GetTransformMainThread(WorkpieceControl control)
+    protected static Transform GetTransformMainThread(WorkpieceControl control)
     {
         return control.transform;
     }
