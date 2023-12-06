@@ -11,7 +11,15 @@ namespace Pyro.IO
 {
     public class LocalRoaming
     {
-        public Dictionary<string, FileInfo> Files { get; private set; }
+        public Dictionary<string, FileInfo> Files
+        {
+            get
+            {        
+                var files = Directory.EnumerateFiles(Site);
+                return files.ToDictionary(k => k.Remove(0, k.LastIndexOf('\\') + 1), fi => new FileInfo(fi));
+            }
+        }
+
         public Dictionary<string, DirectoryInfo> Folders { get; private set; }
         public string Site { get; private set; }
         public DirectoryInfo Info { get; private set; }
@@ -59,9 +67,7 @@ namespace Pyro.IO
                 Info = new DirectoryInfo(Site);
             }
 
-            var files = Directory.EnumerateFiles(Site);
             var folders = Directory.EnumerateDirectories(Site);
-            Files = files.ToDictionary(k => k.Remove(0, k.LastIndexOf('\\') + 1), fi => new FileInfo(fi));
             Folders = folders.ToDictionary(k => k.Remove(0, k.LastIndexOf('\\') + 1), di => new DirectoryInfo(di));
         }
 
@@ -298,7 +304,15 @@ namespace Pyro.IO
         public void Delete(string variableId)
         {
             File.Delete(Site + variableId);
-            Files.Remove(variableId);
+            if (Files.ContainsKey(variableId))
+            {
+                Files.Remove(variableId);
+            }
+        }
+
+        public void AddDirectory(string id)
+        {
+            Folders.Add(id, Directory.CreateDirectory(id));
         }
     }
 }

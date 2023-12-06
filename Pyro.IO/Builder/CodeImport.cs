@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.CSharp;
 using Pyro.IO.Memory;
-using Pyro.Math;
 
 namespace Pyro.IO.Builder;
 

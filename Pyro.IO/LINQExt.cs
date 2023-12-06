@@ -49,6 +49,14 @@ namespace Pyro.IO
                 
             }
         }
+        public static void Iterate<T>(this IEnumerable<T> enumerable)
+        {
+            using var en = enumerable.GetEnumerator();
+            while (en.MoveNext())
+            {
+                
+            }
+        }
 
         public static async Task IterateAsync<T>(this IAsyncEnumerable<T> source)
         {

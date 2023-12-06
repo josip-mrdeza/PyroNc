@@ -7,21 +7,29 @@ namespace Pyro.IO.Events
 {
     public class PyroEventSystem
     {
+        public List<IPEventSubscriber> GeneralSubscribers = new List<IPEventSubscriber>();
         public Dictionary<string, List<IPEventSubscriber>> Subscribers = new Dictionary<string, List<IPEventSubscriber>>();
         public Dictionary<string, List<IPAsyncEventSubscriber>> AsyncSubscribers = new Dictionary<string, List<IPAsyncEventSubscriber>>();
 
+        
         public void AddSubscriber(string eventName, IPEventSubscriber subscriber)
-        {  
-            Lazy<string> subType = new Lazy<string>(() => subscriber.GetType().Name);
+        {
             if (subscriber == null)
             {
                 return;
             }
+
+            if (eventName == null)
+            {
+                GeneralSubscribers.Add(subscriber);
+                return;
+            }
+            
             if (Subscribers.ContainsKey(eventName))
             {
                 Subscribers[eventName].Add(subscriber);
             }
-            else if (Subscribers.Values.FirstOrDefault(t => t.Exists(p => p.GetType().Name == subType.Value)) != null)
+            else if (Subscribers.Values.FirstOrDefault(t => t.Exists(p => p.GetType().Name == subscriber.GetType().Name)) != null)
             {
                 return;
             }
@@ -33,7 +41,6 @@ namespace Pyro.IO.Events
         
         public void AddAsyncSubscriber(string eventName, IPAsyncEventSubscriber subscriber)
         {
-            Lazy<string> subType = new Lazy<string>(() => subscriber.GetType().Name);
             if (subscriber == null)
             {
                 return;
@@ -42,7 +49,7 @@ namespace Pyro.IO.Events
             {
                 AsyncSubscribers[eventName].Add(subscriber);
             }
-            else if (AsyncSubscribers.Values.FirstOrDefault(t => t.Exists(p => p.GetType().Name == subType.Value)) != null)
+            else if (AsyncSubscribers.Values.FirstOrDefault(t => t.Exists(p => p.GetType().Name == subscriber.GetType().Name)) != null)
             {
                 return;
             }
@@ -67,7 +74,14 @@ namespace Pyro.IO.Events
                 AsyncSubscribers.Add(eventName, new List<IPAsyncEventSubscriber>(){new DelegateSubscriber(func)});
             }
         }
-        
+
+        public void Fire(params object[] parameters)
+        {
+            foreach (var subscriber in GeneralSubscribers)
+            {
+                subscriber.CastInto<IPEventSubscriber<string, byte[]>>().OnEventInvoked((string) parameters[0], (byte[]) parameters[1]);
+            }
+        }
         public void Fire(string eventName)
         {
             var exists = Subscribers.ContainsKey(eventName);

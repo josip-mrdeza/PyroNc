@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
+using Pyro.IO;
 
 namespace Pyro.IO;
 
@@ -16,13 +17,18 @@ public static class JsonConfigCreator
     private const char Quote = '"';
     private const char Colon = ':';
     public static List<StoreAsJson> Stores;
-    public static void TraverseAssemblyAndCreateJsonFiles(this Assembly assembly, LocalRoaming roaming)
+
+    public static void TraverseCallingAssemblyAndCreateJsonFiles(LocalRoaming roaming, bool overwriteAll = false)
+    {
+        Assembly.GetCallingAssembly().TraverseAssemblyAndCreateJsonFiles(roaming, overwriteAll);
+    }
+    public static void TraverseAssemblyAndCreateJsonFiles(this Assembly assembly, LocalRoaming roaming, bool overwriteAll = false)
     {
         var types = assembly.GetTypes();
         Stores = new List<StoreAsJson>();
         foreach (var type in types)
         {
-            if (type.IsInterface)
+            if (type.IsInterface)                               
             {
                 continue;
             }
@@ -43,14 +49,20 @@ public static class JsonConfigCreator
 
                 attr.Parent = type;
                 Stores.Add(attr);
-                object propBaseValue;
-                if (prop.PropertyType == typeof(string))
+                var propBaseValue = prop.GetValue(null);
+
+                if (propBaseValue == null)
                 {
+                    if (prop.PropertyType != typeof(string))
+                    {
+                        propBaseValue = Activator.CreateInstance(prop.PropertyType);
+                        var properties = prop.PropertyType.GetProperties();
+                        foreach (var propInfo in properties)
+                        {
+                            propInfo.SetValue(propBaseValue, Activator.CreateInstance(propInfo.PropertyType));
+                        }
+                    }
                     propBaseValue = "";
-                }
-                else
-                {
-                    propBaseValue = prop.GetValue(null);
                 }
 
                 parts.Add(new StoreJsonPart(attr.Name, propBaseValue));
@@ -64,27 +76,41 @@ public static class JsonConfigCreator
             if (roaming.Exists(name))
             {
                 var e = roaming.ReadFileAs<StoreJsonPart[]>(name);
-                if (e.Length < parts.Count)
+                if (overwriteAll || (e.Length < parts.Count || e.Length > parts.Count))
                 {
                     roaming.ModifyFile(name, parts);
                 }
                 else
                 {
+                    bool brokeOut = false;
                     for (int i = 0; i < e.Length; i++)
                     {
                         var q = e[i];
-                        var t = Type.GetType(q.TypeAsString);
-                        if (t.IsEnum)
+                        if (q.Name == parts[i].Name && q.ID == parts[i].ID)
                         {
-                            var js = (JsonElement) q.Value;
-                            q.StringifiedValue = Enum.GetName(t, js.GetInt32());
+                            var t = Type.GetType(q.TypeAsString);
+                            if (t.IsEnum)
+                            {
+                                var js = (JsonElement) q.Value;
+                                q.StringifiedValue = Enum.GetName(t, js.GetInt32());
+                            }
+                            else
+                            {
+                                q.StringifiedValue = q.Value.ToString();
+                            }
                         }
                         else
                         {
-                            q.StringifiedValue = q.Value.ToString();
+                            roaming.ModifyFile(name, parts);
+                            brokeOut = true;
+                            break;
                         }
                     }
-                    roaming.ModifyFile(name, e);
+
+                    if (!brokeOut)
+                    {
+                        roaming.ModifyFile(name, e);
+                    }
                 }
             }
             else
@@ -181,6 +207,7 @@ public class StoreJsonPart
     public object Value { get; set; }
     public string StringifiedValue { get; set; }
     public string TypeAsString { get; set; }
+    public Guid ID { get; set; }
 
     public StoreJsonPart(string name, object value)
     {
@@ -188,5 +215,6 @@ public class StoreJsonPart
         Value = value;
         StringifiedValue = value.ToString();
         TypeAsString = value.GetType().AssemblyQualifiedName;
+        ID = value.GetType().GUID;
     }
 }

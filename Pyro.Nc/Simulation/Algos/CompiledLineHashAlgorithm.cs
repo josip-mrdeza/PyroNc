@@ -261,7 +261,7 @@ public class CompiledLineHashAlgorithm : MachineComponent, IMillAlgorithm
         var workpiecePoint2d = new Vector2(transformedVertex.x, transformedVertex.z);
         var pathPoint2d = new Vector2(pathPoint.x, pathPoint.z);
         var horizontalDistance = Vector2.Distance(workpiecePoint2d, pathPoint2d);
-        if (horizontalDistance > radius) //point is farther than 105% radius.
+        if (horizontalDistance > radius)
         {
             return false;
         }

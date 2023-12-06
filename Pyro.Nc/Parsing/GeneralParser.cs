@@ -44,7 +44,7 @@ public class GeneralParser
         return null;
     }
 
-    public IEnumerable<ParseResult> FindParametersForGCommand(string[] blocks, int currIndex)
+    public IEnumerable<ParseResult> FindParametersForGCommand(string[] blocks, int currIndex)         
     {
         var currBlockEnumerator = blocks.GetEnumerator();
         for (int i = 0; i < currIndex; i++)

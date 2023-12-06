@@ -39,6 +39,11 @@ public class EntryHandler : LoadingScreenView
     {
         SetText("Prompting user for login info...");
         IsWaiting = true;
+        if (LocalRoaming.OpenOrCreate("PyroNc\\LoginInfo").Exists("forbid.login"))
+        {
+            SceneManager.LoadSceneAsync("MainScene");
+            return;
+        }
         if (!LocalRoaming.OpenOrCreate("PyroNc\\LoginInfo").Exists("login.json"))
         {
             OpenDialog();

@@ -22,9 +22,15 @@ namespace Pyro.IO
             }
         }
 
-        public static T[] GetInternalArray<T>(this List<T> list)
+        public static T[] AsArray<T>(this List<T> list)
         {
             return ArrayAccessor<T>.Getter(list);
-        } 
+        }
+
+        public static void TryFreeMemory<T>(this List<T> list)
+        {
+            var arr = list.AsArray();
+            Array.Resize(ref arr, 0);
+        }
     }
 }

@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
 using Pyro.Threading;
+using TinyClient;
 
 namespace Pyro.Net
 {
@@ -36,8 +37,8 @@ namespace Pyro.Net
             Delay = TimeSpan.FromMilliseconds(25);
             Subscribers = new Lazy<List<NetworkEventSubscriber>>();
             IsActive = true;
-            var url = "https://pyronetserver.azurewebsites.net/events";
-            Url = $"{url}?id={eventId}";
+            var url = "https://pyronetserver0.azurewebsites.net/events";
+            Url = $"{url}?id={eventId}&netid={Device.Current.GetHashCode()}";
             Id = eventId;
             Sequence = matchSequence;
             _executeOnMainThread = executeEventsOnMainThread;
@@ -245,12 +246,12 @@ namespace Pyro.Net
 
         public static async Task<bool> InvokeEvent(string id, string password, string content)
         {
-            return await NetHelpers.Post($"https://pyronetserver.azurewebsites.net/events/invoke?id={id}&sequence={password}", content);
+            return await NetHelpers.Post($"https://pyronetserver0.azurewebsites.net/events/invoke?id={id}&sequence={password}", content);
         }
 
         public static async Task<bool> KillEvent(string id)
         {
-            return await NetHelpers.Post($"https://pyronetserver.azurewebsites.net/events/close?id={id}");
+            return await NetHelpers.Post($"https://pyronetserver0.azurewebsites.net/events/close?id={id}");
         }
     }
 }
